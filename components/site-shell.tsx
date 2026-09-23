@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { ChevronDown, Gamepad2, Headphones, House, Menu, ReceiptText, UserRound, X } from 'lucide-react'
@@ -46,6 +47,9 @@ const sportTabs = [
   ['Virtuals', '/virtuals'],
 ] as const
 
+// Loaded on demand: the sheet imports the betslip, which imports this shell.
+const BetslipSheet = dynamic(() => import('@/components/betslip-sheet'), { ssr: false })
+
 const RECENT_WIN_MS = 3 * 86_400_000
 
 export function SiteShell({ children }: { children: ReactNode }) {
@@ -59,10 +63,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [win, setWin] = useState<{ code: string; amount: number; currency: string } | null>(null)
   const [openBets, setOpenBets] = useState(0)
+  const [slipOpen, setSlipOpen] = useState(false)
   const router = useRouter()
   const slipLegs = useSlip((state) => state.legs)
   const slipCount = mounted ? slipLegs.length : 0
-  const slipOdds = slipLegs.reduce((total, leg) => total * leg.odds, 1)
 
   useEffect(() => setMounted(true), [])
 
@@ -116,7 +120,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
     }
   }, [player?.id, pathname])
 
-  useEffect(() => setMenuOpen(false), [pathname])
+  useEffect(() => {
+    setMenuOpen(false)
+    setSlipOpen(false)
+  }, [pathname])
 
   const notify = useCallback((message: string) => setNotice(message), [])
   const openAuth = useCallback((mode: AuthMode = 'login') => setAuth(mode), [])
@@ -135,40 +142,40 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
   return (
     <ShellContext.Provider value={shell}>
-      <main className="min-h-screen bg-[#eef0f4] text-[#24262c]">
-        <header className="bg-[#ed1324] text-white shadow-sm">
+      <main className="min-h-screen bg-[#eef0f6] text-[#14162e]">
+        <header className="sticky top-0 z-40 bg-[#1b2a86] text-white">
           <div className="mx-auto flex max-w-[1180px] items-center gap-2 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3">
             <button onClick={() => setMenuOpen((open) => !open)} className="shrink-0 md:hidden" aria-label={menuOpen ? 'Close menu' : 'Open menu'}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>
-            <Link href="/" className="whitespace-nowrap text-[22px] font-black italic tracking-[-1.5px] sm:text-[28px] sm:tracking-[-2px]">WinnBet</Link>
+            <Link href="/" className="flex items-center gap-1.5 whitespace-nowrap text-[20px] font-extrabold tracking-tight sm:text-[24px]"><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#ffc700] text-[15px] font-black text-[#1b2a86]">W</span>Winn<span className="-ml-1.5 text-[#ffc700]">Bet</span></Link>
             <span className="hidden text-xs font-semibold md:block">{player ? player.country_code : 'Ghana'} <ChevronDown size={13} className="inline" /></span>
             <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2">
               {player ? (
                 <>
                   <span className="truncate text-xs font-semibold sm:text-sm">{formatMoney(player.balance, player.currency)}</span>
-                  <Link href="/deposit" className="flex h-8 shrink-0 items-center bg-white px-3 text-xs font-semibold text-[#ed1324] sm:h-9 sm:px-4 sm:text-sm">Deposit</Link>
+                  <Link href="/deposit" className="flex h-8 shrink-0 items-center rounded-full bg-[#ffc700] px-3.5 text-xs font-bold text-[#14162e] sm:h-9 sm:px-4 sm:text-sm">Deposit</Link>
                   <button onClick={() => signOut()} className="hidden h-9 px-3 text-sm font-semibold sm:block">Logout</button>
                 </>
               ) : (
                 <>
-                  <button onClick={() => setAuth('login')} className="h-8 px-2 text-xs font-semibold sm:h-9 sm:px-4 sm:text-sm">Login</button>
-                  <button onClick={() => setAuth('register')} className="h-8 border border-white px-3 text-xs font-semibold sm:h-9 sm:px-4 sm:text-sm">Register</button>
+                  <button onClick={() => setAuth('register')} className="h-8 rounded-full bg-[#ffc700] px-3.5 text-xs font-bold text-[#14162e] sm:h-9 sm:px-5 sm:text-sm">Join Now</button>
+                  <button onClick={() => setAuth('login')} className="h-8 rounded-full border border-white/70 px-3.5 text-xs font-semibold sm:h-9 sm:px-5 sm:text-sm">Login</button>
                 </>
               )}
             </div>
           </div>
           <nav className={`mx-auto max-w-[1180px] gap-1 overflow-x-auto px-4 pb-2 text-sm font-semibold md:flex md:pb-0 ${menuOpen ? 'flex flex-col md:flex-row' : 'hidden'}`}>
             {topLinks.map(([label, href]) => (
-              <Link key={label} href={href} className={`whitespace-nowrap px-4 py-3 hover:bg-[#c9101f] ${isActive(href) ? 'bg-[#c9101f]' : ''}`}>{label}</Link>
+              <Link key={label} href={href} className={`whitespace-nowrap rounded-lg px-4 py-3 hover:bg-white/10 md:py-2.5 ${isActive(href) ? 'bg-white/15' : ''}`}>{label}</Link>
             ))}
-            {player && <button onClick={() => signOut()} className="px-4 py-3 text-left hover:bg-[#c9101f] sm:hidden">Logout</button>}
+            {player && <button onClick={() => signOut()} className="rounded-lg px-4 py-3 text-left hover:bg-white/10 sm:hidden">Logout</button>}
             <span className="ml-auto hidden px-3 py-3 text-xs md:block">GMT+00:00</span>
           </nav>
         </header>
         {!gamesPage && !accountPage && (
-          <div className="overflow-hidden border-b bg-white shadow-sm">
+          <div className="overflow-hidden border-b border-[#e6e8f2] bg-white">
             <div className="scrollbar-none -mb-5 mx-auto flex max-w-[1180px] overflow-x-auto px-1 pb-5 sm:px-4">
               {sportTabs.map(([label, href]) => (
-                <Link key={label} href={href} className={`whitespace-nowrap px-3 py-3 text-sm sm:px-4 ${isActive(href) ? 'border-b-4 border-[#ed1324] font-semibold' : 'text-[#5c6068]'}`}>{label}</Link>
+                <Link key={label} href={href} className={`whitespace-nowrap border-b-[3px] px-3 py-3 text-[13px] sm:px-4 sm:text-sm ${isActive(href) ? 'border-[#1b2a86] font-semibold text-[#1b2a86]' : 'border-transparent text-[#6b7087]'}`}>{label}</Link>
               ))}
             </div>
           </div>
@@ -177,27 +184,23 @@ export function SiteShell({ children }: { children: ReactNode }) {
         {children}
 
         {notice && (
-          <div className={`fixed left-1/2 z-40 flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center rounded bg-[#22262c] px-5 py-3 text-sm text-white shadow-xl md:bottom-6 ${slipCount > 0 ? 'bottom-48' : 'bottom-36'}`}>
+          <div className={`fixed left-1/2 z-40 flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center rounded-xl bg-[#14162e] px-5 py-3 text-sm text-white shadow-xl bottom-40 md:bottom-6`}>
             {notice}
             <button onClick={() => setNotice('')} className="ml-4 text-white/60" aria-label="Close notice"><X size={16} /></button>
           </div>
         )}
-        {slipCount > 0 && (
+        {!gamesPage && !accountPage && (
           <button
-            onClick={() => {
-              const slip = document.getElementById('betslip')
-              if (slip) slip.scrollIntoView({ behavior: 'smooth', block: 'start' })
-              else router.push('/#betslip')
-            }}
-            className="fixed inset-x-0 bottom-16 z-30 flex h-12 items-center justify-between bg-[#0b9b3a] px-4 text-white shadow-[0_-2px_10px_rgba(0,0,0,0.2)] md:hidden"
+            onClick={() => setSlipOpen(true)}
+            className="fixed bottom-[84px] right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-[#1b2a86] text-white shadow-[0_6px_20px_rgba(27,42,134,0.4)] md:hidden"
+            aria-label={`Open bet slip, ${slipCount} selections`}
           >
-            <span className="flex items-center gap-2 font-semibold">
-              Betslip <span className="rounded-full bg-[#ed1324] px-2 text-xs">{slipCount}</span>
-            </span>
-            <span className="text-sm">Odds <b>{slipOdds.toFixed(2)}</b></span>
+            <ReceiptText size={24} />
+            <span className="absolute -right-0.5 -top-0.5 flex h-6 min-w-6 items-center justify-center rounded-full border-2 border-white bg-[#ffc700] px-1 text-[11px] font-extrabold text-[#14162e]">{slipCount}</span>
           </button>
         )}
-        <Link href="/help#contact" className={`fixed right-4 z-30 flex h-12 w-12 md:bottom-6 md:right-6 ${slipCount > 0 ? 'bottom-32' : 'bottom-20'} items-center justify-center rounded-full bg-[#ed1324] text-white shadow-lg`} aria-label="Contact support"><Headphones size={22} /></Link>
+        {slipOpen && <BetslipSheet onClose={() => setSlipOpen(false)} />}
+        <Link href="/help#contact" className="fixed bottom-6 right-6 z-30 hidden h-12 w-12 items-center justify-center rounded-full border border-[#e6e8f2] bg-white text-[#1b2a86] shadow-lg md:flex" aria-label="Contact support"><Headphones size={22} /></Link>
         {auth && (
           <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/55 p-4 sm:items-center">
             <AuthForm
@@ -213,12 +216,12 @@ export function SiteShell({ children }: { children: ReactNode }) {
           </div>
         )}
         {win && <WinCelebration code={win.code} amount={win.amount} currency={win.currency} onClose={() => setWin(null)} />}
-        <nav className="fixed inset-x-0 bottom-0 z-30 grid h-16 grid-cols-5 bg-[#111317] pb-[env(safe-area-inset-bottom)] text-[11px] text-white/70 md:hidden" aria-label="Main">
+        <nav className="fixed inset-x-0 bottom-0 z-30 grid h-16 grid-cols-5 border-t border-[#e6e8f2] bg-white pb-[env(safe-area-inset-bottom)] text-[11px] text-[#8d93ab] md:hidden" aria-label="Main">
           <TabLink href="/" active={pathname === '/'} icon={<House size={22} />} label="Home" />
           <button onClick={() => { setMenuOpen(true); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className="flex flex-col items-center justify-center gap-1">
             <Menu size={22} /> AZ Menu
           </button>
-          <TabLink href="/games" active={gamesPage} icon={<Gamepad2 size={22} className="text-[#8b7cf6]" />} label="Games" />
+          <TabLink href="/games" active={gamesPage} icon={<Gamepad2 size={22} />} label="Games" />
           <TabLink href="/my-bets" active={isActive('/my-bets')} icon={<ReceiptText size={22} />} label="Open Bets" badge={player ? openBets : 0} />
           {player
             ? <TabLink href="/account" active={['/account', '/deposit', '/withdraw', '/transactions'].some(isActive)} icon={<UserRound size={22} />} label="Me" />
@@ -232,10 +235,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
 function TabLink({ href, active, icon, label, badge = 0 }: { href: string; active: boolean; icon: ReactNode; label: string; badge?: number }) {
   return (
-    <Link href={href} className={`relative flex flex-col items-center justify-center gap-1 ${active ? 'font-semibold text-white' : ''}`}>
+    <Link href={href} className={`relative flex flex-col items-center justify-center gap-1 ${active ? 'font-semibold text-[#1b2a86] shadow-[inset_0_2px_0_#1b2a86]' : ''}`}>
       {icon}
       {label}
-      {badge > 0 && <span className="absolute left-1/2 top-1.5 ml-1.5 min-w-[18px] rounded-full bg-[#ed1324] px-1 text-center text-[10px] font-bold leading-[18px] text-white">{badge}</span>}
+      {badge > 0 && <span className="absolute left-1/2 top-1.5 ml-1.5 min-w-[18px] rounded-full bg-[#e40014] px-1 text-center text-[10px] font-bold leading-[18px] text-white">{badge}</span>}
     </Link>
   )
 }

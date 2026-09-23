@@ -2,13 +2,11 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import Link from 'next/link'
-import { ChevronDown, ChevronRight, ExternalLink, Lock, Printer, RotateCw, SlidersHorizontal } from 'lucide-react'
-import { CASINO_GAMES } from '@/lib/casino-catalog'
+import { ChevronDown, ChevronRight, Lock, Printer, RotateCw, SlidersHorizontal } from 'lucide-react'
 import {
   BetslipPanel, Crest, QuickRegister, kickoffLabel, legFor, resultMarket, useFixtureFeed,
   type BoardMarket, type BoardMatch, type BoardPrice,
 } from '@/components/match-board'
-import { formatMoney } from '@/lib/countries'
 import { useSlip } from '@/lib/store'
 
 const SPORT_TABS = ['Football', 'vFootball', 'Basketball', 'Tennis', 'eFootball'] as const
@@ -125,83 +123,68 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
 
   return (
     <>
-      <section className="bg-[#181b21] text-white">
-        <div className="mx-auto grid max-w-[1180px] gap-3 px-0 py-0 sm:gap-5 sm:px-4 sm:py-5 grid-cols-1 md:grid-cols-[230px_minmax(0,1fr)_200px]">
-          <aside className="hidden md:block">
-            <h2 className="mb-2 text-xl font-bold">Popular</h2>
+      <section className="mx-auto max-w-[1180px] px-3 pt-3 sm:px-4 sm:pt-4">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-[220px_minmax(0,1fr)_220px]">
+          <aside className="hidden self-start rounded-2xl border border-[#e6e8f2] bg-white p-4 md:block">
+            <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-[#14162e]">Popular</h2>
             {popular.map((item) => (
               <PopularLink key={item.label} active={item.active} onClick={item.select}>{item.label}</PopularLink>
             ))}
           </aside>
           <HeroBanner onNotice={onNotice} />
           <QuickRegister onNeedAuth={onNeedAuth} onNotice={onNotice} />
-          <div className="overflow-hidden pb-3 md:hidden">
-            <div className="scrollbar-none -mb-5 flex gap-2 overflow-x-auto px-3 pb-5">
-              {popular.map((item) => (
-                <button key={item.label} onClick={item.select} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${item.active ? 'border-[#17a24a] bg-[#17a24a] text-white' : 'border-white/25 text-white/85'}`}>{item.label}</button>
-              ))}
-            </div>
+        </div>
+        <QuickLinks />
+        <div className="mt-3 overflow-hidden md:hidden">
+          <div className="scrollbar-none -mb-5 flex gap-2 overflow-x-auto pb-5">
+            {popular.map((item) => (
+              <button key={item.label} onClick={item.select} className={`shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-medium ${item.active ? 'border-[#1b2a86] bg-[#1b2a86] text-white' : 'border-[#e6e8f2] bg-white text-[#14162e]'}`}>{item.label}</button>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-[1180px] gap-3 px-0 py-0 sm:gap-4 sm:px-4 sm:py-4 grid-cols-1 md:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="min-w-0 space-y-4">
-          <div className="bg-[#1b1e24] text-white">
-            <BoardHeader title="Live Betting" onRefresh={reload} dark />
-            <SportTabs value={liveTab} onChange={setLiveTab} dark />
-            {matches === null && !error && <p className="px-4 py-8 text-sm text-white/60">Loading live matches…</p>}
-            {matches && live.length === 0 && <p className="px-4 py-8 text-sm text-white/60">No live {liveTab} matches right now.</p>}
-            {byLeague(live.slice(0, liveLimit)).map(([league, rows]) => (
-              <div key={league}>
-                <div className={`${LIVE_GRID} items-end border-b border-white/10 px-2 pt-3 text-[11px] text-white/60`}>
-                  <p className="col-span-2 truncate pb-1 text-sm font-bold text-white sm:col-span-1">{league}</p>
-                  <ColumnHead title="3 Way" labels={['1', 'X', '2']} />
-                  <ColumnHead title="Next Goals" labels={['1', 'No Goal', '2']} className="max-lg:hidden pl-[48px]" />
-                  <span />
-                </div>
-                {rows.map((match) => <LiveRow key={match.id} match={match} has={has} pick={pick} />)}
-              </div>
-            ))}
-            {live.length > liveLimit && (
-              <ViewMore dark remaining={live.length - liveLimit} onClick={() => setLiveLimit((n) => n + PAGE_SIZE)} />
-            )}
+      <section className="mx-auto grid max-w-[1180px] grid-cols-1 gap-4 px-3 py-4 sm:px-4 md:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="min-w-0 space-y-6">
+          <div>
+            <BoardHeader title="Live Now" live onRefresh={reload} />
+            <SportTabs value={liveTab} onChange={setLiveTab} />
+            <div className="space-y-2.5">
+              {matches === null && !error && <Empty>Loading live matches…</Empty>}
+              {matches && live.length === 0 && <Empty>No live {liveTab} matches right now.</Empty>}
+              {live.slice(0, liveLimit).map((match) => <MatchCard key={match.id} match={match} has={has} pick={pick} />)}
+              {live.length > liveLimit && <ViewMore remaining={live.length - liveLimit} onClick={() => setLiveLimit((n) => n + PAGE_SIZE)} />}
+            </div>
           </div>
 
           {!liveOnly && (
-            <div className="bg-white sm:border">
+            <div>
               <VirtualWorldBanner />
-              <BoardHeader title={filterTitle} onRefresh={reload} dark={false}>
-                {filter.kind !== 'all' && <button onClick={() => setFilter({ kind: 'all' })} className="text-xs text-[#ed1324]">Clear filter</button>}
+              <BoardHeader title={filterTitle} onRefresh={reload}>
+                {filter.kind !== 'all' && <button onClick={() => setFilter({ kind: 'all' })} className="text-xs font-semibold text-[#1b2a86]">Clear filter</button>}
               </BoardHeader>
-              <SportTabs value={tab} onChange={setTab} dark={false} filter />
-              <div className="p-2 sm:p-3">
-                {matches === null && !error && <p className="px-3 py-8 text-sm text-[#888d93]">Loading fixtures…</p>}
-                {error && <p className="px-3 py-8 text-sm text-[#ed1324]">{error}</p>}
-                {matches && highlights.length === 0 && <p className="px-3 py-8 text-sm text-[#888d93]">No {tab} matches in this list right now.</p>}
-                {highlights.slice(0, highlightLimit).map((match) => (
-                  <HighlightRow key={match.id} match={match} has={has} pick={pick} />
-                ))}
-                {highlights.length > highlightLimit && (
-                  <ViewMore dark={false} remaining={highlights.length - highlightLimit} onClick={() => setHighlightLimit((n) => n + PAGE_SIZE)} />
-                )}
+              <SportTabs value={tab} onChange={setTab} />
+              <div className="space-y-2.5">
+                {matches === null && !error && <Empty>Loading fixtures…</Empty>}
+                {error && <Empty tone="error">{error}</Empty>}
+                {matches && highlights.length === 0 && <Empty>No {tab} matches in this list right now.</Empty>}
+                {highlights.slice(0, highlightLimit).map((match) => <MatchCard key={match.id} match={match} has={has} pick={pick} />)}
+                {highlights.length > highlightLimit && <ViewMore remaining={highlights.length - highlightLimit} onClick={() => setHighlightLimit((n) => n + PAGE_SIZE)} />}
               </div>
             </div>
           )}
         </div>
 
-        <aside className="space-y-4 px-3 pb-4 sm:px-0 sm:pb-0">
+        <aside className="hidden space-y-4 md:block">
           <BetslipPanel legs={legs} onNeedAuth={onNeedAuth} onNotice={onNotice} />
-          <MiniGames />
-          <Link href="/virtuals" className="relative block h-44 overflow-hidden bg-[#0c0c0c]">
+          <Link href="/virtuals" className="relative block h-40 overflow-hidden rounded-2xl bg-[#0c0c0c]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/banners/instant-virtuals.jpg" alt="" className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_55%,rgba(255,180,0,0.35),rgba(0,0,0,0.55)_70%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_55%,rgba(255,199,0,0.3),rgba(0,0,0,0.55)_70%)]" />
             <span className="absolute inset-0 flex flex-col items-center justify-center text-center">
               <span className="text-4xl">⚡</span>
-              <span className="text-xs font-bold italic text-white/80">WinnBet</span>
-              <span className="text-3xl font-black italic leading-none text-white [text-shadow:0_3px_0_#ed1324]">INSTANT</span>
-              <span className="text-3xl font-black italic leading-none text-white [text-shadow:0_3px_0_#ed1324]">VIRTUALS</span>
+              <span className="text-2xl font-extrabold leading-none text-white">Instant Virtuals</span>
+              <span className="mt-2 rounded-full bg-[#ffc700] px-4 py-1 text-xs font-bold text-[#14162e]">Play now</span>
             </span>
           </Link>
         </aside>
@@ -210,31 +193,52 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
   )
 }
 
-function ViewMore({ dark, remaining, onClick }: { dark: boolean; remaining: number; onClick: () => void }) {
+function Empty({ children, tone = 'muted' }: { children: ReactNode; tone?: 'muted' | 'error' }) {
+  return <p className={`rounded-2xl border border-[#e6e8f2] bg-white px-4 py-8 text-center text-sm ${tone === 'error' ? 'text-[#e40014]' : 'text-[#6b7087]'}`}>{children}</p>
+}
+
+function ViewMore({ remaining, onClick }: { remaining: number; onClick: () => void }) {
   return (
-    <button
-      onClick={onClick}
-      className={`flex w-full items-center justify-center gap-1 py-3 text-sm font-semibold ${dark ? 'text-[#17a24a] hover:bg-white/5' : 'border text-[#0b9b3a] hover:bg-[#f5f6f7]'}`}
-    >
+    <button onClick={onClick} className="flex w-full items-center justify-center gap-1 rounded-2xl border border-[#e6e8f2] bg-white py-3 text-sm font-semibold text-[#1b2a86] hover:bg-[#f7f8fc]">
       View more ({remaining}) <ChevronDown size={16} />
     </button>
   )
 }
 
+const QUICK_LINKS = [
+  { href: '/football', label: 'Football', icon: '⚽' },
+  { href: '/live', label: 'Live', icon: '🔴' },
+  { href: '/games', label: 'Games', icon: '🎮' },
+  { href: '/load-code', label: 'Load code', icon: '🎟️' },
+] as const
+
+function QuickLinks() {
+  return (
+    <div className="mt-3 grid grid-cols-4 gap-2 md:hidden">
+      {QUICK_LINKS.map((item) => (
+        <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1.5 rounded-2xl border border-[#e6e8f2] bg-white py-3 text-xs font-semibold text-[#14162e] shadow-[0_1px_2px_rgba(20,22,46,0.04)]">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f2f3f8] text-lg">{item.icon}</span>
+          {item.label}
+        </Link>
+      ))}
+    </div>
+  )
+}
+
 function PopularLink({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <button onClick={onClick} className={`flex w-full items-center justify-between border-t border-white/20 py-2.5 text-left text-[15px] ${active ? 'text-[#17a24a]' : ''}`}>
+    <button onClick={onClick} className={`flex w-full items-center justify-between border-t border-[#e6e8f2] py-2.5 text-left text-sm ${active ? 'font-semibold text-[#1b2a86]' : 'text-[#14162e]'}`}>
       <span className="truncate pr-2">{children}</span>
-      <ChevronRight size={18} className="shrink-0 text-[#17a24a]" />
+      <ChevronRight size={16} className="shrink-0 text-[#9aa0b8]" />
     </button>
   )
 }
 
 const SLIDES = [
-  { title: 'ONE CUT', sub: 'Bet on live action every second', bg: 'bg-[#111319]', image: '/banners/hero-football.jpg', art: '' },
-  { title: 'VIRTUAL WORLD', sub: 'BET ON EVERY SECOND', bg: 'bg-[#1b1e24]', image: '/banners/virtual-world.jpg', art: '' },
-  { title: 'INSTANT GAMES', sub: 'Sky Rocket, Spin The Bottle and more', bg: 'bg-[linear-gradient(120deg,#13241a_0%,#1f3b26_50%,#0b9b3a_51%,#17a24a_100%)]', image: '', art: '🚀🍾🎰' },
-]
+  { title: 'One Cut', sub: 'Bet on live action every second', image: '/banners/hero-football.jpg', href: null },
+  { title: 'Virtual World', sub: 'Football, racing and more, non-stop', image: '/banners/virtual-world.jpg', href: '/virtuals' },
+  { title: 'Instant Games', sub: 'Sky Rocket, Spin The Bottle and more', image: '/banners/instant-games.jpg', href: '/games' },
+] as const
 
 function HeroBanner({ onNotice }: { onNotice: (message: string) => void }) {
   const [index, setIndex] = useState(0)
@@ -243,82 +247,64 @@ function HeroBanner({ onNotice }: { onNotice: (message: string) => void }) {
     return () => clearInterval(timer)
   }, [])
   const slide = SLIDES[index]
-  const href = index === 1 ? '/virtuals' : index === 2 ? '/games' : null
 
   return (
-    <div className="relative flex min-h-[180px] flex-col justify-end overflow-hidden p-5 sm:min-h-[235px] sm:p-7">
-      <div className={`absolute inset-0 transition-all duration-700 ${slide.bg}`} />
-      {slide.image && (
-        <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img key={slide.image} src={slide.image} alt="" className="absolute inset-0 h-full w-full object-cover object-right" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/35 to-transparent" />
-        </>
-      )}
-      {slide.art && <span className="absolute right-4 top-6 text-5xl tracking-[-0.15em] sm:right-6 sm:top-1/2 sm:-translate-y-1/2 sm:text-7xl drop-shadow-[0_6px_14px_rgba(0,0,0,0.5)]">{slide.art}</span>}
+    <div className="relative flex min-h-[176px] flex-col justify-end overflow-hidden rounded-2xl bg-[#111319] p-5 text-white sm:min-h-[220px] sm:p-6">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img key={slide.image} src={slide.image} alt="" className="absolute inset-0 h-full w-full object-cover object-right" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
       <div className="relative">
-        <p className="text-sm font-black italic text-white/90">WinnBet</p>
-        <div className="text-3xl font-black italic text-white sm:text-4xl">{slide.title}</div>
-        <p className="mb-4 text-xs font-bold text-white/80">{slide.sub}</p>
-        {href
-          ? <Link href={href} className="inline-block rounded-full border-2 border-white px-5 py-1 text-xs font-semibold">PLAY NOW</Link>
-          : <button onClick={() => onNotice('Pick a price on the board to start a slip.')} className="rounded-full border-2 border-white px-5 py-1 text-xs font-semibold">BET NOW</button>}
+        <p className="text-[11px] font-bold uppercase tracking-wider text-[#ffc700]">WinnBet</p>
+        <div className="text-[28px] font-extrabold leading-tight sm:text-4xl">{slide.title}</div>
+        <p className="mb-4 text-[13px] text-white/80">{slide.sub}</p>
+        {slide.href
+          ? <Link href={slide.href} className="inline-block rounded-lg bg-[#ffc700] px-4 py-2 text-sm font-bold text-[#14162e]">Play now</Link>
+          : <button onClick={() => onNotice('Pick a price on the board to start a slip.')} className="rounded-lg bg-[#ffc700] px-4 py-2 text-sm font-bold text-[#14162e]">Bet now</button>}
       </div>
-      <div className="absolute bottom-3 right-4 flex gap-1.5">
-        {SLIDES.map((item, i) => <button key={item.title} onClick={() => setIndex(i)} aria-label={`Show ${item.title}`} className={`h-1.5 rounded-full ${i === index ? 'w-5 bg-white' : 'w-1.5 bg-white/50'}`} />)}
+      <div className="absolute bottom-4 right-4 flex gap-1.5">
+        {SLIDES.map((item, i) => <button key={item.title} onClick={() => setIndex(i)} aria-label={`Show ${item.title}`} className={`h-1.5 rounded-full ${i === index ? 'w-5 bg-[#ffc700]' : 'w-1.5 bg-white/60'}`} />)}
       </div>
     </div>
   )
 }
 
-function BoardHeader({ title, onRefresh, dark, children }: { title: string; onRefresh: () => void; dark: boolean; children?: ReactNode }) {
+function BoardHeader({ title, onRefresh, live = false, children }: { title: string; onRefresh: () => void; live?: boolean; children?: ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-3 px-3 pb-2 pt-4 sm:px-4">
-      <h1 className="flex min-w-0 items-center gap-2 text-lg font-semibold sm:gap-3 sm:text-2xl">
-        <span className="inline-block h-5 w-5 shrink-0 rounded-full bg-[#10a349] sm:h-6 sm:w-6" />
+    <div className="mb-2 mt-1 flex items-center justify-between gap-3">
+      <h1 className="flex min-w-0 items-center gap-2 text-[15px] font-extrabold uppercase tracking-wide text-[#14162e]">
+        {live && <span className="relative flex h-2.5 w-2.5 shrink-0"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00c244] opacity-60" /><span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#00c244]" /></span>}
         <span className="truncate">{title}</span>
       </h1>
-      <div className={`flex shrink-0 items-center gap-3 text-xs sm:gap-5 ${dark ? 'text-[#17a24a]' : 'text-[#353a45]'}`}>
+      <div className="flex shrink-0 items-center gap-4 text-xs font-medium text-[#6b7087]">
         {children}
-        <button onClick={() => window.print()} className="hidden items-center gap-1.5 sm:flex"><Printer size={15} /> Print</button>
-        <button onClick={onRefresh} className="flex items-center gap-1.5"><RotateCw size={15} /> Refresh</button>
+        <button onClick={() => window.print()} className="hidden items-center gap-1.5 sm:flex"><Printer size={14} /> Print</button>
+        <button onClick={onRefresh} className="flex items-center gap-1.5"><RotateCw size={14} /> Refresh</button>
       </div>
     </div>
   )
 }
 
-function SportTabs({ value, onChange, dark, filter = false }: { value: SportTab; onChange: (tab: SportTab) => void; dark: boolean; filter?: boolean }) {
+function SportTabs({ value, onChange }: { value: SportTab; onChange: (tab: SportTab) => void }) {
   const [more, setMore] = useState(false)
   const moreActive = (MORE_SPORTS as readonly string[]).includes(value)
   const tabClass = (active: boolean) =>
-    `shrink-0 whitespace-nowrap px-3 py-2.5 text-sm sm:px-4 ${active ? `border-b-[3px] border-[#10a349] font-bold ${dark ? 'text-white' : 'text-[#24262c]'}` : dark ? 'text-white/80' : 'text-[#353a45]'}`
+    `shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium ${active ? 'bg-[#1b2a86] text-white' : 'border border-[#e6e8f2] bg-white text-[#14162e]'}`
   return (
-    <div className={`relative flex items-center border-b ${dark ? 'border-white/10' : ''}`}>
+    <div className="relative mb-3 flex items-center">
       <div className="min-w-0 flex-1 overflow-hidden">
-        <div className="scrollbar-none -mb-5 flex items-center overflow-x-auto px-1 pb-5 sm:px-2">
+        <div className="scrollbar-none -mb-5 flex items-center gap-2 overflow-x-auto pb-5">
           {SPORT_TABS.map((item) => <button key={item} onClick={() => onChange(item)} className={tabClass(value === item)}>{item}</button>)}
-          <button onClick={() => setMore((open) => !open)} className={`${tabClass(moreActive)} flex items-center gap-1`}>{moreActive ? value : 'More Sports'} <ChevronDown size={15} /></button>
+          <button onClick={() => setMore((open) => !open)} className={`${tabClass(moreActive)} flex items-center gap-1`}>{moreActive ? value : 'More'} <ChevronDown size={14} /></button>
         </div>
       </div>
+      <span className="ml-2 hidden shrink-0 items-center gap-1.5 text-xs text-[#6b7087] md:flex"><SlidersHorizontal size={14} /> Filter</span>
       {more && (
-        <div className={`absolute right-2 top-full z-20 w-44 py-1 shadow-lg md:left-[420px] md:right-auto ${dark ? 'bg-[#2a2e37]' : 'bg-white'}`}>
+        <div className="absolute right-0 top-full z-20 mt-1 w-44 overflow-hidden rounded-xl border border-[#e6e8f2] bg-white py-1 shadow-lg">
           {MORE_SPORTS.map((item) => (
-            <button key={item} onClick={() => { onChange(item); setMore(false) }} className={`block w-full px-4 py-2 text-left text-sm ${dark ? 'hover:bg-white/10' : 'hover:bg-[#f5f6f7]'}`}>{item}</button>
+            <button key={item} onClick={() => { onChange(item); setMore(false) }} className="block w-full px-4 py-2 text-left text-sm hover:bg-[#f2f3f8]">{item}</button>
           ))}
         </div>
       )}
-      {filter && <span className="hidden shrink-0 items-center gap-2 px-3 text-sm text-[#353a45] md:flex">Filter <SlidersHorizontal size={15} /></span>}
-    </div>
-  )
-}
-
-function ColumnHead({ title, labels, className = '' }: { title: string; labels: string[]; className?: string }) {
-  return (
-    <div className={`text-center ${className}`}>
-      <p className="pb-1">{title}</p>
-      <div className={`grid gap-1 bg-white/5 py-0.5 ${labels.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
-        {labels.map((label) => <span key={label}>{label}</span>)}
-      </div>
     </div>
   )
 }
@@ -326,188 +312,92 @@ function ColumnHead({ title, labels, className = '' }: { title: string; labels: 
 type PickFn = (match: BoardMatch, market: BoardMarket, price: BoardPrice) => void
 type HasFn = (matchId: string, market: string, outcome: string) => boolean
 
-const LIVE_GRID = 'grid grid-cols-[minmax(0,1fr)_32px] gap-1 sm:grid-cols-[minmax(0,1fr)_222px_40px] lg:grid-cols-[minmax(0,1fr)_222px_270px_56px]'
-
 const NEXT_GOAL = /next goal|score the \d+(st|nd|rd|th) goal|^goal \d+$/i
 
 function halfLabel(match: BoardMatch) {
   const label = (match.minuteLabel || '').toUpperCase()
-  if (label.includes('HT')) return 'HT'
+  if (label.includes('HT')) return ''
   const minute = parseInt(label, 10)
-  if (!Number.isFinite(minute)) return 'Live'
+  if (!Number.isFinite(minute)) return ''
   return minute <= 45 ? 'H1' : 'H2'
 }
 
-function nextGoalMarkets(match: BoardMatch) {
-  return match.markets.filter((market) => NEXT_GOAL.test(market.label))
-}
-
-function LiveRow({ match, has, pick }: { match: BoardMatch; has: HasFn; pick: PickFn }) {
+/** One fixture: when and where on top, the two teams, then the 1X2 prices. */
+function MatchCard({ match, has, pick }: { match: BoardMatch; has: HasFn; pick: PickFn }) {
   const main = resultMarket(match)
-  const goalMarkets = nextGoalMarkets(match)
-  const scored = (match.scoreHome ?? 0) + (match.scoreAway ?? 0)
-  const [goalIndex, setGoalIndex] = useState(0)
-  const [pickerOpen, setPickerOpen] = useState(false)
-  const nextGoal = goalMarkets[goalIndex]
-  const goalNumber = goalMarkets.length ? (Number(nextGoal?.label.match(/\d+/)?.[0]) || scored + 1) : scored + 1
-  const extra = Math.max(0, match.markets.length - 2)
+  const second = match.isLive ? match.markets.find((market) => NEXT_GOAL.test(market.label)) : secondMarket(match)
+  const extra = Math.max(0, match.markets.length - 1)
+  const half = halfLabel(match)
 
   return (
-    <div className={`${LIVE_GRID} items-center gap-y-2 border-b border-white/10 py-2 pl-2 pr-2 sm:pl-0`}>
-      <Link href={`/match/${match.id}`} className="col-span-2 flex min-w-0 items-center gap-2 border-l-4 border-[#10a349] pl-2 sm:col-span-1 sm:gap-3">
-        <div className="w-9 shrink-0 text-xs font-bold sm:w-11">
-          <p>{match.minuteLabel || 'LIVE'}</p>
-          <p className="font-normal text-white/60">{match.postponed ? 'PP' : halfLabel(match)}</p>
-        </div>
-        <div className="min-w-0 flex-1 text-sm text-[#17a24a]">
-          <p className="truncate">{match.homeTeam}</p>
-          <p className="truncate">{match.awayTeam}</p>
-        </div>
-        <div className="shrink-0 text-right text-sm font-bold">
-          <p>{match.scoreHome ?? 0}</p>
-          <p>{match.scoreAway ?? 0}</p>
-        </div>
-      </Link>
-      <OddsCells match={match} market={main} count={3} has={has} pick={pick} />
-      <div className="relative flex gap-1 max-lg:hidden">
-        <button
-          onClick={() => goalMarkets.length > 1 && setPickerOpen((open) => !open)}
-          className="flex h-10 w-[44px] shrink-0 items-center justify-center gap-1 bg-[#0b9b3a] text-sm font-bold"
-          aria-label="Choose goal number"
-        >
-          {goalNumber} <ChevronDown size={13} />
-        </button>
-        {pickerOpen && (
-          <div className="absolute left-0 top-11 z-20 w-[44px] bg-[#2a2e37] shadow-lg">
-            {goalMarkets.map((market, i) => (
-              <button key={market.key} onClick={() => { setGoalIndex(i); setPickerOpen(false) }} className="block w-full py-1.5 text-sm hover:bg-white/10">
-                {Number(market.label.match(/\d+/)?.[0]) || scored + 1 + i}
-              </button>
-            ))}
-          </div>
-        )}
-        <div className="flex-1"><OddsCells match={match} market={nextGoal} count={3} has={has} pick={pick} /></div>
+    <div className="rounded-2xl border border-[#e6e8f2] bg-white p-3.5 shadow-[0_1px_2px_rgba(20,22,46,0.04)]">
+      <div className="flex items-center justify-between gap-3 text-xs text-[#6b7087]">
+        <p className="min-w-0 truncate">
+          {match.isLive
+            ? <span className="font-semibold text-[#00a63a]">● {match.minuteLabel || 'LIVE'}{half ? ` ${half}` : ''}</span>
+            : <span>{kickoffLabel(match)}</span>}
+          <span> · {match.league}</span>
+        </p>
+        <Link href={`/match/${match.id}`} className="flex shrink-0 items-center font-semibold text-[#1b2a86]">+{extra} <ChevronRight size={14} /></Link>
       </div>
-      <Link href={`/match/${match.id}`} className="flex items-center justify-end gap-1 text-xs font-bold text-white/80">+{extra} <ChevronRight size={14} className="hidden text-[#17a24a] sm:block" /></Link>
+      <Link href={`/match/${match.id}`} className="mt-2.5 block space-y-1.5 text-[14px] text-[#14162e]">
+        <TeamLine crest={match.homeCrest} name={match.homeTeam} score={match.isLive ? match.scoreHome ?? 0 : null} />
+        <TeamLine crest={match.awayCrest} name={match.awayTeam} score={match.isLive ? match.scoreAway ?? 0 : null} />
+      </Link>
+      <div className="mt-3 grid grid-cols-1 gap-2 lg:grid-cols-[3fr_2fr]">
+        <OddsPills match={match} market={main} count={3} has={has} pick={pick} />
+        {second && <div className="hidden lg:block"><OddsPills match={match} market={second} count={second.prices.length >= 3 ? 3 : 2} has={has} pick={pick} /></div>}
+      </div>
     </div>
   )
 }
 
-function OddsCells({ match, market, count, has, pick }: { match: BoardMatch; market?: BoardMarket; count: number; has: HasFn; pick: PickFn }) {
+function TeamLine({ crest, name, score }: { crest?: string | null; name: string; score: number | null }) {
+  return (
+    <span className="flex items-center gap-2">
+      <Crest src={crest} name={name} size={18} />
+      <span className="min-w-0 flex-1 truncate">{name}</span>
+      {score !== null && <b className="shrink-0 tabular-nums">{score}</b>}
+    </span>
+  )
+}
+
+function OddsPills({ match, market, count, has, pick }: { match: BoardMatch; market?: BoardMarket; count: number; has: HasFn; pick: PickFn }) {
   const prices = market?.prices.slice(0, count) ?? []
   return (
-    <div className={`grid gap-1 ${count === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+    <div className={`grid gap-2 ${count === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
       {Array.from({ length: count }, (_, i) => {
         const price = prices[i]
         if (!price || !market || match.isLocked || match.postponed) {
-          return <span key={i} className="flex h-10 items-center justify-center bg-[#3d424d] text-white/60"><Lock size={14} /></span>
+          return <span key={i} className="flex h-10 items-center justify-center rounded-lg bg-[#f2f3f8] text-[#b3b8cc]"><Lock size={13} /></span>
         }
         const selected = has(match.id, market.key, price.outcome)
         return (
-          <button key={price.outcome} onClick={() => pick(match, market, price)} className={`h-10 text-sm font-bold ${selected ? 'bg-[#ffcf00] text-[#1f1f1f]' : 'bg-[#0b9b3a] text-white hover:bg-[#10a349]'}`}>
-            {price.odds.toFixed(2)}
+          <button
+            key={price.outcome}
+            onClick={() => pick(match, market, price)}
+            aria-label={`${price.label} at ${price.odds.toFixed(2)}`}
+            className={`flex h-10 items-center justify-between rounded-lg px-3 transition-colors ${selected ? 'bg-[#1b2a86] text-white' : 'bg-[#f2f3f8] text-[#14162e] hover:bg-[#e6e9f5]'}`}
+          >
+            <span className={`text-[11px] ${selected ? 'text-white/70' : 'text-[#8d93ab]'}`}>{price.outcome}</span>
+            <span className="text-[15px] font-semibold tabular-nums">{price.odds.toFixed(2)}</span>
           </button>
         )
       })}
-    </div>
-  )
-}
-
-function HighlightRow({ match, has, pick }: { match: BoardMatch; has: HasFn; pick: PickFn }) {
-  const main = resultMarket(match)
-  const second = secondMarket(match)
-  return (
-    <div className="mb-2 overflow-hidden border">
-      <div className="flex justify-between bg-[#f5f6f7] px-3 py-1.5 text-xs text-[#70747a]">
-        <span className="truncate">{match.league}</span>
-        <span className="shrink-0">{kickoffLabel(match)}</span>
-      </div>
-      <div className="grid grid-cols-[minmax(0,1fr)_32px] items-center gap-x-1.5 gap-y-2 px-2 py-2 sm:grid-cols-[minmax(0,1fr)_210px_40px] sm:gap-2 sm:px-3 lg:grid-cols-[minmax(0,1fr)_210px_150px_50px]">
-        <Link href={`/match/${match.id}`} className="col-span-2 min-w-0 space-y-1 text-sm sm:col-span-1">
-          <span className="flex items-center gap-2"><Crest src={match.homeCrest} name={match.homeTeam} /><strong className="truncate">{match.homeTeam}</strong></span>
-          <span className="flex items-center gap-2 text-[#73777d]"><Crest src={match.awayCrest} name={match.awayTeam} /><span className="truncate">{match.awayTeam}</span></span>
-        </Link>
-        <LightOdds match={match} market={main} count={3} has={has} pick={pick} />
-        <div className="max-lg:hidden"><LightOdds match={match} market={second} count={2} has={has} pick={pick} /></div>
-        <Link href={`/match/${match.id}`} className="flex items-center justify-end text-xs font-semibold text-[#6b7077]">+{Math.max(0, match.markets.length - 2)} <ChevronRight size={14} className="hidden text-[#10a349] sm:block" /></Link>
-      </div>
-    </div>
-  )
-}
-
-function LightOdds({ match, market, count, has, pick }: { match: BoardMatch; market?: BoardMarket; count: number; has: HasFn; pick: PickFn }) {
-  const prices = market?.prices.slice(0, count) ?? []
-  return (
-    <div className={`grid gap-1 ${count === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
-      {Array.from({ length: count }, (_, i) => {
-        const price = prices[i]
-        if (!price || !market || match.isLocked || match.postponed) {
-          return <span key={i} className="flex h-10 items-center justify-center border bg-[#f1f2f4] text-[#b0b3b8]"><Lock size={13} /></span>
-        }
-        const selected = has(match.id, market.key, price.outcome)
-        return (
-          <button key={price.outcome} onClick={() => pick(match, market, price)} className={`h-10 border text-sm font-semibold ${selected ? 'border-[#10a349] bg-[#10a349] text-white' : 'bg-[#f8f9fa] hover:border-[#10a349]'}`}>
-            <span className="block text-[9px] font-normal leading-none opacity-70">{price.outcome}</span>
-            {price.odds.toFixed(2)}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-type Win = { code: string; amount: number; currency: string; name: string }
-
-function MiniGames() {
-  const [win, setWin] = useState<Win | null>(null)
-  useEffect(() => {
-    fetch('/api/wins/top').then((res) => res.json()).then((json) => setWin(json.wins?.[0] ?? null)).catch(() => {})
-  }, [])
-  return (
-    <div className="bg-[#2a2e37] text-white">
-      <h2 className="py-2 text-center text-sm font-bold">Mini Games</h2>
-      <p className="truncate bg-[#1d5f36] px-3 py-1 text-center text-[11px]">
-        {win ? <>{win.name} won <b className="text-[#ffcf00]">{formatMoney(win.amount, win.currency)}</b> today</> : 'Instant games, paid straight to your balance'}
-      </p>
-      <div className="grid grid-cols-2 gap-2 p-2">
-        {['spin-the-bottle', 'sky-rocket', 'roulette-royale'].map((slug) => {
-          const game = CASINO_GAMES.find((item) => item.slug === slug)!
-          return (
-            <Link key={slug} href={`/games/${slug}`} className="group block overflow-hidden rounded">
-              <div className={`relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br ${game.art}`}>
-                <span className="text-5xl drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] transition-transform group-hover:scale-110">{game.glyph}</span>              </div>
-              <p className="bg-[#353a45] py-1 text-center text-xs">{game.name}</p>
-            </Link>
-          )
-        })}
-        <div className="flex flex-col items-center justify-center rounded bg-[#353a45]/60 text-center text-xs text-white/60">
-          <span className="text-4xl opacity-40">🎲</span>
-          New Games
-          <br />
-          Coming Soon
-        </div>
-      </div>
-      <Link href="/games" className="flex items-center justify-between bg-[#1f2229] pl-0 pr-3 text-xs">
-        <span className="bg-[#ffb400] px-3 py-2 font-bold text-[#1f1f1f]">Discover more games</span>
-        <ExternalLink size={15} />
-      </Link>
     </div>
   )
 }
 
 function VirtualWorldBanner() {
   return (
-    <Link href="/virtuals" className="relative flex h-20 items-center overflow-hidden bg-[#1b1e24] sm:h-24">
+    <Link href="/virtuals" className="relative mb-4 flex h-20 items-center overflow-hidden rounded-2xl bg-[#1b2a86] sm:h-24">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/banners/virtual-world.jpg" alt="" className="absolute inset-y-0 right-0 h-full w-[62%] object-cover object-[center_35%]" />
-      <div className="absolute inset-y-0 left-[38%] w-24 bg-gradient-to-r from-[#1b1e24] to-transparent" />
-      <span className="relative flex items-center gap-3 pl-4 sm:gap-4 sm:pl-6">
-        <span className="hidden text-3xl font-black italic text-white sm:inline">WinnBet</span>
-        <span className="hidden h-12 w-px bg-white/40 sm:block" />
-        <span className="leading-tight [text-shadow:0_2px_6px_rgba(0,0,0,0.6)]">
-          <span className="block text-xl font-black italic text-[#ed1324] sm:text-2xl">VIRTUAL WORLD</span>
-          <span className="block text-base font-black italic text-white sm:text-2xl">BET ON EVERY SECOND</span>
-        </span>
+      <div className="absolute inset-y-0 left-[38%] w-24 bg-gradient-to-r from-[#1b2a86] to-transparent" />
+      <span className="relative pl-5 leading-tight">
+        <span className="block text-[11px] font-bold uppercase tracking-wider text-[#ffc700]">24/7 action</span>
+        <span className="block text-xl font-extrabold text-white sm:text-2xl">Virtual World</span>
+        <span className="block text-xs text-white/80">Bet on every second</span>
       </span>
     </Link>
   )

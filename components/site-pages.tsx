@@ -81,7 +81,7 @@ function Help({ title }: { title: string }) {
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {['Create your account', 'Choose your market', 'Withdraw winnings'].map((step, i) => (
             <div key={step} className="border p-5">
-              <span className="text-sm font-bold text-[#ed1324]">0{i + 1}</span>
+              <span className="text-sm font-bold text-[#1b2a86]">0{i + 1}</span>
               <h2 className="mt-3 font-bold">{step}</h2>
               <p className="mt-2 text-sm leading-6 text-[#6b7077]">Review the applicable rules before continuing.</p>
             </div>
@@ -140,15 +140,15 @@ export function LoadCodePage({ initialCode }: { initialCode: string }) {
             onChange={(event) => setCode(event.target.value.toUpperCase())}
             placeholder="ABC123"
             maxLength={8}
-            className="h-14 w-full border text-center text-2xl font-black tracking-[0.25em] outline-none focus:border-[#ed1324]"
+            className="h-14 w-full border text-center text-2xl font-black tracking-[0.25em] outline-none focus:border-[#1b2a86]"
           />
           {error && (
-            <p className="bg-[#fff0f1] px-3 py-2 text-xs text-[#ed1324]">
+            <p className="bg-[#fff0f1] px-3 py-2 text-xs text-[#1b2a86]">
               {error}
               {ticket && <> <Link href={`/my-bets/${ticket}`} className="font-bold underline">Open it in My Bets</Link></>}
             </p>
           )}
-          <button type="submit" disabled={busy || code.trim().length < 4} className="h-11 w-full bg-[#0b9b3a] text-sm font-semibold text-white disabled:opacity-50">{busy ? 'Loading…' : 'Load code'}</button>
+          <button type="submit" disabled={busy || code.trim().length < 4} className="h-11 w-full rounded-xl bg-[#ffc700] text-sm font-bold text-[#14162e] disabled:opacity-50">{busy ? 'Loading…' : 'Load code'}</button>
         </form>
       </div>
     </section>
