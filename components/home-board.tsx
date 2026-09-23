@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import Link from 'next/link'
-import { ChevronDown, ChevronRight, Lock, Printer, RotateCw, SlidersHorizontal } from 'lucide-react'
-import { GameTile } from '@/components/games-lobby'
+import { ChevronDown, ChevronRight, ExternalLink, Lock, Printer, RotateCw, SlidersHorizontal } from 'lucide-react'
+import { CASINO_GAMES } from '@/lib/casino-catalog'
 import {
   BetslipPanel, Crest, QuickRegister, kickoffLabel, legFor, resultMarket, useFixtureFeed,
   type BoardMarket, type BoardMatch, type BoardPrice,
@@ -29,7 +29,16 @@ const SPORT_KEYS: Record<SportTab, string[]> = {
   Cricket: ['cricket'],
 }
 
-type Filter = { kind: 'all' } | { kind: 'today' } | { kind: 'next3h' } | { kind: 'league'; league: string }
+type Filter = { kind: 'all' } | { kind: 'today' } | { kind: 'next3h' } | { kind: 'league'; league: string; test: RegExp }
+
+const POPULAR_LEAGUES: { label: string; test: RegExp }[] = [
+  { label: 'AFCON Qualifiers', test: /africa cup of nations|afcon/i },
+  { label: 'UEFA Nations League', test: /nations league/i },
+  { label: 'International Friendlies', test: /friendl/i },
+  { label: 'England Premier League', test: /^premier league$|england premier league|english premier league/i },
+]
+
+const escape = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 const VIEW_TO_TAB: Record<string, SportTab> = {
   Football: 'Football',
@@ -67,7 +76,11 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
   const leagues = useMemo(() => {
     const counts = new Map<string, number>()
     for (const match of all) counts.set(match.league, (counts.get(match.league) ?? 0) + 1)
-    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([name]) => name)
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([name]) => name)
+      .filter((name) => !POPULAR_LEAGUES.some((item) => item.test.test(name)))
+      .slice(0, 3)
   }, [all])
 
   const highlights = useMemo(() => {
@@ -78,7 +91,7 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
       const kickoff = new Date(match.kickoff)
       if (filter.kind === 'today') return kickoff.toDateString() === today
       if (filter.kind === 'next3h') return kickoff.getTime() - now <= 3 * 3_600_000 && kickoff.getTime() >= now
-      if (filter.kind === 'league') return match.league === filter.league
+      if (filter.kind === 'league') return filter.test.test(match.league)
       return true
     })
   }, [all, filter, tab])
@@ -101,8 +114,8 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
             <h2 className="mb-2 text-xl font-bold">Popular</h2>
             <PopularLink active={filter.kind === 'today'} onClick={() => { setTab('Football'); setFilter({ kind: 'today' }) }}>Today&apos;s Football</PopularLink>
             <PopularLink active={filter.kind === 'next3h'} onClick={() => { setTab('Football'); setFilter({ kind: 'next3h' }) }}>Football in Next 3 Hours</PopularLink>
-            {leagues.map((name) => (
-              <PopularLink key={name} active={filter.kind === 'league' && filter.league === name} onClick={() => setFilter({ kind: 'league', league: name })}>{name}</PopularLink>
+            {[...POPULAR_LEAGUES, ...leagues.map((name) => ({ label: name, test: new RegExp(`^${escape(name)}$`) }))].map((item) => (
+              <PopularLink key={item.label} active={filter.kind === 'league' && filter.league === item.label} onClick={() => setFilter({ kind: 'league', league: item.label, test: item.test })}>{item.label}</PopularLink>
             ))}
           </aside>
           <HeroBanner onNotice={onNotice} />
@@ -114,6 +127,7 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
         <div className="min-w-0 space-y-4">
           {!liveOnly && (
             <div className="border bg-white">
+              <VirtualWorldBanner />
               <BoardHeader title={filterTitle} onRefresh={reload} dark={false}>
                 {filter.kind !== 'all' && <button onClick={() => setFilter({ kind: 'all' })} className="text-xs text-[#ed1324]">Clear filter</button>}
               </BoardHeader>
@@ -135,10 +149,10 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
             {matches && live.length === 0 && <p className="px-4 py-8 text-sm text-white/60">No live {liveTab} matches right now.</p>}
             {byLeague(live).map(([league, rows]) => (
               <div key={league}>
-                <div className="grid grid-cols-[1fr_222px_222px_56px] items-end gap-1 border-b border-white/10 px-2 pt-3 text-[11px] text-white/60 max-lg:grid-cols-[1fr_222px_40px]">
+                <div className={`${LIVE_GRID} items-end border-b border-white/10 px-2 pt-3 text-[11px] text-white/60`}>
                   <p className="truncate pb-1 text-sm font-bold text-white">{league}</p>
                   <ColumnHead title="3 Way" labels={['1', 'X', '2']} />
-                  <ColumnHead title="Over/Under 2.5" labels={['Over', 'Under']} className="max-lg:hidden" />
+                  <ColumnHead title="Next Goals" labels={['1', 'No Goal', '2']} className="max-lg:hidden pl-[48px]" />
                   <span />
                 </div>
                 {rows.map((match) => <LiveRow key={match.id} match={match} has={has} pick={pick} />)}
@@ -258,20 +272,42 @@ function ColumnHead({ title, labels, className = '' }: { title: string; labels: 
 type PickFn = (match: BoardMatch, market: BoardMarket, price: BoardPrice) => void
 type HasFn = (matchId: string, market: string, outcome: string) => boolean
 
+const LIVE_GRID = 'grid grid-cols-[1fr_222px_270px_56px] gap-1 max-lg:grid-cols-[1fr_222px_40px]'
+
+const NEXT_GOAL = /next goal|score the \d+(st|nd|rd|th) goal|^goal \d+$/i
+
+function halfLabel(match: BoardMatch) {
+  const label = (match.minuteLabel || '').toUpperCase()
+  if (label.includes('HT')) return 'HT'
+  const minute = parseInt(label, 10)
+  if (!Number.isFinite(minute)) return 'Live'
+  return minute <= 45 ? 'H1' : 'H2'
+}
+
+function nextGoalMarkets(match: BoardMatch) {
+  return match.markets.filter((market) => NEXT_GOAL.test(market.label))
+}
+
 function LiveRow({ match, has, pick }: { match: BoardMatch; has: HasFn; pick: PickFn }) {
   const main = resultMarket(match)
-  const second = secondMarket(match)
+  const goalMarkets = nextGoalMarkets(match)
+  const scored = (match.scoreHome ?? 0) + (match.scoreAway ?? 0)
+  const [goalIndex, setGoalIndex] = useState(0)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const nextGoal = goalMarkets[goalIndex]
+  const goalNumber = goalMarkets.length ? (Number(nextGoal?.label.match(/\d+/)?.[0]) || scored + 1) : scored + 1
   const extra = Math.max(0, match.markets.length - 2)
+
   return (
-    <div className="grid grid-cols-[1fr_222px_222px_56px] items-center gap-1 border-b border-white/10 py-2 pl-0 pr-2 max-lg:grid-cols-[1fr_222px_40px]">
+    <div className={`${LIVE_GRID} items-center border-b border-white/10 py-2 pl-0 pr-2`}>
       <Link href={`/match/${match.id}`} className="flex min-w-0 items-center gap-3 border-l-4 border-[#10a349] pl-2">
         <div className="w-11 shrink-0 text-xs font-bold">
           <p>{match.minuteLabel || 'LIVE'}</p>
-          <p className="font-normal text-white/60">{match.postponed ? 'PP' : 'Live'}</p>
+          <p className="font-normal text-white/60">{match.postponed ? 'PP' : halfLabel(match)}</p>
         </div>
         <div className="min-w-0 flex-1 text-sm text-[#17a24a]">
-          <p className="flex items-center gap-2 truncate"><Crest src={match.homeCrest} name={match.homeTeam} size={16} />{match.homeTeam}</p>
-          <p className="flex items-center gap-2 truncate"><Crest src={match.awayCrest} name={match.awayTeam} size={16} />{match.awayTeam}</p>
+          <p className="truncate">{match.homeTeam}</p>
+          <p className="truncate">{match.awayTeam}</p>
         </div>
         <div className="shrink-0 text-right text-sm font-bold">
           <p>{match.scoreHome ?? 0}</p>
@@ -279,7 +315,25 @@ function LiveRow({ match, has, pick }: { match: BoardMatch; has: HasFn; pick: Pi
         </div>
       </Link>
       <OddsCells match={match} market={main} count={3} has={has} pick={pick} />
-      <div className="max-lg:hidden"><OddsCells match={match} market={second} count={2} has={has} pick={pick} /></div>
+      <div className="relative flex gap-1 max-lg:hidden">
+        <button
+          onClick={() => goalMarkets.length > 1 && setPickerOpen((open) => !open)}
+          className="flex h-10 w-[44px] shrink-0 items-center justify-center gap-1 bg-[#0b9b3a] text-sm font-bold"
+          aria-label="Choose goal number"
+        >
+          {goalNumber} <ChevronDown size={13} />
+        </button>
+        {pickerOpen && (
+          <div className="absolute left-0 top-11 z-20 w-[44px] bg-[#2a2e37] shadow-lg">
+            {goalMarkets.map((market, i) => (
+              <button key={market.key} onClick={() => { setGoalIndex(i); setPickerOpen(false) }} className="block w-full py-1.5 text-sm hover:bg-white/10">
+                {Number(market.label.match(/\d+/)?.[0]) || scored + 1 + i}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flex-1"><OddsCells match={match} market={nextGoal} count={3} has={has} pick={pick} /></div>
+      </div>
       <Link href={`/match/${match.id}`} className="flex items-center justify-end gap-1 text-xs font-bold text-white/80">+{extra} <ChevronRight size={14} className="text-[#17a24a]" /></Link>
     </div>
   )
@@ -362,9 +416,44 @@ function MiniGames() {
         {win ? <>{win.name} won <b className="text-[#ffcf00]">{formatMoney(win.amount, win.currency)}</b> today</> : 'Instant games, paid straight to your balance'}
       </p>
       <div className="grid grid-cols-2 gap-2 p-2">
-        {['spin-the-bottle', 'sky-rocket', 'roulette-royale', 'fruit-party'].map((slug) => <GameTile key={slug} slug={slug} compact />)}
+        {['spin-the-bottle', 'sky-rocket', 'roulette-royale'].map((slug) => {
+          const game = CASINO_GAMES.find((item) => item.slug === slug)!
+          return (
+            <Link key={slug} href={`/games/${slug}`} className="group block overflow-hidden rounded">
+              <div className={`relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br ${game.art}`}>
+                <span className="text-5xl drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] transition-transform group-hover:scale-110">{game.glyph}</span>              </div>
+              <p className="bg-[#353a45] py-1 text-center text-xs">{game.name}</p>
+            </Link>
+          )
+        })}
+        <div className="flex flex-col items-center justify-center rounded bg-[#353a45]/60 text-center text-xs text-white/60">
+          <span className="text-4xl opacity-40">🎲</span>
+          New Games
+          <br />
+          Coming Soon
+        </div>
       </div>
-      <Link href="/games" className="flex items-center justify-between bg-[#ffb400] px-3 py-2 text-xs font-bold text-[#1f1f1f]">Discover more games <ChevronRight size={15} /></Link>
+      <Link href="/games" className="flex items-center justify-between bg-[#1f2229] pl-0 pr-3 text-xs">
+        <span className="bg-[#ffb400] px-3 py-2 font-bold text-[#1f1f1f]">Discover more games</span>
+        <ExternalLink size={15} />
+      </Link>
     </div>
+  )
+}
+
+function VirtualWorldBanner() {
+  return (
+    <Link href="/virtuals" className="relative flex h-24 items-center overflow-hidden bg-[#1b1e24]">
+      <div className="absolute inset-y-0 right-0 w-[48%] bg-[linear-gradient(100deg,transparent_0,transparent_8%,#c8102e_8.5%,#ed1324_100%)]" />
+      <span className="relative flex items-center gap-4 pl-6">
+        <span className="text-3xl font-black italic text-white">SportyBet</span>
+        <span className="h-12 w-px bg-white/40" />
+        <span className="leading-tight">
+          <span className="block text-2xl font-black italic text-[#ed1324]">VIRTUAL WORLD</span>
+          <span className="block text-2xl font-black italic text-white">BET ON EVERY SECOND</span>
+        </span>
+      </span>
+      <span className="relative ml-auto pr-6 text-6xl tracking-[-0.1em] drop-shadow-[0_6px_14px_rgba(0,0,0,0.5)] max-sm:hidden">⚽🏇🐕</span>
+    </Link>
   )
 }
