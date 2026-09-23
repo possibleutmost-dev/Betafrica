@@ -7,7 +7,8 @@ import { AdminDashboard } from '@/components/admin-dashboard'
 import { AuthForm } from '@/components/auth-form'
 import { GamesLobby } from '@/components/games-lobby'
 import { MatchBoard } from '@/components/home-board'
-import { BetsPanel, DepositPanel, TransactionsPanel, WithdrawPanel } from '@/components/player-panels'
+import { AccountPage, DepositPage, OpenBetsPage, WithdrawPage } from '@/components/account'
+import { TransactionsPanel } from '@/components/player-panels'
 import { useShell } from '@/components/site-shell'
 import { useSession, useSlip, type SlipLeg } from '@/lib/store'
 
@@ -39,10 +40,12 @@ export function SectionView({ section }: { section: string }) {
     case 'promotions':
     case 'help':
       return <Help title={section === 'help' ? 'Help' : section[0].toUpperCase() + section.slice(1)} />
+    case 'account':
+      return <AccountPage />
     case 'deposit':
-      return <DepositPanel onNotice={notify} />
+      return <DepositPage />
     case 'withdraw':
-      return <WithdrawPanel onNotice={notify} />
+      return <WithdrawPage />
     case 'transactions':
       return <TransactionsPanel />
     case 'login':
@@ -57,9 +60,8 @@ export function SectionView({ section }: { section: string }) {
   }
 }
 
-export function MyBetsPage() {
-  const { notify } = useShell()
-  return <BetsPanel onNotice={notify} />
+export function MyBetsPage({ tab }: { tab?: string }) {
+  return <OpenBetsPage initialTab={tab === 'history' ? 'history' : 'open'} />
 }
 
 function Help({ title }: { title: string }) {

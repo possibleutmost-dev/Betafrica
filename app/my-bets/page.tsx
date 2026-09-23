@@ -1,5 +1,6 @@
 import { MyBetsPage } from '@/components/site-pages'
 
-export default function Page() {
-  return <MyBetsPage />
+export default async function Page({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const { tab } = await searchParams
+  return <MyBetsPage tab={tab} />
 }

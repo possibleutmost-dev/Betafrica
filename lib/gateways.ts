@@ -1,4 +1,4 @@
-import type { Gateway } from "./countries";
+import { ghanaNetwork, type Gateway } from "./countries";
 import {
   cardsConfigured,
   chargePaid,
@@ -76,25 +76,9 @@ function env(name: string): string | null {
 
 // ------------------------------------------------------------ Flutterwave
 
-/**
- * The network has to be named on a Ghana mobile-money charge, and the number's
- * prefix is the only thing we have to name it from.
- *
- * Unknown prefixes fall to MTN, which carries most of the country. Getting it
- * wrong costs a rejected charge and a clear message, not a lost payment.
- *
- * Telecel Cash is still VODAFONE to the rail, whatever the network calls itself
- * now. These are the codes a working v4 integration sends.
- */
-export function ghanaNetwork(phone: string): "MTN" | "VODAFONE" | "AIRTELTIGO" {
-  const digits = String(phone || "").replace(/\D/g, "");
-  // Reduce to the local significant number, however it was typed.
-  const local = digits.startsWith("233") ? digits.slice(3) : digits.replace(/^0+/, "");
-  const prefix = local.slice(0, 2);
-  if (prefix === "20" || prefix === "50") return "VODAFONE";
-  if (prefix === "26" || prefix === "27" || prefix === "56" || prefix === "57") return "AIRTELTIGO";
-  return "MTN";
-}
+// Lives in countries so the deposit screen can name the same network the rail
+// will be told about.
+export { ghanaNetwork };
 
 /**
  * Ask v4 how a charge ended up.

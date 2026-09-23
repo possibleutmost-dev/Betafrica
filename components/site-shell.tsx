@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { ChevronDown, Headphones, Menu, ShieldCheck, X } from 'lucide-react'
+import { ChevronDown, Gamepad2, Headphones, House, Menu, ReceiptText, ShieldCheck, UserRound, X } from 'lucide-react'
 import { AuthForm } from '@/components/auth-form'
 import { WinCelebration, hasCelebrated, markCelebrated } from '@/components/tickets'
 import { formatMoney } from '@/lib/countries'
@@ -28,6 +28,7 @@ const mainNav = [
 ] as const
 
 const accountNav = [
+  ['My Account', '/account'],
   ['My Bets', '/my-bets'],
   ['Withdraw', '/withdraw'],
   ['Transactions', '/transactions'],
@@ -56,6 +57,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const [notice, setNotice] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const [win, setWin] = useState<{ code: string; amount: number; currency: string } | null>(null)
+  const [openBets, setOpenBets] = useState(0)
   const router = useRouter()
   const slipLegs = useSlip((state) => state.legs)
   const slipCount = mounted ? slipLegs.length : 0
@@ -97,6 +99,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       .then((json) => {
         if (!alive) return
         const bets = (json.bets ?? []) as { code: string; status: string; payout: number | null; potential_win: number; currency: string; settled_at: string | null }[]
+        setOpenBets(bets.filter((bet) => bet.status === 'pending').length)
         const fresh = bets.find((bet) =>
           bet.status === 'won' &&
           !hasCelebrated(bet.code) &&
@@ -110,7 +113,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     return () => {
       alive = false
     }
-  }, [player?.id])
+  }, [player?.id, pathname])
 
   useEffect(() => setMenuOpen(false), [pathname])
 
@@ -121,6 +124,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`))
   const bare = pathname.startsWith('/admin') || pathname.startsWith('/sub-admin')
   const gamesPage = pathname.startsWith('/games') || pathname === '/crash-games'
+  const accountPage = ['/account', '/deposit', '/withdraw', '/my-bets'].some((href) => isActive(href))
 
   if (bare) {
     return <ShellContext.Provider value={shell}><main className="min-h-screen bg-[#eef0f4] text-[#24262c]">{children}</main></ShellContext.Provider>
@@ -159,7 +163,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
             <span className="ml-auto hidden px-3 py-3 text-xs md:block">GMT+00:00</span>
           </nav>
         </header>
-        {!gamesPage && (
+        {!gamesPage && !accountPage && (
           <div className="overflow-hidden border-b bg-white shadow-sm">
             <div className="scrollbar-none -mb-5 mx-auto flex max-w-[1180px] overflow-x-auto px-1 pb-5 sm:px-4">
               {sportTabs.map(([label, href]) => (
@@ -172,7 +176,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         {children}
 
         {notice && (
-          <div className={`fixed left-1/2 z-40 flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center rounded bg-[#22262c] px-5 py-3 text-sm text-white shadow-xl sm:bottom-6 ${slipCount > 0 ? 'bottom-36' : 'bottom-20'}`}>
+          <div className={`fixed left-1/2 z-40 flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center rounded bg-[#22262c] px-5 py-3 text-sm text-white shadow-xl md:bottom-6 ${slipCount > 0 ? 'bottom-48' : 'bottom-36'}`}>
             {notice}
             <button onClick={() => setNotice('')} className="ml-4 text-white/60" aria-label="Close notice"><X size={16} /></button>
           </div>
@@ -184,7 +188,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
               if (slip) slip.scrollIntoView({ behavior: 'smooth', block: 'start' })
               else router.push('/#betslip')
             }}
-            className="fixed inset-x-0 bottom-0 z-30 flex h-14 items-center justify-between bg-[#0b9b3a] px-4 text-white shadow-[0_-2px_10px_rgba(0,0,0,0.2)] md:hidden"
+            className="fixed inset-x-0 bottom-16 z-30 flex h-12 items-center justify-between bg-[#0b9b3a] px-4 text-white shadow-[0_-2px_10px_rgba(0,0,0,0.2)] md:hidden"
           >
             <span className="flex items-center gap-2 font-semibold">
               Betslip <span className="rounded-full bg-[#ed1324] px-2 text-xs">{slipCount}</span>
@@ -192,7 +196,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
             <span className="text-sm">Odds <b>{slipOdds.toFixed(2)}</b></span>
           </button>
         )}
-        <button onClick={() => setNotice('Support is available on the number shown at deposit.')} className={`fixed right-4 z-30 flex h-12 w-12 sm:bottom-6 sm:right-6 ${slipCount > 0 ? 'bottom-20' : 'bottom-4'} items-center justify-center rounded-full bg-[#ed1324] text-white shadow-lg`} aria-label="Contact support"><Headphones size={22} /></button>
+        <button onClick={() => setNotice('Support is available on the number shown at deposit.')} className={`fixed right-4 z-30 flex h-12 w-12 md:bottom-6 md:right-6 ${slipCount > 0 ? 'bottom-32' : 'bottom-20'} items-center justify-center rounded-full bg-[#ed1324] text-white shadow-lg`} aria-label="Contact support"><Headphones size={22} /></button>
         {auth && (
           <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/55 p-4 sm:items-center">
             <AuthForm
@@ -208,7 +212,18 @@ export function SiteShell({ children }: { children: ReactNode }) {
           </div>
         )}
         {win && <WinCelebration code={win.code} amount={win.amount} currency={win.currency} onClose={() => setWin(null)} />}
-        <footer className={`border-t bg-white pb-16 sm:pb-0 ${gamesPage ? '' : 'mt-8'}`}>
+        <nav className="fixed inset-x-0 bottom-0 z-30 grid h-16 grid-cols-5 bg-[#111317] pb-[env(safe-area-inset-bottom)] text-[11px] text-white/70 md:hidden" aria-label="Main">
+          <TabLink href="/" active={pathname === '/'} icon={<House size={22} />} label="Home" />
+          <button onClick={() => { setMenuOpen(true); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className="flex flex-col items-center justify-center gap-1">
+            <Menu size={22} /> AZ Menu
+          </button>
+          <TabLink href="/games" active={gamesPage} icon={<Gamepad2 size={22} className="text-[#8b7cf6]" />} label="Games" />
+          <TabLink href="/my-bets" active={isActive('/my-bets')} icon={<ReceiptText size={22} />} label="Open Bets" badge={player ? openBets : 0} />
+          {player
+            ? <TabLink href="/account" active={['/account', '/deposit', '/withdraw', '/transactions'].some(isActive)} icon={<UserRound size={22} />} label="Me" />
+            : <button onClick={() => setAuth('login')} className="flex flex-col items-center justify-center gap-1"><UserRound size={22} /> Me</button>}
+        </nav>
+        <footer className={`border-t bg-white pb-28 md:pb-0 ${gamesPage || accountPage ? '' : 'mt-8'}`}>
           <div className="mx-auto flex max-w-[1180px] flex-wrap justify-between gap-4 px-4 py-6 text-xs text-[#6b7077]">
             <span className="font-semibold text-[#ed1324]">WinnBet</span>
             <span className="flex flex-wrap gap-2">
@@ -219,5 +234,15 @@ export function SiteShell({ children }: { children: ReactNode }) {
         </footer>
       </main>
     </ShellContext.Provider>
+  )
+}
+
+function TabLink({ href, active, icon, label, badge = 0 }: { href: string; active: boolean; icon: ReactNode; label: string; badge?: number }) {
+  return (
+    <Link href={href} className={`relative flex flex-col items-center justify-center gap-1 ${active ? 'font-semibold text-white' : ''}`}>
+      {icon}
+      {label}
+      {badge > 0 && <span className="absolute left-1/2 top-1.5 ml-1.5 min-w-[18px] rounded-full bg-[#ed1324] px-1 text-center text-[10px] font-bold leading-[18px] text-white">{badge}</span>}
+    </Link>
   )
 }

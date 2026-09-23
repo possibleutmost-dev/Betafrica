@@ -9,6 +9,7 @@ export const SECTIONS = [
   'jackpot',
   'promotions',
   'help',
+  'account',
   'deposit',
   'withdraw',
   'transactions',
