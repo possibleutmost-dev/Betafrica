@@ -416,13 +416,13 @@ export function MatchDetail({ id }: { id: string }) {
         </div>
         {match && (
           <>
-            <div className="scrollbar-none flex overflow-x-auto border-b">
+            <div className="overflow-hidden border-b"><div className="scrollbar-none -mb-5 flex overflow-x-auto pb-5">
               {['all', ...groups].map((item) => (
                 <button key={item} onClick={() => setGroup(item)} className={`whitespace-nowrap px-4 py-3 text-sm ${group === item ? 'border-b-4 border-[#ed1324] font-semibold' : 'text-[#5c6068]'}`}>
                   {item === 'all' ? 'All' : GROUP_LABELS[item] ?? item}
                 </button>
               ))}
-            </div>
+            </div></div>
             <div className="space-y-4 p-3 sm:p-4">
               {match.isLocked && <p className="bg-[#fff0f1] px-3 py-2 text-xs text-[#ed1324]">{match.postponed ? 'This fixture is postponed.' : 'Betting is locked on this match.'}</p>}
               {shown.map((market) => (

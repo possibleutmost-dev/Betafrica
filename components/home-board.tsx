@@ -128,10 +128,12 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
           </aside>
           <HeroBanner onNotice={onNotice} />
           <QuickRegister onNeedAuth={onNeedAuth} onNotice={onNotice} />
-          <div className="scrollbar-none flex gap-2 overflow-x-auto px-3 pb-3 md:hidden">
-            {popular.map((item) => (
-              <button key={item.label} onClick={item.select} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${item.active ? 'border-[#17a24a] bg-[#17a24a] text-white' : 'border-white/25 text-white/85'}`}>{item.label}</button>
-            ))}
+          <div className="overflow-hidden pb-3 md:hidden">
+            <div className="scrollbar-none -mb-5 flex gap-2 overflow-x-auto px-3 pb-5">
+              {popular.map((item) => (
+                <button key={item.label} onClick={item.select} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${item.active ? 'border-[#17a24a] bg-[#17a24a] text-white' : 'border-white/25 text-white/85'}`}>{item.label}</button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -163,7 +165,7 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
             {byLeague(live).map(([league, rows]) => (
               <div key={league}>
                 <div className={`${LIVE_GRID} items-end border-b border-white/10 px-2 pt-3 text-[11px] text-white/60`}>
-                  <p className="truncate pb-1 text-sm font-bold text-white">{league}</p>
+                  <p className="col-span-2 truncate pb-1 text-sm font-bold text-white sm:col-span-1">{league}</p>
                   <ColumnHead title="3 Way" labels={['1', 'X', '2']} />
                   <ColumnHead title="Next Goals" labels={['1', 'No Goal', '2']} className="max-lg:hidden pl-[48px]" />
                   <span />
@@ -267,9 +269,11 @@ function SportTabs({ value, onChange, dark, filter = false }: { value: SportTab;
     `shrink-0 whitespace-nowrap px-3 py-2.5 text-sm sm:px-4 ${active ? `border-b-[3px] border-[#10a349] font-bold ${dark ? 'text-white' : 'text-[#24262c]'}` : dark ? 'text-white/80' : 'text-[#353a45]'}`
   return (
     <div className={`relative flex items-center border-b ${dark ? 'border-white/10' : ''}`}>
-      <div className="scrollbar-none flex min-w-0 flex-1 items-center overflow-x-auto px-1 sm:px-2">
-        {SPORT_TABS.map((item) => <button key={item} onClick={() => onChange(item)} className={tabClass(value === item)}>{item}</button>)}
-        <button onClick={() => setMore((open) => !open)} className={`${tabClass(moreActive)} flex items-center gap-1`}>{moreActive ? value : 'More Sports'} <ChevronDown size={15} /></button>
+      <div className="min-w-0 flex-1 overflow-hidden">
+        <div className="scrollbar-none -mb-5 flex items-center overflow-x-auto px-1 pb-5 sm:px-2">
+          {SPORT_TABS.map((item) => <button key={item} onClick={() => onChange(item)} className={tabClass(value === item)}>{item}</button>)}
+          <button onClick={() => setMore((open) => !open)} className={`${tabClass(moreActive)} flex items-center gap-1`}>{moreActive ? value : 'More Sports'} <ChevronDown size={15} /></button>
+        </div>
       </div>
       {more && (
         <div className={`absolute right-2 top-full z-20 w-44 py-1 shadow-lg md:left-[420px] md:right-auto ${dark ? 'bg-[#2a2e37]' : 'bg-white'}`}>
@@ -297,7 +301,7 @@ function ColumnHead({ title, labels, className = '' }: { title: string; labels: 
 type PickFn = (match: BoardMatch, market: BoardMarket, price: BoardPrice) => void
 type HasFn = (matchId: string, market: string, outcome: string) => boolean
 
-const LIVE_GRID = 'grid grid-cols-[minmax(0,1fr)_150px_26px] gap-1 sm:grid-cols-[minmax(0,1fr)_222px_40px] lg:grid-cols-[minmax(0,1fr)_222px_270px_56px]'
+const LIVE_GRID = 'grid grid-cols-[minmax(0,1fr)_32px] gap-1 sm:grid-cols-[minmax(0,1fr)_222px_40px] lg:grid-cols-[minmax(0,1fr)_222px_270px_56px]'
 
 const NEXT_GOAL = /next goal|score the \d+(st|nd|rd|th) goal|^goal \d+$/i
 
@@ -324,8 +328,8 @@ function LiveRow({ match, has, pick }: { match: BoardMatch; has: HasFn; pick: Pi
   const extra = Math.max(0, match.markets.length - 2)
 
   return (
-    <div className={`${LIVE_GRID} items-center border-b border-white/10 py-2 pl-0 pr-2`}>
-      <Link href={`/match/${match.id}`} className="flex min-w-0 items-center gap-2 border-l-4 border-[#10a349] pl-2 sm:gap-3">
+    <div className={`${LIVE_GRID} items-center gap-y-2 border-b border-white/10 py-2 pl-2 pr-2 sm:pl-0`}>
+      <Link href={`/match/${match.id}`} className="col-span-2 flex min-w-0 items-center gap-2 border-l-4 border-[#10a349] pl-2 sm:col-span-1 sm:gap-3">
         <div className="w-9 shrink-0 text-xs font-bold sm:w-11">
           <p>{match.minuteLabel || 'LIVE'}</p>
           <p className="font-normal text-white/60">{match.postponed ? 'PP' : halfLabel(match)}</p>
@@ -393,8 +397,8 @@ function HighlightRow({ match, has, pick }: { match: BoardMatch; has: HasFn; pic
         <span className="truncate">{match.league}</span>
         <span className="shrink-0">{kickoffLabel(match)}</span>
       </div>
-      <div className="grid grid-cols-[minmax(0,1fr)_156px_26px] items-center gap-1.5 px-2 py-2 sm:grid-cols-[minmax(0,1fr)_210px_40px] sm:gap-2 sm:px-3 lg:grid-cols-[minmax(0,1fr)_210px_150px_50px]">
-        <Link href={`/match/${match.id}`} className="min-w-0 space-y-1 text-sm">
+      <div className="grid grid-cols-[minmax(0,1fr)_32px] items-center gap-x-1.5 gap-y-2 px-2 py-2 sm:grid-cols-[minmax(0,1fr)_210px_40px] sm:gap-2 sm:px-3 lg:grid-cols-[minmax(0,1fr)_210px_150px_50px]">
+        <Link href={`/match/${match.id}`} className="col-span-2 min-w-0 space-y-1 text-sm sm:col-span-1">
           <span className="flex items-center gap-2"><Crest src={match.homeCrest} name={match.homeTeam} /><strong className="truncate">{match.homeTeam}</strong></span>
           <span className="flex items-center gap-2 text-[#73777d]"><Crest src={match.awayCrest} name={match.awayTeam} /><span className="truncate">{match.awayTeam}</span></span>
         </Link>

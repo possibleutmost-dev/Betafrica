@@ -160,8 +160,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
           </nav>
         </header>
         {!gamesPage && (
-          <div className="border-b bg-white shadow-sm">
-            <div className="scrollbar-none mx-auto flex max-w-[1180px] overflow-x-auto px-1 sm:px-4">
+          <div className="overflow-hidden border-b bg-white shadow-sm">
+            <div className="scrollbar-none -mb-5 mx-auto flex max-w-[1180px] overflow-x-auto px-1 pb-5 sm:px-4">
               {sportTabs.map(([label, href]) => (
                 <Link key={label} href={href} className={`whitespace-nowrap px-3 py-3 text-sm sm:px-4 ${isActive(href) ? 'border-b-4 border-[#ed1324] font-semibold' : 'text-[#5c6068]'}`}>{label}</Link>
               ))}
