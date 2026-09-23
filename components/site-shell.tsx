@@ -3,8 +3,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { ChevronDown, Gamepad2, Headphones, House, Menu, ReceiptText, ShieldCheck, UserRound, X } from 'lucide-react'
+import { ChevronDown, Gamepad2, Headphones, House, Menu, ReceiptText, UserRound, X } from 'lucide-react'
 import { AuthForm } from '@/components/auth-form'
+import { SiteFooter } from '@/components/info-pages'
 import { WinCelebration, hasCelebrated, markCelebrated } from '@/components/tickets'
 import { formatMoney } from '@/lib/countries'
 import { useSession, useSlip, type Player } from '@/lib/store'
@@ -196,7 +197,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
             <span className="text-sm">Odds <b>{slipOdds.toFixed(2)}</b></span>
           </button>
         )}
-        <button onClick={() => setNotice('Support is available on the number shown at deposit.')} className={`fixed right-4 z-30 flex h-12 w-12 md:bottom-6 md:right-6 ${slipCount > 0 ? 'bottom-32' : 'bottom-20'} items-center justify-center rounded-full bg-[#ed1324] text-white shadow-lg`} aria-label="Contact support"><Headphones size={22} /></button>
+        <Link href="/help#contact" className={`fixed right-4 z-30 flex h-12 w-12 md:bottom-6 md:right-6 ${slipCount > 0 ? 'bottom-32' : 'bottom-20'} items-center justify-center rounded-full bg-[#ed1324] text-white shadow-lg`} aria-label="Contact support"><Headphones size={22} /></Link>
         {auth && (
           <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/55 p-4 sm:items-center">
             <AuthForm
@@ -223,15 +224,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
             ? <TabLink href="/account" active={['/account', '/deposit', '/withdraw', '/transactions'].some(isActive)} icon={<UserRound size={22} />} label="Me" />
             : <button onClick={() => setAuth('login')} className="flex flex-col items-center justify-center gap-1"><UserRound size={22} /> Me</button>}
         </nav>
-        <footer className={`border-t bg-white pb-28 md:pb-0 ${gamesPage || accountPage ? '' : 'mt-8'}`}>
-          <div className="mx-auto flex max-w-[1180px] flex-wrap justify-between gap-4 px-4 py-6 text-xs text-[#6b7077]">
-            <span className="font-semibold text-[#ed1324]">WinnBet</span>
-            <span className="flex flex-wrap gap-2">
-              <Link href="/help">Responsible Betting</Link>·<Link href="/help">Terms & Conditions</Link>·<Link href="/help">Privacy Policy</Link>
-            </span>
-            <span className="flex items-center gap-1"><ShieldCheck size={15} /> 18+ Gamble responsibly</span>
-          </div>
-        </footer>
+        <SiteFooter className={gamesPage || accountPage ? '' : 'mt-8'} />
       </main>
     </ShellContext.Provider>
   )

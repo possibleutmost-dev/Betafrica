@@ -4,7 +4,14 @@ import { db } from "@/lib/supabase";
 export const dynamic = "force-dynamic";
 
 /** The operator-editable values the player-facing screens need to render. */
-const PUBLIC_KEYS = ["deposit_account_name", "deposit_account_number", "deposit_account_network"];
+const PUBLIC_KEYS = [
+  "deposit_account_name",
+  "deposit_account_number",
+  "deposit_account_network",
+  "support_whatsapp",
+  "support_email",
+  "license_text",
+];
 
 export async function GET() {
   const supabase = db();

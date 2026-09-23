@@ -6,7 +6,14 @@ import { CONFIG_FIELDS, invalidateConfig } from "@/lib/config";
 export const dynamic = "force-dynamic";
 
 /** Plain values the console shows and edits as they are. */
-const PLAIN_KEYS = ["deposit_account_name", "deposit_account_number", "deposit_account_network"];
+const PLAIN_KEYS = [
+  "deposit_account_name",
+  "deposit_account_number",
+  "deposit_account_network",
+  "support_whatsapp",
+  "support_email",
+  "license_text",
+];
 const SECRET_KEYS = new Set(CONFIG_FIELDS.filter((f) => f.secret).map((f) => f.key));
 const EDITABLE = new Set([...PLAIN_KEYS, ...CONFIG_FIELDS.map((f) => f.key)]);
 

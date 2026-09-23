@@ -8,6 +8,7 @@ import { AuthForm } from '@/components/auth-form'
 import { GamesLobby } from '@/components/games-lobby'
 import { MatchBoard } from '@/components/home-board'
 import { AccountPage, DepositPage, OpenBetsPage, WithdrawPage } from '@/components/account'
+import { FaqPage, PrivacyPage, ResponsibleGamblingPage, TermsPage } from '@/components/info-pages'
 import { TransactionsPanel } from '@/components/player-panels'
 import { useShell } from '@/components/site-shell'
 import { useSession, useSlip, type SlipLeg } from '@/lib/store'
@@ -36,10 +37,17 @@ export function SectionView({ section }: { section: string }) {
       return <GamesLobby />
     case 'crash-games':
       return <GamesLobby initialCategory="crash" />
+    case 'help':
+      return <FaqPage />
+    case 'terms':
+      return <TermsPage />
+    case 'privacy':
+      return <PrivacyPage />
+    case 'responsible-gambling':
+      return <ResponsibleGamblingPage />
     case 'jackpot':
     case 'promotions':
-    case 'help':
-      return <Help title={section === 'help' ? 'Help' : section[0].toUpperCase() + section.slice(1)} />
+      return <Help title={section[0].toUpperCase() + section.slice(1)} />
     case 'account':
       return <AccountPage />
     case 'deposit':

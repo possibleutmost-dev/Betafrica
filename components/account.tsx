@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  ArrowDownToLine, ArrowUpFromLine, ChevronLeft, ChevronRight, CircleHelp, Eye, EyeOff, Gamepad2,
-  Headphones, History, LogOut, Megaphone, ReceiptText, Share2, Smartphone, Ticket,
+  ArrowDownToLine, ArrowUpFromLine, ChevronLeft, ChevronRight, CircleHelp, Eye, EyeOff, FileText, Gamepad2,
+  Headphones, History, Lock, LogOut, Megaphone, ReceiptText, Share2, ShieldCheck, Smartphone, Ticket,
 } from 'lucide-react'
 import { NeedSignIn } from '@/components/player-panels'
 import { useShell } from '@/components/site-shell'
@@ -165,21 +165,32 @@ export function AccountPage() {
   if (!player) return <NeedSignIn />
 
   const balance = formatMoney(me ? Number(me.user.balance) : player.balance, player.currency)
-  const menu: { label: string; href?: string; onClick?: () => void; icon: ReactNode; hint?: string }[] = [
-    { label: 'Customer Service', href: '/help', icon: <Headphones size={22} />, hint: 'Online 24/7' },
-    { label: 'Promotions', href: '/promotions', icon: <Megaphone size={22} /> },
-    { label: 'Load booking code', href: '/load-code', icon: <Ticket size={22} /> },
-    { label: 'How to play', href: '/help', icon: <CircleHelp size={22} /> },
+  type MenuItem = { label: string; href?: string; onClick?: () => void; icon: ReactNode }
+  const invite = () => {
+    const url = window.location.origin
+    if (navigator.share) navigator.share({ title: 'WinnBet', url }).catch(() => {})
+    else navigator.clipboard?.writeText(url).catch(() => {})
+  }
+  const groups: { title: string; items: MenuItem[] }[] = [
     {
-      label: 'Invite friends',
-      icon: <Share2 size={22} />,
-      onClick: () => {
-        const url = window.location.origin
-        if (navigator.share) navigator.share({ title: 'WinnBet', url }).catch(() => {})
-        else navigator.clipboard?.writeText(url).catch(() => {})
-      },
+      title: 'Account & Support',
+      items: [
+        { label: 'Customer Service', href: '/help#contact', icon: <Headphones size={22} /> },
+        { label: 'Help & FAQ', href: '/help', icon: <CircleHelp size={22} /> },
+        { label: 'Load booking code', href: '/load-code', icon: <Ticket size={22} /> },
+      ],
     },
-    { label: 'Logout', icon: <LogOut size={22} />, onClick: () => { signOut(); router.push('/') } },
+    {
+      title: 'More',
+      items: [
+        { label: 'Promotions', href: '/promotions', icon: <Megaphone size={22} /> },
+        { label: 'Refer a Friend', onClick: invite, icon: <Share2 size={22} /> },
+        { label: 'Responsible Gambling', href: '/responsible-gambling', icon: <ShieldCheck size={22} /> },
+        { label: 'Terms & Conditions', href: '/terms', icon: <FileText size={22} /> },
+        { label: 'Privacy Policy', href: '/privacy', icon: <Lock size={22} /> },
+        { label: 'Logout', icon: <LogOut size={22} />, onClick: () => { signOut(); router.push('/') } },
+      ],
+    },
   ]
 
   return (
@@ -216,25 +227,30 @@ export function AccountPage() {
           <Link href="/games" className="flex flex-col items-center gap-2 px-1"><Gamepad2 size={22} className="text-white/80" />Games</Link>
         </div>
 
-        <ul className="mt-3 divide-y divide-white/10 px-4">
-          {menu.map((item) => {
-            const body = (
-              <>
-                <span className="text-white/85">{item.icon}</span>
-                <span className="flex-1 text-[17px]">{item.label}</span>
-                {item.hint && <span className="text-sm text-white/55">{item.hint}</span>}
-                <ChevronRight size={18} className="text-white/50" />
-              </>
-            )
-            return (
-              <li key={item.label}>
-                {item.href
-                  ? <Link href={item.href} className="flex h-14 items-center gap-4">{body}</Link>
-                  : <button onClick={item.onClick} className="flex h-14 w-full items-center gap-4 text-left">{body}</button>}
-              </li>
-            )
-          })}
-        </ul>
+        {groups.map((group) => (
+          <div key={group.title} className="mt-5 px-4">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-white/45">{group.title}</p>
+            <ul className="divide-y divide-white/10 rounded-lg bg-[#2a2e37] px-4">
+              {group.items.map((item) => {
+                const body = (
+                  <>
+                    <span className="text-white/80">{item.icon}</span>
+                    <span className="flex-1 text-[16px]">{item.label}</span>
+                    <ChevronRight size={18} className="text-white/45" />
+                  </>
+                )
+                return (
+                  <li key={item.label}>
+                    {item.href
+                      ? <Link href={item.href} className="flex h-14 items-center gap-4">{body}</Link>
+                      : <button onClick={item.onClick} className="flex h-14 w-full items-center gap-4 text-left">{body}</button>}
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ))}
+        <p className="py-6 text-center text-xs text-white/40">WinnBet Ghana</p>
       </div>
     </div>
   )
