@@ -38,6 +38,8 @@ const POPULAR_LEAGUES: { label: string; test: RegExp }[] = [
   { label: 'England Premier League', test: /^premier league$|england premier league|english premier league/i },
 ]
 
+const PAGE_SIZE = 5
+
 const escape = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 const VIEW_TO_TAB: Record<string, SportTab> = {
@@ -70,7 +72,12 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
   const [tab, setTab] = useState<SportTab>(VIEW_TO_TAB[view] ?? 'Football')
   const [liveTab, setLiveTab] = useState<SportTab>('Football')
 
+  const [liveLimit, setLiveLimit] = useState(PAGE_SIZE)
+  const [highlightLimit, setHighlightLimit] = useState(PAGE_SIZE)
+
   useEffect(() => setTab(VIEW_TO_TAB[view] ?? 'Football'), [view])
+  useEffect(() => setLiveLimit(PAGE_SIZE), [liveTab])
+  useEffect(() => setHighlightLimit(PAGE_SIZE), [tab, filter])
 
   const all = useMemo(() => matches ?? [], [matches])
   const leagues = useMemo(() => {
@@ -140,6 +147,27 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
 
       <section className="mx-auto grid max-w-[1180px] gap-4 px-3 py-4 sm:px-4 md:grid-cols-[1fr_280px]">
         <div className="min-w-0 space-y-4">
+          <div className="bg-[#1b1e24] text-white">
+            <BoardHeader title="Live Betting" onRefresh={reload} dark />
+            <SportTabs value={liveTab} onChange={setLiveTab} dark />
+            {matches === null && !error && <p className="px-4 py-8 text-sm text-white/60">Loading live matches…</p>}
+            {matches && live.length === 0 && <p className="px-4 py-8 text-sm text-white/60">No live {liveTab} matches right now.</p>}
+            {byLeague(live.slice(0, liveLimit)).map(([league, rows]) => (
+              <div key={league}>
+                <div className={`${LIVE_GRID} items-end border-b border-white/10 px-2 pt-3 text-[11px] text-white/60`}>
+                  <p className="col-span-2 truncate pb-1 text-sm font-bold text-white sm:col-span-1">{league}</p>
+                  <ColumnHead title="3 Way" labels={['1', 'X', '2']} />
+                  <ColumnHead title="Next Goals" labels={['1', 'No Goal', '2']} className="max-lg:hidden pl-[48px]" />
+                  <span />
+                </div>
+                {rows.map((match) => <LiveRow key={match.id} match={match} has={has} pick={pick} />)}
+              </div>
+            ))}
+            {live.length > liveLimit && (
+              <ViewMore dark remaining={live.length - liveLimit} onClick={() => setLiveLimit((n) => n + PAGE_SIZE)} />
+            )}
+          </div>
+
           {!liveOnly && (
             <div className="border bg-white">
               <VirtualWorldBanner />
@@ -151,29 +179,15 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
                 {matches === null && !error && <p className="px-3 py-8 text-sm text-[#888d93]">Loading fixtures…</p>}
                 {error && <p className="px-3 py-8 text-sm text-[#ed1324]">{error}</p>}
                 {matches && highlights.length === 0 && <p className="px-3 py-8 text-sm text-[#888d93]">No {tab} matches in this list right now.</p>}
-                {highlights.map((match) => (
+                {highlights.slice(0, highlightLimit).map((match) => (
                   <HighlightRow key={match.id} match={match} has={has} pick={pick} />
                 ))}
+                {highlights.length > highlightLimit && (
+                  <ViewMore dark={false} remaining={highlights.length - highlightLimit} onClick={() => setHighlightLimit((n) => n + PAGE_SIZE)} />
+                )}
               </div>
             </div>
           )}
-
-          <div className="bg-[#1b1e24] text-white">
-            <BoardHeader title="Live Betting" onRefresh={reload} dark />
-            <SportTabs value={liveTab} onChange={setLiveTab} dark />
-            {matches && live.length === 0 && <p className="px-4 py-8 text-sm text-white/60">No live {liveTab} matches right now.</p>}
-            {byLeague(live).map(([league, rows]) => (
-              <div key={league}>
-                <div className={`${LIVE_GRID} items-end border-b border-white/10 px-2 pt-3 text-[11px] text-white/60`}>
-                  <p className="col-span-2 truncate pb-1 text-sm font-bold text-white sm:col-span-1">{league}</p>
-                  <ColumnHead title="3 Way" labels={['1', 'X', '2']} />
-                  <ColumnHead title="Next Goals" labels={['1', 'No Goal', '2']} className="max-lg:hidden pl-[48px]" />
-                  <span />
-                </div>
-                {rows.map((match) => <LiveRow key={match.id} match={match} has={has} pick={pick} />)}
-              </div>
-            ))}
-          </div>
         </div>
 
         <aside className="space-y-4">
@@ -193,6 +207,17 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
         </aside>
       </section>
     </>
+  )
+}
+
+function ViewMore({ dark, remaining, onClick }: { dark: boolean; remaining: number; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex w-full items-center justify-center gap-1 py-3 text-sm font-semibold ${dark ? 'text-[#17a24a] hover:bg-white/5' : 'border text-[#0b9b3a] hover:bg-[#f5f6f7]'}`}
+    >
+      View more ({remaining}) <ChevronDown size={16} />
+    </button>
   )
 }
 
