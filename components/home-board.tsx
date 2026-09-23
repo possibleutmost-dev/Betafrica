@@ -103,27 +103,40 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
     if (leg) toggle(leg)
   }
 
+  const popular = [
+    { label: "Today's Football", active: filter.kind === 'today', select: () => { setTab('Football'); setFilter({ kind: 'today' }) } },
+    { label: 'Football in Next 3 Hours', active: filter.kind === 'next3h', select: () => { setTab('Football'); setFilter({ kind: 'next3h' }) } },
+    ...[...POPULAR_LEAGUES, ...leagues.map((name) => ({ label: name, test: new RegExp(`^${escape(name)}$`) }))].map((item) => ({
+      label: item.label,
+      active: filter.kind === 'league' && filter.league === item.label,
+      select: () => setFilter({ kind: 'league', league: item.label, test: item.test }),
+    })),
+  ]
+
   const filterTitle = filter.kind === 'today' ? "Today's Football" : filter.kind === 'next3h' ? 'Football in Next 3 Hours' : filter.kind === 'league' ? filter.league : 'Highlights'
   const liveOnly = view === 'Live Betting'
 
   return (
     <>
       <section className="bg-[#181b21] text-white">
-        <div className="mx-auto grid max-w-[1180px] gap-5 px-4 py-5 md:grid-cols-[230px_1fr_200px]">
+        <div className="mx-auto grid max-w-[1180px] gap-3 px-0 py-0 sm:gap-5 sm:px-4 sm:py-5 md:grid-cols-[230px_1fr_200px]">
           <aside className="hidden md:block">
             <h2 className="mb-2 text-xl font-bold">Popular</h2>
-            <PopularLink active={filter.kind === 'today'} onClick={() => { setTab('Football'); setFilter({ kind: 'today' }) }}>Today&apos;s Football</PopularLink>
-            <PopularLink active={filter.kind === 'next3h'} onClick={() => { setTab('Football'); setFilter({ kind: 'next3h' }) }}>Football in Next 3 Hours</PopularLink>
-            {[...POPULAR_LEAGUES, ...leagues.map((name) => ({ label: name, test: new RegExp(`^${escape(name)}$`) }))].map((item) => (
-              <PopularLink key={item.label} active={filter.kind === 'league' && filter.league === item.label} onClick={() => setFilter({ kind: 'league', league: item.label, test: item.test })}>{item.label}</PopularLink>
+            {popular.map((item) => (
+              <PopularLink key={item.label} active={item.active} onClick={item.select}>{item.label}</PopularLink>
             ))}
           </aside>
           <HeroBanner onNotice={onNotice} />
           <QuickRegister onNeedAuth={onNeedAuth} onNotice={onNotice} />
+          <div className="scrollbar-none flex gap-2 overflow-x-auto px-3 pb-3 md:hidden">
+            {popular.map((item) => (
+              <button key={item.label} onClick={item.select} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${item.active ? 'border-[#17a24a] bg-[#17a24a] text-white' : 'border-white/25 text-white/85'}`}>{item.label}</button>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-[1180px] gap-4 px-4 py-4 md:grid-cols-[1fr_280px]">
+      <section className="mx-auto grid max-w-[1180px] gap-4 px-3 py-4 sm:px-4 md:grid-cols-[1fr_280px]">
         <div className="min-w-0 space-y-4">
           {!liveOnly && (
             <div className="border bg-white">
@@ -132,7 +145,7 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
                 {filter.kind !== 'all' && <button onClick={() => setFilter({ kind: 'all' })} className="text-xs text-[#ed1324]">Clear filter</button>}
               </BoardHeader>
               <SportTabs value={tab} onChange={setTab} dark={false} filter />
-              <div className="p-3">
+              <div className="p-2 sm:p-3">
                 {matches === null && !error && <p className="px-3 py-8 text-sm text-[#888d93]">Loading fixtures…</p>}
                 {error && <p className="px-3 py-8 text-sm text-[#ed1324]">{error}</p>}
                 {matches && highlights.length === 0 && <p className="px-3 py-8 text-sm text-[#888d93]">No {tab} matches in this list right now.</p>}
@@ -206,7 +219,7 @@ function HeroBanner({ onNotice }: { onNotice: (message: string) => void }) {
   const href = index === 1 ? '/virtuals' : index === 2 ? '/games' : null
 
   return (
-    <div className="relative flex min-h-[235px] flex-col justify-end overflow-hidden p-7">
+    <div className="relative flex min-h-[180px] flex-col justify-end overflow-hidden p-5 sm:min-h-[235px] sm:p-7">
       <div className={`absolute inset-0 transition-all duration-700 ${slide.bg}`} />
       {slide.image && (
         <>
@@ -215,10 +228,10 @@ function HeroBanner({ onNotice }: { onNotice: (message: string) => void }) {
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/35 to-transparent" />
         </>
       )}
-      {slide.art && <span className="absolute right-6 top-1/2 -translate-y-1/2 text-7xl tracking-[-0.15em] drop-shadow-[0_6px_14px_rgba(0,0,0,0.5)]">{slide.art}</span>}
+      {slide.art && <span className="absolute right-4 top-6 text-5xl tracking-[-0.15em] sm:right-6 sm:top-1/2 sm:-translate-y-1/2 sm:text-7xl drop-shadow-[0_6px_14px_rgba(0,0,0,0.5)]">{slide.art}</span>}
       <div className="relative">
         <p className="text-sm font-black italic text-white/90">WinnBet</p>
-        <div className="text-4xl font-black italic text-white">{slide.title}</div>
+        <div className="text-3xl font-black italic text-white sm:text-4xl">{slide.title}</div>
         <p className="mb-4 text-xs font-bold text-white/80">{slide.sub}</p>
         {href
           ? <Link href={href} className="inline-block rounded-full border-2 border-white px-5 py-1 text-xs font-semibold">PLAY NOW</Link>
@@ -233,14 +246,14 @@ function HeroBanner({ onNotice }: { onNotice: (message: string) => void }) {
 
 function BoardHeader({ title, onRefresh, dark, children }: { title: string; onRefresh: () => void; dark: boolean; children?: ReactNode }) {
   return (
-    <div className="flex items-center justify-between px-4 pb-2 pt-4">
-      <h1 className="flex items-center gap-3 text-2xl font-semibold">
-        <span className="inline-block h-6 w-6 rounded-full bg-[#10a349]" />
-        {title}
+    <div className="flex items-center justify-between gap-3 px-3 pb-2 pt-4 sm:px-4">
+      <h1 className="flex min-w-0 items-center gap-2 text-lg font-semibold sm:gap-3 sm:text-2xl">
+        <span className="inline-block h-5 w-5 shrink-0 rounded-full bg-[#10a349] sm:h-6 sm:w-6" />
+        <span className="truncate">{title}</span>
       </h1>
-      <div className={`flex items-center gap-5 text-xs ${dark ? 'text-[#17a24a]' : 'text-[#353a45]'}`}>
+      <div className={`flex shrink-0 items-center gap-3 text-xs sm:gap-5 ${dark ? 'text-[#17a24a]' : 'text-[#353a45]'}`}>
         {children}
-        <button onClick={() => window.print()} className="flex items-center gap-1.5"><Printer size={15} /> Print</button>
+        <button onClick={() => window.print()} className="hidden items-center gap-1.5 sm:flex"><Printer size={15} /> Print</button>
         <button onClick={onRefresh} className="flex items-center gap-1.5"><RotateCw size={15} /> Refresh</button>
       </div>
     </div>
@@ -251,19 +264,21 @@ function SportTabs({ value, onChange, dark, filter = false }: { value: SportTab;
   const [more, setMore] = useState(false)
   const moreActive = (MORE_SPORTS as readonly string[]).includes(value)
   const tabClass = (active: boolean) =>
-    `whitespace-nowrap px-4 py-2.5 text-sm ${active ? `border-b-[3px] border-[#10a349] font-bold ${dark ? 'text-white' : 'text-[#24262c]'}` : dark ? 'text-white/80' : 'text-[#353a45]'}`
+    `shrink-0 whitespace-nowrap px-3 py-2.5 text-sm sm:px-4 ${active ? `border-b-[3px] border-[#10a349] font-bold ${dark ? 'text-white' : 'text-[#24262c]'}` : dark ? 'text-white/80' : 'text-[#353a45]'}`
   return (
-    <div className={`relative flex items-center border-b px-2 ${dark ? 'border-white/10' : ''}`}>
-      {SPORT_TABS.map((item) => <button key={item} onClick={() => onChange(item)} className={tabClass(value === item)}>{item}</button>)}
-      <button onClick={() => setMore((open) => !open)} className={`${tabClass(moreActive)} flex items-center gap-1`}>{moreActive ? value : 'More Sports'} <ChevronDown size={15} /></button>
+    <div className={`relative flex items-center border-b ${dark ? 'border-white/10' : ''}`}>
+      <div className="scrollbar-none flex min-w-0 flex-1 items-center overflow-x-auto px-1 sm:px-2">
+        {SPORT_TABS.map((item) => <button key={item} onClick={() => onChange(item)} className={tabClass(value === item)}>{item}</button>)}
+        <button onClick={() => setMore((open) => !open)} className={`${tabClass(moreActive)} flex items-center gap-1`}>{moreActive ? value : 'More Sports'} <ChevronDown size={15} /></button>
+      </div>
       {more && (
-        <div className={`absolute left-[420px] top-full z-20 w-44 py-1 shadow-lg max-md:left-2 ${dark ? 'bg-[#2a2e37]' : 'bg-white'}`}>
+        <div className={`absolute right-2 top-full z-20 w-44 py-1 shadow-lg md:left-[420px] md:right-auto ${dark ? 'bg-[#2a2e37]' : 'bg-white'}`}>
           {MORE_SPORTS.map((item) => (
             <button key={item} onClick={() => { onChange(item); setMore(false) }} className={`block w-full px-4 py-2 text-left text-sm ${dark ? 'hover:bg-white/10' : 'hover:bg-[#f5f6f7]'}`}>{item}</button>
           ))}
         </div>
       )}
-      {filter && <span className="ml-auto hidden items-center gap-2 px-3 text-sm text-[#353a45] md:flex">Filter <SlidersHorizontal size={15} /></span>}
+      {filter && <span className="hidden shrink-0 items-center gap-2 px-3 text-sm text-[#353a45] md:flex">Filter <SlidersHorizontal size={15} /></span>}
     </div>
   )
 }
@@ -282,7 +297,7 @@ function ColumnHead({ title, labels, className = '' }: { title: string; labels: 
 type PickFn = (match: BoardMatch, market: BoardMarket, price: BoardPrice) => void
 type HasFn = (matchId: string, market: string, outcome: string) => boolean
 
-const LIVE_GRID = 'grid grid-cols-[1fr_222px_270px_56px] gap-1 max-lg:grid-cols-[1fr_222px_40px]'
+const LIVE_GRID = 'grid grid-cols-[minmax(0,1fr)_150px_26px] gap-1 sm:grid-cols-[minmax(0,1fr)_222px_40px] lg:grid-cols-[minmax(0,1fr)_222px_270px_56px]'
 
 const NEXT_GOAL = /next goal|score the \d+(st|nd|rd|th) goal|^goal \d+$/i
 
@@ -310,8 +325,8 @@ function LiveRow({ match, has, pick }: { match: BoardMatch; has: HasFn; pick: Pi
 
   return (
     <div className={`${LIVE_GRID} items-center border-b border-white/10 py-2 pl-0 pr-2`}>
-      <Link href={`/match/${match.id}`} className="flex min-w-0 items-center gap-3 border-l-4 border-[#10a349] pl-2">
-        <div className="w-11 shrink-0 text-xs font-bold">
+      <Link href={`/match/${match.id}`} className="flex min-w-0 items-center gap-2 border-l-4 border-[#10a349] pl-2 sm:gap-3">
+        <div className="w-9 shrink-0 text-xs font-bold sm:w-11">
           <p>{match.minuteLabel || 'LIVE'}</p>
           <p className="font-normal text-white/60">{match.postponed ? 'PP' : halfLabel(match)}</p>
         </div>
@@ -344,7 +359,7 @@ function LiveRow({ match, has, pick }: { match: BoardMatch; has: HasFn; pick: Pi
         )}
         <div className="flex-1"><OddsCells match={match} market={nextGoal} count={3} has={has} pick={pick} /></div>
       </div>
-      <Link href={`/match/${match.id}`} className="flex items-center justify-end gap-1 text-xs font-bold text-white/80">+{extra} <ChevronRight size={14} className="text-[#17a24a]" /></Link>
+      <Link href={`/match/${match.id}`} className="flex items-center justify-end gap-1 text-xs font-bold text-white/80">+{extra} <ChevronRight size={14} className="hidden text-[#17a24a] sm:block" /></Link>
     </div>
   )
 }
@@ -378,14 +393,14 @@ function HighlightRow({ match, has, pick }: { match: BoardMatch; has: HasFn; pic
         <span className="truncate">{match.league}</span>
         <span className="shrink-0">{kickoffLabel(match)}</span>
       </div>
-      <div className="grid grid-cols-[1fr_210px_150px_50px] items-center gap-2 px-3 py-2 max-lg:grid-cols-[1fr_210px_40px]">
+      <div className="grid grid-cols-[minmax(0,1fr)_156px_26px] items-center gap-1.5 px-2 py-2 sm:grid-cols-[minmax(0,1fr)_210px_40px] sm:gap-2 sm:px-3 lg:grid-cols-[minmax(0,1fr)_210px_150px_50px]">
         <Link href={`/match/${match.id}`} className="min-w-0 space-y-1 text-sm">
-          <span className="flex items-center gap-2 truncate"><Crest src={match.homeCrest} name={match.homeTeam} /><strong>{match.homeTeam}</strong></span>
-          <span className="flex items-center gap-2 truncate text-[#73777d]"><Crest src={match.awayCrest} name={match.awayTeam} />{match.awayTeam}</span>
+          <span className="flex items-center gap-2"><Crest src={match.homeCrest} name={match.homeTeam} /><strong className="truncate">{match.homeTeam}</strong></span>
+          <span className="flex items-center gap-2 text-[#73777d]"><Crest src={match.awayCrest} name={match.awayTeam} /><span className="truncate">{match.awayTeam}</span></span>
         </Link>
         <LightOdds match={match} market={main} count={3} has={has} pick={pick} />
         <div className="max-lg:hidden"><LightOdds match={match} market={second} count={2} has={has} pick={pick} /></div>
-        <Link href={`/match/${match.id}`} className="flex items-center justify-end text-xs font-semibold text-[#6b7077]">+{Math.max(0, match.markets.length - 2)} <ChevronRight size={14} className="text-[#10a349]" /></Link>
+        <Link href={`/match/${match.id}`} className="flex items-center justify-end text-xs font-semibold text-[#6b7077]">+{Math.max(0, match.markets.length - 2)} <ChevronRight size={14} className="hidden text-[#10a349] sm:block" /></Link>
       </div>
     </div>
   )
@@ -453,16 +468,16 @@ function MiniGames() {
 
 function VirtualWorldBanner() {
   return (
-    <Link href="/virtuals" className="relative flex h-24 items-center overflow-hidden bg-[#1b1e24]">
+    <Link href="/virtuals" className="relative flex h-20 items-center overflow-hidden bg-[#1b1e24] sm:h-24">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/banners/virtual-world.jpg" alt="" className="absolute inset-y-0 right-0 h-full w-[62%] object-cover object-[center_35%]" />
       <div className="absolute inset-y-0 left-[38%] w-24 bg-gradient-to-r from-[#1b1e24] to-transparent" />
-      <span className="relative flex items-center gap-4 pl-6">
-        <span className="text-3xl font-black italic text-white">WinnBet</span>
-        <span className="h-12 w-px bg-white/40" />
-        <span className="leading-tight">
-          <span className="block text-2xl font-black italic text-[#ed1324]">VIRTUAL WORLD</span>
-          <span className="block text-2xl font-black italic text-white">BET ON EVERY SECOND</span>
+      <span className="relative flex items-center gap-3 pl-4 sm:gap-4 sm:pl-6">
+        <span className="hidden text-3xl font-black italic text-white sm:inline">WinnBet</span>
+        <span className="hidden h-12 w-px bg-white/40 sm:block" />
+        <span className="leading-tight [text-shadow:0_2px_6px_rgba(0,0,0,0.6)]">
+          <span className="block text-xl font-black italic text-[#ed1324] sm:text-2xl">VIRTUAL WORLD</span>
+          <span className="block text-base font-black italic text-white sm:text-2xl">BET ON EVERY SECOND</span>
         </span>
       </span>
     </Link>

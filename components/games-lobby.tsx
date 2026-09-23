@@ -48,9 +48,9 @@ export function GamesLobby({ initialCategory = 'all' }: { initialCategory?: stri
 
   return (
     <div className="games-felt min-h-[calc(100vh-120px)] py-5">
-      <div className="mx-auto grid max-w-[1180px] gap-3 px-4 md:grid-cols-[180px_1fr]">
+      <div className="mx-auto grid max-w-[1180px] gap-3 px-3 sm:px-4 md:grid-cols-[180px_1fr]">
         <aside className="self-start bg-[#353a45] text-white">
-          <nav className="flex overflow-x-auto md:flex-col">
+          <nav className="scrollbar-none flex overflow-x-auto md:flex-col">
             {CATEGORIES.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
@@ -83,7 +83,7 @@ export function GamesLobby({ initialCategory = 'all' }: { initialCategory?: stri
             )}
           </div>
 
-          <div className="bg-[#353a45] p-4">
+          <div className="bg-[#353a45] p-3 sm:p-4">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <h1 className="text-lg font-bold text-white">{title}</h1>
               <label className="flex h-9 w-full items-center gap-2 bg-[#2a2e37] px-3 text-sm text-white/70 sm:w-[240px]">
@@ -109,11 +109,11 @@ export function GameTile({ slug, compact = false }: { slug: string; compact?: bo
     <Link href={`/games/${game.slug}`} className="group relative block aspect-square overflow-hidden rounded-lg text-left">
       <div className={`absolute inset-0 bg-gradient-to-br ${game.art} transition-transform duration-300 group-hover:scale-105`} />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.25),transparent_55%)]" />
-      <span className={`absolute right-3 leading-none drop-shadow-[0_6px_12px_rgba(0,0,0,0.45)] ${compact ? 'top-3 text-[40px]' : 'top-8 text-[64px]'}`}>{game.glyph}</span>
+      <span className={`absolute right-3 leading-none drop-shadow-[0_6px_12px_rgba(0,0,0,0.45)] ${compact ? 'top-3 text-[40px]' : 'top-4 text-[48px] sm:top-8 sm:text-[64px]'}`}>{game.glyph}</span>
       {game.badge && !compact && <span className={`absolute left-0 top-0 px-2 py-0.5 text-[10px] font-black italic text-white ${BADGE_STYLE[game.badge]}`}>{game.badge}</span>}
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-10">
-        <p className={`font-black uppercase italic leading-none tracking-tight text-white drop-shadow ${compact ? 'text-sm' : 'text-xl'}`}>{game.name}</p>
-        {!compact && <p className="mt-1 text-[11px] text-white/75">{game.tagline}</p>}
+        <p className={`font-black uppercase italic leading-none tracking-tight text-white drop-shadow ${compact ? 'text-sm' : 'text-base sm:text-xl'}`}>{game.name}</p>
+        {!compact && <p className="mt-1 line-clamp-2 text-[11px] text-white/75">{game.tagline}</p>}
       </div>
       <span className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
         <span className="bg-[#0b9b3a] px-5 py-2 text-sm font-bold text-white">PLAY</span>

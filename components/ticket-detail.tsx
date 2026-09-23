@@ -166,8 +166,8 @@ export function TicketDetail({ code }: { code: string }) {
                   ? `FT ${leg.final_home}-${leg.final_away}`
                   : leg.isLive && leg.liveHome != null ? `${leg.minuteLabel ?? 'LIVE'} ${leg.liveHome}-${leg.liveAway}` : new Date(leg.kickoff).toLocaleString('en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit' })
                 return (
-                  <li key={leg.id} className="flex items-start justify-between gap-3 px-5 py-3 text-sm">
-                    <div>
+                  <li key={leg.id} className="flex items-start justify-between gap-3 px-4 py-3 text-sm sm:px-5">
+                    <div className="min-w-0 break-words">
                       <p className="font-semibold">{leg.home_team} vs {leg.away_team}</p>
                       <p className="text-xs text-[#6b7077]">{leg.league} · {leg.market} · <strong>{leg.outcome}</strong> @ {Number(leg.odds).toFixed(2)}</p>
                       <p className="text-xs text-[#8b8f94]">{score}</p>

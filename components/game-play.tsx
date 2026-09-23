@@ -102,22 +102,22 @@ export function GamePlay({ slug }: { slug: string }) {
 
   return (
     <div className="games-felt min-h-[calc(100vh-120px)] py-5 text-white">
-      <div className="mx-auto max-w-[1000px] px-4">
+      <div className="mx-auto max-w-[1000px] px-3 sm:px-4">
         <Link href="/games" className="mb-3 inline-flex items-center text-xs text-white/70"><ChevronLeft size={14} /> All games</Link>
         <div className="grid gap-3 md:grid-cols-[1fr_280px]">
           <div className="overflow-hidden bg-[#2a2e37]">
-            <div className={`flex items-center gap-4 bg-gradient-to-r ${game.art} px-5 py-4`}>
-              <span className="text-5xl drop-shadow">{game.glyph}</span>
-              <div>
-                <h1 className="text-2xl font-black uppercase italic">{game.name}</h1>
-                <p className="text-sm text-white/80">{game.tagline}</p>
+            <div className={`flex items-center gap-3 bg-gradient-to-r ${game.art} px-4 py-3 sm:gap-4 sm:px-5 sm:py-4`}>
+              <span className="text-4xl drop-shadow sm:text-5xl">{game.glyph}</span>
+              <div className="min-w-0">
+                <h1 className="text-lg font-black uppercase italic leading-tight sm:text-2xl">{game.name}</h1>
+                <p className="hidden text-sm text-white/80 sm:block">{game.tagline}</p>
               </div>
-              <div className="ml-auto text-right">
+              <div className="ml-auto shrink-0 text-right">
                 <p className="text-[11px] uppercase text-white/70">Balance</p>
                 <p className="font-black">{player ? formatMoney(player.balance, player.currency) : '—'}</p>
               </div>
             </div>
-            <div className="p-5">
+            <div className="p-3 sm:p-5">
               {game.engine === 'crash'
                 ? <CrashGame game={game} stake={stake} onError={setError} onRound={(round) => { setLast(round); loadHistory() }} />
                 : <InstantGame game={game} api={api} />}
@@ -167,7 +167,7 @@ function StakeControls({ stake, setStake, currency }: { stake: number; setStake:
       <p className="mb-2 text-xs text-white/60">Stake ({currency})</p>
       <div className="flex flex-wrap items-center gap-2">
         <button onClick={() => setStake(clamp(stake / 2))} className="h-10 bg-[#353a45] px-3 text-sm">½</button>
-        <input type="number" min={MIN_STAKE} max={MAX_STAKE} value={stake} onChange={(event) => setStake(Number(event.target.value))} onBlur={() => setStake(clamp(stake))} className="h-10 w-28 bg-[#1f2229] px-3 text-center font-bold outline-none" />
+        <input type="number" min={MIN_STAKE} max={MAX_STAKE} value={stake} onChange={(event) => setStake(Number(event.target.value))} onBlur={() => setStake(clamp(stake))} className="h-10 w-24 min-w-0 bg-[#1f2229] px-3 text-center font-bold outline-none sm:w-28" />
         <button onClick={() => setStake(clamp(stake * 2))} className="h-10 bg-[#353a45] px-3 text-sm">2×</button>
         {CHIPS.map((chip) => (
           <button key={chip} onClick={() => setStake(chip)} className={`h-10 px-3 text-sm ${stake === chip ? 'bg-[#0b9b3a]' : 'bg-[#353a45]'}`}>{chip}</button>
@@ -298,11 +298,11 @@ function CrashGame({ game, stake, onError, onRound }: { game: CasinoGame; stake:
 
   return (
     <div>
-      <div className="relative h-64 overflow-hidden bg-[radial-gradient(ellipse_at_bottom,#1c2640,#0b0e16)]">
+      <div className="relative h-52 overflow-hidden sm:h-64 bg-[radial-gradient(ellipse_at_bottom,#1c2640,#0b0e16)]">
         <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:40px_40px]" />
         <span className="absolute text-5xl transition-[bottom,left] duration-100" style={{ bottom: `${8 + lift}%`, left: `${8 + lift * 0.9}%`, opacity: crashed ? 0.25 : 1 }}>{crashed ? '💥' : game.glyph}</span>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <p className={`text-6xl font-black tabular-nums ${crashed ? 'text-[#ff5252]' : won ? 'text-[#28c76f]' : 'text-white'}`}>{display.toFixed(2)}x</p>
+          <p className={`text-5xl font-black tabular-nums sm:text-6xl ${crashed ? 'text-[#ff5252]' : won ? 'text-[#28c76f]' : 'text-white'}`}>{display.toFixed(2)}x</p>
           {crashed && <p className="mt-1 font-bold text-[#ff5252]">Crashed at {round?.crashPoint}x</p>}
           {won && <p className="mt-1 font-bold text-[#28c76f]">Cashed out · +{formatMoney(round!.payout, round!.currency)}</p>}
           {!round && <p className="mt-1 text-sm text-white/60">Place a bet to launch</p>}
@@ -314,7 +314,7 @@ function CrashGame({ game, stake, onError, onRound }: { game: CasinoGame; stake:
           <input value={auto} onChange={(event) => setAuto(event.target.value)} disabled={running} placeholder="e.g. 2.00" className="mt-1 h-11 w-full bg-[#1f2229] px-3 text-sm font-bold text-white outline-none disabled:opacity-50" />
         </label>
         {running ? (
-          <button disabled={busy} onClick={cashout} className="h-14 self-end bg-[#ffb400] text-lg font-black text-[#1f1f1f] disabled:opacity-60">
+          <button disabled={busy} onClick={cashout} className="h-14 self-end bg-[#ffb400] text-base font-black sm:text-lg text-[#1f1f1f] disabled:opacity-60">
             CASH OUT {formatMoney(Math.floor(round!.stake * display * 100) / 100, round!.currency)}
           </button>
         ) : (
@@ -384,7 +384,7 @@ function DiceGame({ api }: { api: PlayApi }) {
         </div>
       </div>
       <input type="range" min={2} max={98} value={target} onChange={(event) => setTarget(Number(event.target.value))} className="mt-3 w-full accent-[#0b9b3a]" />
-      <div className="mt-3 grid grid-cols-3 gap-2 text-center text-sm">
+      <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs sm:text-sm">
         <button onClick={() => setDirection(direction === 'under' ? 'over' : 'under')} className="bg-[#353a45] py-2 font-bold">Roll {direction} {target}</button>
         <div className="bg-[#1f2229] py-2">Chance <b>{chance}%</b></div>
         <div className="bg-[#1f2229] py-2">Pays <b>{multiplier}x</b></div>
@@ -405,12 +405,12 @@ function BottleGame({ api }: { api: PlayApi }) {
   return (
     <div>
       <div className="flex h-56 items-center justify-center bg-[radial-gradient(circle,#3b2a07,#1c1506)]">
-        <span className="text-8xl transition-transform duration-1000" style={{ transform: `rotate(${spins * 1080 + (landed === 'down' ? 180 : 0)}deg)` }}>🍾</span>
+        <span className="text-7xl transition-transform sm:text-8xl duration-1000" style={{ transform: `rotate(${spins * 1080 + (landed === 'down' ? 180 : 0)}deg)` }}>🍾</span>
       </div>
       <div className="mt-4"><Outcome round={api.last}>{landed && <p className="text-sm text-white/70">It landed <b className="uppercase">{landed}</b></p>}</Outcome></div>
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <button disabled={api.busy} onClick={() => choose('up')} className="h-14 bg-[#0b9b3a] text-lg font-black disabled:opacity-50">UP · 1.94x</button>
-        <button disabled={api.busy} onClick={() => choose('down')} className="h-14 bg-[#ed1324] text-lg font-black disabled:opacity-50">DOWN · 1.94x</button>
+        <button disabled={api.busy} onClick={() => choose('up')} className="h-14 bg-[#0b9b3a] text-base font-black disabled:opacity-50 sm:text-lg">UP · 1.94x</button>
+        <button disabled={api.busy} onClick={() => choose('down')} className="h-14 bg-[#ed1324] text-base font-black disabled:opacity-50 sm:text-lg">DOWN · 1.94x</button>
       </div>
     </div>
   )
@@ -425,14 +425,14 @@ function RouletteGame({ api }: { api: PlayApi }) {
       <div className="flex h-24 items-center justify-center bg-[#0e1f16]">
         {number != null ? <span className={`flex h-16 w-16 items-center justify-center rounded-full text-2xl font-black ${color(number)}`}>{number}</span> : <span className="text-sm text-white/60">Pick a bet and spin</span>}
       </div>
-      <div className="mt-3 grid grid-cols-5 gap-2 text-sm font-bold">
+      <div className="mt-3 grid grid-cols-3 gap-2 text-xs font-bold sm:grid-cols-5 sm:text-sm">
         {[['red', 'Red 2x', 'bg-[#c8102e]'], ['black', 'Black 2x', 'bg-[#111]'], ['green', '0 · 36x', 'bg-[#0b9b3a]'], ['odd', 'Odd 2x', 'bg-[#353a45]'], ['even', 'Even 2x', 'bg-[#353a45]']].map(([key, label, cls]) => (
           <button key={key} onClick={() => setBet(key)} className={`py-2 ${cls} ${bet === key ? 'ring-2 ring-[#ffcf00]' : ''}`}>{label}</button>
         ))}
       </div>
-      <div className="mt-2 grid grid-cols-12 gap-1">
+      <div className="mt-2 grid grid-cols-6 gap-1 sm:grid-cols-12">
         {Array.from({ length: 36 }, (_, i) => i + 1).map((n) => (
-          <button key={n} onClick={() => setBet(String(n))} className={`py-1.5 text-xs font-bold ${color(n)} ${bet === String(n) ? 'ring-2 ring-[#ffcf00]' : ''}`}>{n}</button>
+          <button key={n} onClick={() => setBet(String(n))} className={`py-2 text-xs sm:py-1.5 font-bold ${color(n)} ${bet === String(n) ? 'ring-2 ring-[#ffcf00]' : ''}`}>{n}</button>
         ))}
       </div>
       <p className="mt-2 text-xs text-white/60">A single number pays 36x.</p>
@@ -447,7 +447,7 @@ function WheelGame({ api }: { api: PlayApi }) {
   const tone = (m: number) => (m === 0 ? 'bg-[#353a45] text-white/50' : m >= 5 ? 'bg-[#ffcf00] text-[#1f1f1f]' : m >= 2 ? 'bg-[#ed1324]' : 'bg-[#0b9b3a]')
   return (
     <div>
-      <div className="grid grid-cols-10 gap-1">
+      <div className="grid grid-cols-5 gap-1 sm:grid-cols-10">
         {WHEEL_SEGMENTS.map((m, i) => (
           <div key={i} className={`py-3 text-center text-xs font-black ${tone(m)} ${segment === i ? 'scale-110 ring-2 ring-white' : ''} transition-transform`}>{m ? `${m}x` : '0'}</div>
         ))}
@@ -462,8 +462,8 @@ function SlotGame({ api }: { api: PlayApi }) {
   const reels = (api.last?.game === 'fruit-party' ? (api.last.outcome?.reels as string[]) : null) ?? ['🍒', '🍋', '💎']
   return (
     <div>
-      <div className="flex justify-center gap-3 bg-[#1f2229] py-6">
-        {reels.map((symbol, i) => <span key={i} className="flex h-24 w-24 items-center justify-center bg-white text-6xl">{symbol}</span>)}
+      <div className="flex justify-center gap-2 bg-[#1f2229] px-2 py-6 sm:gap-3">
+        {reels.map((symbol, i) => <span key={i} className="flex h-20 w-20 items-center justify-center bg-white text-5xl sm:h-24 sm:w-24 sm:text-6xl">{symbol}</span>)}
       </div>
       <p className="mt-2 text-center text-xs text-white/60">💎💎💎 50x · 7️⃣7️⃣7️⃣ 20x · 🔔🔔🔔 10x · 🍉🍉🍉 5x · 🍋🍋🍋 2x · 🍒🍒🍒 1x</p>
       <div className="mt-3"><Outcome round={api.last} /></div>
@@ -482,7 +482,7 @@ function PlinkoGame({ api }: { api: PlayApi }) {
         {Array.from({ length: PLINKO_BINS.length - 1 }, (_, row) => {
           const rights = path.slice(0, row).filter((step) => step === 'R').length
           return (
-            <div key={row} className="flex justify-center gap-5 py-1">
+            <div key={row} className="flex justify-center gap-3 py-1 sm:gap-5">
               {Array.from({ length: row + 1 }, (_, peg) => (
                 <span key={peg} className={`h-2.5 w-2.5 rounded-full ${outcome && peg === rights ? 'bg-[#ff5fa2]' : 'bg-white/40'}`} />
               ))}
@@ -491,7 +491,7 @@ function PlinkoGame({ api }: { api: PlayApi }) {
         })}
         <div className="mt-3 flex justify-center gap-1 px-2">
           {PLINKO_BINS.map((m, i) => (
-            <span key={i} className={`w-12 py-1.5 text-center text-xs font-black ${bin === i ? 'bg-[#ffcf00] text-[#1f1f1f]' : m >= 2 ? 'bg-[#ed1324]' : 'bg-[#5b1c9e]'}`}>{m}x</span>
+            <span key={i} className={`min-w-0 max-w-12 flex-1 py-1.5 text-center text-[10px] font-black sm:text-xs ${bin === i ? 'bg-[#ffcf00] text-[#1f1f1f]' : m >= 2 ? 'bg-[#ed1324]' : 'bg-[#5b1c9e]'}`}>{m}x</span>
           ))}
         </div>
       </div>

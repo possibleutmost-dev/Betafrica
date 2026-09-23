@@ -271,12 +271,12 @@ export function TransactionsPanel() {
         <h1 className="text-2xl font-black">Transactions</h1>
         <div className="mt-4 divide-y">
           {rows.map((row) => (
-            <div key={row.reference} className="flex items-center justify-between py-3 text-sm">
-              <div>
+            <div key={row.reference} className="flex items-center justify-between gap-3 py-3 text-sm">
+              <div className="min-w-0 break-words">
                 <p className="font-semibold">{row.metadata?.type ?? 'payment'} · {row.provider}</p>
                 <p className="text-xs text-[#8b8f94]">{row.reference} · {new Date(row.created_at).toLocaleString()}</p>
               </div>
-              <div className="text-right">
+              <div className="shrink-0 text-right">
                 <p className="font-bold">{formatMoney(row.amount, row.currency)}</p>
                 <p className="text-xs text-[#6b7077]">{row.status}</p>
               </div>

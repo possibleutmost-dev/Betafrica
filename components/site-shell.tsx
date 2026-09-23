@@ -2,12 +2,12 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { ChevronDown, Headphones, Menu, ShieldCheck, X } from 'lucide-react'
 import { AuthForm } from '@/components/auth-form'
 import { WinCelebration, hasCelebrated, markCelebrated } from '@/components/tickets'
 import { formatMoney } from '@/lib/countries'
-import { useSession, type Player } from '@/lib/store'
+import { useSession, useSlip, type Player } from '@/lib/store'
 
 type AuthMode = 'login' | 'register'
 type Shell = { notify: (message: string) => void; openAuth: (mode?: AuthMode) => void; player: Player | null }
@@ -56,6 +56,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const [notice, setNotice] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const [win, setWin] = useState<{ code: string; amount: number; currency: string } | null>(null)
+  const router = useRouter()
+  const slipLegs = useSlip((state) => state.legs)
+  const slipCount = mounted ? slipLegs.length : 0
+  const slipOdds = slipLegs.reduce((total, leg) => total * leg.odds, 1)
 
   useEffect(() => setMounted(true), [])
 
@@ -128,37 +132,38 @@ export function SiteShell({ children }: { children: ReactNode }) {
     <ShellContext.Provider value={shell}>
       <main className="min-h-screen bg-[#eef0f4] text-[#24262c]">
         <header className="bg-[#ed1324] text-white shadow-sm">
-          <div className="mx-auto flex max-w-[1180px] items-center gap-4 px-4 py-3">
-            <button onClick={() => setMenuOpen((open) => !open)} className="md:hidden" aria-label="Open menu"><Menu size={22} /></button>
-            <Link href="/" className="whitespace-nowrap text-[28px] font-black italic tracking-[-2px]">WinnBet</Link>
+          <div className="mx-auto flex max-w-[1180px] items-center gap-2 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3">
+            <button onClick={() => setMenuOpen((open) => !open)} className="shrink-0 md:hidden" aria-label={menuOpen ? 'Close menu' : 'Open menu'}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>
+            <Link href="/" className="whitespace-nowrap text-[22px] font-black italic tracking-[-1.5px] sm:text-[28px] sm:tracking-[-2px]">WinnBet</Link>
             <span className="hidden text-xs font-semibold md:block">{player ? player.country_code : 'Nigeria'} <ChevronDown size={13} className="inline" /></span>
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2">
               {player ? (
                 <>
-                  <span className="hidden text-sm font-semibold sm:inline">{formatMoney(player.balance, player.currency)}</span>
-                  <Link href="/deposit" className="flex h-9 items-center bg-white px-4 text-sm font-semibold text-[#ed1324]">Deposit</Link>
-                  <button onClick={() => signOut()} className="h-9 px-3 text-sm font-semibold">Logout</button>
+                  <span className="truncate text-xs font-semibold sm:text-sm">{formatMoney(player.balance, player.currency)}</span>
+                  <Link href="/deposit" className="flex h-8 shrink-0 items-center bg-white px-3 text-xs font-semibold text-[#ed1324] sm:h-9 sm:px-4 sm:text-sm">Deposit</Link>
+                  <button onClick={() => signOut()} className="hidden h-9 px-3 text-sm font-semibold sm:block">Logout</button>
                 </>
               ) : (
                 <>
-                  <button onClick={() => setAuth('login')} className="h-9 px-4 text-sm font-semibold">Login</button>
-                  <button onClick={() => setAuth('register')} className="h-9 border border-white px-4 text-sm font-semibold">Register</button>
+                  <button onClick={() => setAuth('login')} className="h-8 px-2 text-xs font-semibold sm:h-9 sm:px-4 sm:text-sm">Login</button>
+                  <button onClick={() => setAuth('register')} className="h-8 border border-white px-3 text-xs font-semibold sm:h-9 sm:px-4 sm:text-sm">Register</button>
                 </>
               )}
             </div>
           </div>
-          <nav className={`mx-auto max-w-[1180px] gap-1 overflow-x-auto px-4 text-sm font-semibold md:flex ${menuOpen ? 'flex flex-col md:flex-row' : 'hidden'}`}>
+          <nav className={`mx-auto max-w-[1180px] gap-1 overflow-x-auto px-4 pb-2 text-sm font-semibold md:flex md:pb-0 ${menuOpen ? 'flex flex-col md:flex-row' : 'hidden'}`}>
             {topLinks.map(([label, href]) => (
               <Link key={label} href={href} className={`whitespace-nowrap px-4 py-3 hover:bg-[#c9101f] ${isActive(href) ? 'bg-[#c9101f]' : ''}`}>{label}</Link>
             ))}
+            {player && <button onClick={() => signOut()} className="px-4 py-3 text-left hover:bg-[#c9101f] sm:hidden">Logout</button>}
             <span className="ml-auto hidden px-3 py-3 text-xs md:block">GMT+00:00</span>
           </nav>
         </header>
         {!gamesPage && (
           <div className="border-b bg-white shadow-sm">
-            <div className="mx-auto flex max-w-[1180px] overflow-x-auto px-4">
+            <div className="scrollbar-none mx-auto flex max-w-[1180px] overflow-x-auto px-1 sm:px-4">
               {sportTabs.map(([label, href]) => (
-                <Link key={label} href={href} className={`whitespace-nowrap px-4 py-3 text-sm ${isActive(href) ? 'border-b-4 border-[#ed1324] font-semibold' : 'text-[#5c6068]'}`}>{label}</Link>
+                <Link key={label} href={href} className={`whitespace-nowrap px-3 py-3 text-sm sm:px-4 ${isActive(href) ? 'border-b-4 border-[#ed1324] font-semibold' : 'text-[#5c6068]'}`}>{label}</Link>
               ))}
             </div>
           </div>
@@ -167,14 +172,29 @@ export function SiteShell({ children }: { children: ReactNode }) {
         {children}
 
         {notice && (
-          <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded bg-[#22262c] px-5 py-3 text-sm text-white shadow-xl">
+          <div className={`fixed left-1/2 z-40 flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center rounded bg-[#22262c] px-5 py-3 text-sm text-white shadow-xl sm:bottom-6 ${slipCount > 0 ? 'bottom-36' : 'bottom-20'}`}>
             {notice}
             <button onClick={() => setNotice('')} className="ml-4 text-white/60" aria-label="Close notice"><X size={16} /></button>
           </div>
         )}
-        <button onClick={() => setNotice('Support is available on the number shown at deposit.')} className="fixed bottom-6 right-6 flex h-12 w-12 items-center justify-center rounded-full bg-[#ed1324] text-white shadow-lg" aria-label="Contact support"><Headphones size={22} /></button>
+        {slipCount > 0 && (
+          <button
+            onClick={() => {
+              const slip = document.getElementById('betslip')
+              if (slip) slip.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              else router.push('/#betslip')
+            }}
+            className="fixed inset-x-0 bottom-0 z-30 flex h-14 items-center justify-between bg-[#0b9b3a] px-4 text-white shadow-[0_-2px_10px_rgba(0,0,0,0.2)] md:hidden"
+          >
+            <span className="flex items-center gap-2 font-semibold">
+              Betslip <span className="rounded-full bg-[#ed1324] px-2 text-xs">{slipCount}</span>
+            </span>
+            <span className="text-sm">Odds <b>{slipOdds.toFixed(2)}</b></span>
+          </button>
+        )}
+        <button onClick={() => setNotice('Support is available on the number shown at deposit.')} className={`fixed right-4 z-30 flex h-12 w-12 sm:bottom-6 sm:right-6 ${slipCount > 0 ? 'bottom-20' : 'bottom-4'} items-center justify-center rounded-full bg-[#ed1324] text-white shadow-lg`} aria-label="Contact support"><Headphones size={22} /></button>
         {auth && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4">
+          <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/55 p-4 sm:items-center">
             <AuthForm
               mode={auth}
               onClose={() => setAuth(null)}
@@ -188,10 +208,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
           </div>
         )}
         {win && <WinCelebration code={win.code} amount={win.amount} currency={win.currency} onClose={() => setWin(null)} />}
-        <footer className={`border-t bg-white ${gamesPage ? '' : 'mt-8'}`}>
+        <footer className={`border-t bg-white pb-16 sm:pb-0 ${gamesPage ? '' : 'mt-8'}`}>
           <div className="mx-auto flex max-w-[1180px] flex-wrap justify-between gap-4 px-4 py-6 text-xs text-[#6b7077]">
             <span className="font-semibold text-[#ed1324]">WinnBet</span>
-            <span className="flex gap-2">
+            <span className="flex flex-wrap gap-2">
               <Link href="/help">Responsible Betting</Link>·<Link href="/help">Terms & Conditions</Link>·<Link href="/help">Privacy Policy</Link>
             </span>
             <span className="flex items-center gap-1"><ShieldCheck size={15} /> 18+ Gamble responsibly</span>

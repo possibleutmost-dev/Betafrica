@@ -286,7 +286,7 @@ export function BetslipPanel({
   }
 
   return (
-    <aside className="border bg-white">
+    <aside id="betslip" className="scroll-mt-4 border bg-white">
       <div className="border-b px-4 py-4 text-sm font-semibold">
         Betslip {legs.length > 0 && <span className="ml-1 rounded-full bg-[#ed1324] px-1.5 text-[10px] text-white">{legs.length}</span>}
       </div>
@@ -305,8 +305,8 @@ export function BetslipPanel({
           )}
           {legs.map((leg) => (
             <div key={leg.matchId} className="flex items-start justify-between gap-2 border-b pb-2">
-              <div>
-                <p className="font-semibold">{leg.homeTeam} vs {leg.awayTeam}</p>
+              <div className="min-w-0">
+                <p className="break-words font-semibold">{leg.homeTeam} vs {leg.awayTeam}</p>
                 <p className="text-[#6b7077]">{leg.marketLabel} · {leg.outcomeLabel} @ {leg.odds.toFixed(2)}</p>
               </div>
               <button onClick={() => remove(leg.matchId)} className="text-[#ed1324]">Remove</button>
@@ -396,17 +396,17 @@ export function MatchDetail({ id }: { id: string }) {
   const score = match && match.scoreHome != null && match.scoreAway != null ? `${match.scoreHome} - ${match.scoreAway}` : 'vs'
 
   return (
-    <section className="mx-auto grid max-w-[1180px] gap-4 px-4 py-4 md:grid-cols-[1fr_275px]">
-      <div className="border bg-white">
+    <section className="mx-auto grid max-w-[1180px] gap-4 px-3 py-4 sm:px-4 md:grid-cols-[1fr_275px]">
+      <div className="min-w-0 border bg-white">
         <div className="bg-[#181b21] bg-[linear-gradient(rgba(15,17,22,0.78),rgba(15,17,22,0.9)),url('/banners/hero-football.jpg')] bg-cover bg-center px-4 py-5 text-white">
           <Link href="/" className="mb-3 inline-flex items-center text-xs text-white/70"><ChevronLeft size={14} /> Back to matches</Link>
           {match ? (
             <>
               <p className="text-center text-xs text-white/60">{match.league}</p>
-              <div className="mt-2 grid grid-cols-[1fr_auto_1fr] items-center gap-4 text-center">
-                <div className="flex flex-col items-center gap-2"><Crest src={match.homeCrest} name={match.homeTeam} size={56} /><p className="text-lg font-bold">{match.homeTeam}</p></div>
-                <p className="text-2xl font-black text-[#ffcf00]">{score}</p>
-                <div className="flex flex-col items-center gap-2"><Crest src={match.awayCrest} name={match.awayTeam} size={56} /><p className="text-lg font-bold">{match.awayTeam}</p></div>
+              <div className="mt-2 grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center sm:gap-4">
+                <div className="flex min-w-0 flex-col items-center gap-2"><Crest src={match.homeCrest} name={match.homeTeam} size={48} /><p className="break-words text-sm font-bold sm:text-lg">{match.homeTeam}</p></div>
+                <p className="text-xl font-black text-[#ffcf00] sm:text-2xl">{score}</p>
+                <div className="flex min-w-0 flex-col items-center gap-2"><Crest src={match.awayCrest} name={match.awayTeam} size={48} /><p className="break-words text-sm font-bold sm:text-lg">{match.awayTeam}</p></div>
               </div>
               <p className="mt-2 text-center text-xs text-white/60">{kickoffLabel(match)}</p>
             </>
@@ -416,14 +416,14 @@ export function MatchDetail({ id }: { id: string }) {
         </div>
         {match && (
           <>
-            <div className="flex overflow-x-auto border-b">
+            <div className="scrollbar-none flex overflow-x-auto border-b">
               {['all', ...groups].map((item) => (
                 <button key={item} onClick={() => setGroup(item)} className={`whitespace-nowrap px-4 py-3 text-sm ${group === item ? 'border-b-4 border-[#ed1324] font-semibold' : 'text-[#5c6068]'}`}>
                   {item === 'all' ? 'All' : GROUP_LABELS[item] ?? item}
                 </button>
               ))}
             </div>
-            <div className="space-y-4 p-4">
+            <div className="space-y-4 p-3 sm:p-4">
               {match.isLocked && <p className="bg-[#fff0f1] px-3 py-2 text-xs text-[#ed1324]">{match.postponed ? 'This fixture is postponed.' : 'Betting is locked on this match.'}</p>}
               {shown.map((market) => (
                 <div key={market.key}>

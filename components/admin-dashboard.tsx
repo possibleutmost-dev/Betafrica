@@ -16,11 +16,11 @@ export function AdminDashboard({ role, close }: { role: Role; close: () => void 
   }, [isAdmin])
 
   return (
-    <section className="mx-auto min-h-[620px] max-w-[1180px] bg-[#f6f7f8] px-4 py-6">
+    <section className="mx-auto min-h-[620px] max-w-[1180px] bg-[#f6f7f8] px-3 py-4 sm:px-4 sm:py-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#ed1324]">Operations console</p>
-          <h1 className="mt-1 text-3xl font-black">{isAdmin ? 'Admin dashboard' : 'Sub-admin workspace'}</h1>
+          <h1 className="mt-1 text-2xl font-black sm:text-3xl">{isAdmin ? 'Admin dashboard' : 'Sub-admin workspace'}</h1>
           <p className="mt-1 text-sm text-[#6b7077]">{isAdmin ? 'Full platform controls, financials and staff permissions.' : 'Manage assigned operations without access to sensitive platform settings.'}</p>
         </div>
         <button onClick={close} className="border bg-white px-4 py-2 text-sm font-semibold">Back to site</button>
@@ -106,23 +106,26 @@ function AdminConsole() {
 
   return (
     <div className="grid gap-4 md:grid-cols-[205px_1fr]">
-      <aside className="bg-[#171a20] p-3 text-white">
-        <div className="mb-4 flex items-center gap-2 border-b border-white/10 px-3 pb-4">
+      <aside className="min-w-0 self-start bg-[#171a20] p-3 text-white">
+        <div className="mb-3 flex items-center gap-2 border-b border-white/10 px-3 pb-3 md:mb-4 md:pb-4">
           <UserCog size={20} className="text-[#ffcf00]" />
           <div>
             <p className="text-xs font-bold">Super Admin</p>
             <p className="text-[10px] text-white/50">All permissions</p>
           </div>
+          <button onClick={() => fetch('/api/admin/logout', { method: 'POST' }).then(() => window.location.reload())} className="ml-auto text-xs text-white/50 md:hidden">Sign out</button>
         </div>
-        {nav.map((item) => (
-          <button key={item} onClick={() => setSection(item)} className={`flex w-full items-center gap-3 px-3 py-3 text-left text-sm ${section === item ? 'bg-[#ed1324] font-semibold' : 'text-white/70 hover:bg-white/10'}`}>
-            {item === 'Settings' ? <Settings size={16} /> : <BarChart3 size={16} />}
-            {item}
-          </button>
-        ))}
-        <button onClick={() => fetch('/api/admin/logout', { method: 'POST' }).then(() => window.location.reload())} className="mt-4 w-full px-3 py-2 text-left text-xs text-white/50">Sign out</button>
+        <nav className="scrollbar-none flex overflow-x-auto md:block">
+          {nav.map((item) => (
+            <button key={item} onClick={() => setSection(item)} className={`flex shrink-0 items-center gap-3 whitespace-nowrap px-3 py-3 text-left text-sm md:w-full ${section === item ? 'bg-[#ed1324] font-semibold' : 'text-white/70 hover:bg-white/10'}`}>
+              {item === 'Settings' ? <Settings size={16} /> : <BarChart3 size={16} />}
+              {item}
+            </button>
+          ))}
+        </nav>
+        <button onClick={() => fetch('/api/admin/logout', { method: 'POST' }).then(() => window.location.reload())} className="mt-4 hidden w-full px-3 py-2 text-left text-xs text-white/50 md:block">Sign out</button>
       </aside>
-      <div className="space-y-4">
+      <div className="min-w-0 space-y-4">
         {section === 'Overview' && (
           <>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -134,7 +137,7 @@ function AdminConsole() {
                 </div>
               ))}
             </div>
-            <div className="bg-white p-5 text-sm">
+            <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
               <h2 className="font-bold">Deposits by currency</h2>
               <p className="mt-2 text-[#6b7077]">{moneyMap(overview?.deposits) || 'No settled deposits yet.'}</p>
               <h2 className="mt-4 font-bold">Withdrawals by currency</h2>
@@ -215,7 +218,7 @@ function DepositsPanel() {
     load()
   }
   return (
-    <div className="bg-white p-5 text-sm">
+    <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
       <h2 className="font-bold">Pending manual deposits</h2>
       {rows.length === 0 && <p className="mt-3 text-[#6b7077]">Nothing waiting.</p>}
       {rows.map((row) => {
@@ -276,7 +279,7 @@ function MatchesPanel() {
   }
   return (
     <div className="space-y-4">
-      <div className="bg-white p-5 text-sm">
+      <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
         <h2 className="font-bold">Create a match</h2>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
           <input value={form.home_team} onChange={(event) => setForm({ ...form, home_team: event.target.value })} placeholder="Home team" className="h-10 border px-3" />
@@ -301,9 +304,9 @@ function MatchesPanel() {
         {uploadError && <p className="mt-2 text-xs text-[#ed1324]">{uploadError}</p>}
         <button onClick={create} className="mt-3 bg-[#ed1324] px-4 py-2 text-sm font-semibold text-white">Add match</button>
       </div>
-      <div className="bg-white p-5 text-sm">
+      <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
         {matches.map((match) => (
-          <div key={String(match.id)} className="flex items-center justify-between border-b py-3">
+          <div key={String(match.id)} className="flex flex-wrap items-center justify-between gap-2 border-b py-3">
             <div>
               <p className="font-semibold">{String(match.home_team)} vs {String(match.away_team)}</p>
               <p className="text-xs text-[#6b7077]">{String(match.league)} · {match.finished ? `FT ${match.final_home}-${match.final_away}` : 'Open'}</p>
@@ -330,7 +333,7 @@ function ReportsPanel() {
   }
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <div className="bg-white p-5 text-sm">
+      <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
         <h2 className="font-bold">Tickets</h2>
         {bets.slice(0, 30).map((bet) => (
           <div key={String(bet.code)} className="border-b py-2">
@@ -339,10 +342,10 @@ function ReportsPanel() {
           </div>
         ))}
       </div>
-      <div className="bg-white p-5 text-sm">
+      <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
         <h2 className="font-bold">Payments</h2>
         {payments.slice(0, 30).map((payment) => (
-          <div key={String(payment.reference)} className="flex items-center justify-between border-b py-2">
+          <div key={String(payment.reference)} className="flex flex-wrap items-center justify-between gap-2 border-b py-2">
             <div>
               <p className="font-semibold">{formatMoney(Number(payment.amount), String(payment.currency))} · {String(payment.status)}</p>
               <p className="text-xs text-[#6b7077]">{String(payment.provider)} · {String(payment.reference)}</p>
@@ -364,10 +367,10 @@ function PartnersPanel() {
     load()
   }
   return (
-    <div className="bg-white p-5 text-sm">
+    <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
       <h2 className="font-bold">Sub-admins</h2>
       {partners.map((partner) => (
-        <div key={String(partner.id)} className="flex items-center justify-between border-b py-3">
+        <div key={String(partner.id)} className="flex flex-wrap items-center justify-between gap-2 border-b py-3">
           <div>
             <p className="font-semibold">{String(partner.name)} · {String(partner.email)}</p>
             <p className="text-xs text-[#6b7077]">Code {String(partner.referral_code)} · {String(partner.referredPlayers)} players · {partner.approved ? 'Approved' : 'Waiting'}</p>
@@ -391,7 +394,7 @@ function SettingsPanel() {
   }
   const keys = ['deposit_account_name', 'deposit_account_number', 'deposit_account_network']
   return (
-    <div className="bg-white p-5 text-sm">
+    <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
       <h2 className="font-bold">Deposit account</h2>
       {keys.map((key) => (
         <label key={key} className="mt-3 block text-xs font-semibold">
@@ -444,7 +447,7 @@ function PartnerConsole({ onSignedOut }: { onSignedOut: () => void }) {
           <Stat label="Players" value={String(players.length)} />
           <Stat label="Betting wallet" value={wallet ? formatMoney(Number(wallet.balance), wallet.currency ?? 'NGN') : 'Not opened'} />
         </div>
-        <div className="bg-white p-5 text-sm">
+        <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
           <h2 className="font-bold">Credit betting wallet</h2>
           {!wallet && (
             <button
@@ -468,11 +471,11 @@ function PartnerConsole({ onSignedOut }: { onSignedOut: () => void }) {
           <p className="mt-2 text-xs text-[#6b7077]">Used today {String(data?.creditedToday ?? 0)} of {String(data?.dailyLimit ?? 0)}.</p>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
-          <div className="bg-white p-5 text-sm">
+          <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
             <h2 className="font-bold">Referred players</h2>
             {players.map((player) => <p key={player.id} className="border-b py-2">{player.name} · {player.phone} · {formatMoney(player.total_deposited, player.currency)}</p>)}
           </div>
-          <div className="bg-white p-5 text-sm">
+          <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
             <h2 className="font-bold">Commission</h2>
             {commissions.map((row) => <p key={row.id} className="border-b py-2">{formatMoney(row.amount, row.currency)} on {formatMoney(row.deposit_amount, row.currency)}</p>)}
           </div>
