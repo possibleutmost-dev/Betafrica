@@ -170,7 +170,7 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_55%,rgba(255,180,0,0.35),rgba(0,0,0,0.55)_70%)]" />
             <span className="absolute inset-0 flex flex-col items-center justify-center text-center">
               <span className="text-4xl">⚡</span>
-              <span className="text-xs font-bold italic text-white/80">SportyBet</span>
+              <span className="text-xs font-bold italic text-white/80">WinnBet</span>
               <span className="text-3xl font-black italic leading-none text-white [text-shadow:0_3px_0_#ed1324]">INSTANT</span>
               <span className="text-3xl font-black italic leading-none text-white [text-shadow:0_3px_0_#ed1324]">VIRTUALS</span>
             </span>
@@ -217,7 +217,7 @@ function HeroBanner({ onNotice }: { onNotice: (message: string) => void }) {
       )}
       {slide.art && <span className="absolute right-6 top-1/2 -translate-y-1/2 text-7xl tracking-[-0.15em] drop-shadow-[0_6px_14px_rgba(0,0,0,0.5)]">{slide.art}</span>}
       <div className="relative">
-        <p className="text-sm font-black italic text-white/90">SportyBet</p>
+        <p className="text-sm font-black italic text-white/90">WinnBet</p>
         <div className="text-4xl font-black italic text-white">{slide.title}</div>
         <p className="mb-4 text-xs font-bold text-white/80">{slide.sub}</p>
         {href
@@ -458,7 +458,7 @@ function VirtualWorldBanner() {
       <img src="/banners/virtual-world.jpg" alt="" className="absolute inset-y-0 right-0 h-full w-[62%] object-cover object-[center_35%]" />
       <div className="absolute inset-y-0 left-[38%] w-24 bg-gradient-to-r from-[#1b1e24] to-transparent" />
       <span className="relative flex items-center gap-4 pl-6">
-        <span className="text-3xl font-black italic text-white">SportyBet</span>
+        <span className="text-3xl font-black italic text-white">WinnBet</span>
         <span className="h-12 w-px bg-white/40" />
         <span className="leading-tight">
           <span className="block text-2xl font-black italic text-[#ed1324]">VIRTUAL WORLD</span>

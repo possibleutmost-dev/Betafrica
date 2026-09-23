@@ -50,7 +50,7 @@ export function AuthForm({ mode, onClose, switchMode, onSignedIn }: { mode: 'log
     <div className="w-full max-w-sm bg-white p-6 shadow-xl">
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ed1324]">SportyBet</p>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ed1324]">WinnBet</p>
           <h2 className="mt-1 text-xl font-bold">{mode === 'login' ? 'Welcome back' : 'Create your account'}</h2>
         </div>
         <button onClick={onClose} aria-label="Close dialog"><X /></button>

@@ -66,7 +66,7 @@ function Help({ title }: { title: string }) {
   return (
     <section className="mx-auto max-w-[900px] px-4 py-12">
       <div className="bg-white p-8 shadow-sm">
-        <h1 className="text-3xl font-black">{title === 'Help' ? 'How SportyBet works' : title}</h1>
+        <h1 className="text-3xl font-black">{title === 'Help' ? 'How WinnBet works' : title}</h1>
         <p className="mt-3 text-[#6b7077]">Create an account, fund your wallet, choose a fixture or game, and review your selections before placing a bet.</p>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {['Create your account', 'Choose your market', 'Withdraw winnings'].map((step, i) => (

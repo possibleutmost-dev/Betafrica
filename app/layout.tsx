@@ -4,8 +4,8 @@ import { SiteShell } from '@/components/site-shell'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'SportyBet — Sports Betting Experience',
-  description: 'Explore football, basketball, tennis and live sports odds in a SportyBet-inspired interface.',
+  title: 'WinnBet — Sports Betting & Games',
+  description: 'Bet on football, basketball, tennis and live sports, and play instant games on WinnBet.',
   generator: 'v0.app',
   icons: {
     icon: [

@@ -130,7 +130,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         <header className="bg-[#ed1324] text-white shadow-sm">
           <div className="mx-auto flex max-w-[1180px] items-center gap-4 px-4 py-3">
             <button onClick={() => setMenuOpen((open) => !open)} className="md:hidden" aria-label="Open menu"><Menu size={22} /></button>
-            <Link href="/" className="whitespace-nowrap text-[28px] font-black italic tracking-[-2px]">SportyBet <span className="text-[22px] not-italic">▮▮</span></Link>
+            <Link href="/" className="whitespace-nowrap text-[28px] font-black italic tracking-[-2px]">WinnBet</Link>
             <span className="hidden text-xs font-semibold md:block">{player ? player.country_code : 'Nigeria'} <ChevronDown size={13} className="inline" /></span>
             <div className="ml-auto flex items-center gap-2">
               {player ? (
@@ -190,7 +190,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         {win && <WinCelebration code={win.code} amount={win.amount} currency={win.currency} onClose={() => setWin(null)} />}
         <footer className={`border-t bg-white ${gamesPage ? '' : 'mt-8'}`}>
           <div className="mx-auto flex max-w-[1180px] flex-wrap justify-between gap-4 px-4 py-6 text-xs text-[#6b7077]">
-            <span className="font-semibold text-[#ed1324]">SportyBet</span>
+            <span className="font-semibold text-[#ed1324]">WinnBet</span>
             <span className="flex gap-2">
               <Link href="/help">Responsible Betting</Link>·<Link href="/help">Terms & Conditions</Link>·<Link href="/help">Privacy Policy</Link>
             </span>
