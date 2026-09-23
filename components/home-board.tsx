@@ -164,7 +164,10 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
         <aside className="space-y-4">
           <BetslipPanel legs={legs} onNeedAuth={onNeedAuth} onNotice={onNotice} />
           <MiniGames />
-          <Link href="/virtuals" className="relative block h-44 overflow-hidden bg-[radial-gradient(circle_at_50%_40%,#ffcf00_0%,#d98a00_18%,#2a1a00_55%,#0c0c0c_100%)]">
+          <Link href="/virtuals" className="relative block h-44 overflow-hidden bg-[#0c0c0c]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/banners/instant-virtuals.jpg" alt="" className="absolute inset-0 h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_55%,rgba(255,180,0,0.35),rgba(0,0,0,0.55)_70%)]" />
             <span className="absolute inset-0 flex flex-col items-center justify-center text-center">
               <span className="text-4xl">⚡</span>
               <span className="text-xs font-bold italic text-white/80">SportyBet</span>
@@ -188,9 +191,9 @@ function PopularLink({ active, onClick, children }: { active: boolean; onClick: 
 }
 
 const SLIDES = [
-  { title: 'ONE CUT', sub: 'Bet on live action every second', bg: 'bg-[linear-gradient(120deg,#363a40_0%,#111319_44%,#d91524_45%,#ed1324_68%,#16191f_69%)]', art: '' },
-  { title: 'VIRTUAL WORLD', sub: 'BET ON EVERY SECOND', bg: 'bg-[linear-gradient(100deg,#1b1e24_0%,#1b1e24_52%,#c8102e_53%,#ed1324_100%)]', art: '⚽🏇🐕' },
-  { title: 'INSTANT GAMES', sub: 'Sky Rocket, Spin The Bottle and more', bg: 'bg-[linear-gradient(120deg,#13241a_0%,#1f3b26_50%,#0b9b3a_51%,#17a24a_100%)]', art: '🚀🍾🎰' },
+  { title: 'ONE CUT', sub: 'Bet on live action every second', bg: 'bg-[#111319]', image: '/banners/hero-football.jpg', art: '' },
+  { title: 'VIRTUAL WORLD', sub: 'BET ON EVERY SECOND', bg: 'bg-[#1b1e24]', image: '/banners/virtual-world.jpg', art: '' },
+  { title: 'INSTANT GAMES', sub: 'Sky Rocket, Spin The Bottle and more', bg: 'bg-[linear-gradient(120deg,#13241a_0%,#1f3b26_50%,#0b9b3a_51%,#17a24a_100%)]', image: '', art: '🚀🍾🎰' },
 ]
 
 function HeroBanner({ onNotice }: { onNotice: (message: string) => void }) {
@@ -205,6 +208,13 @@ function HeroBanner({ onNotice }: { onNotice: (message: string) => void }) {
   return (
     <div className="relative flex min-h-[235px] flex-col justify-end overflow-hidden p-7">
       <div className={`absolute inset-0 transition-all duration-700 ${slide.bg}`} />
+      {slide.image && (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img key={slide.image} src={slide.image} alt="" className="absolute inset-0 h-full w-full object-cover object-right" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/35 to-transparent" />
+        </>
+      )}
       {slide.art && <span className="absolute right-6 top-1/2 -translate-y-1/2 text-7xl tracking-[-0.15em] drop-shadow-[0_6px_14px_rgba(0,0,0,0.5)]">{slide.art}</span>}
       <div className="relative">
         <p className="text-sm font-black italic text-white/90">SportyBet</p>
@@ -444,7 +454,9 @@ function MiniGames() {
 function VirtualWorldBanner() {
   return (
     <Link href="/virtuals" className="relative flex h-24 items-center overflow-hidden bg-[#1b1e24]">
-      <div className="absolute inset-y-0 right-0 w-[48%] bg-[linear-gradient(100deg,transparent_0,transparent_8%,#c8102e_8.5%,#ed1324_100%)]" />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/banners/virtual-world.jpg" alt="" className="absolute inset-y-0 right-0 h-full w-[62%] object-cover object-[center_35%]" />
+      <div className="absolute inset-y-0 left-[38%] w-24 bg-gradient-to-r from-[#1b1e24] to-transparent" />
       <span className="relative flex items-center gap-4 pl-6">
         <span className="text-3xl font-black italic text-white">SportyBet</span>
         <span className="h-12 w-px bg-white/40" />
@@ -453,7 +465,6 @@ function VirtualWorldBanner() {
           <span className="block text-2xl font-black italic text-white">BET ON EVERY SECOND</span>
         </span>
       </span>
-      <span className="relative ml-auto pr-6 text-6xl tracking-[-0.1em] drop-shadow-[0_6px_14px_rgba(0,0,0,0.5)] max-sm:hidden">⚽🏇🐕</span>
     </Link>
   )
 }

@@ -398,7 +398,7 @@ export function MatchDetail({ id }: { id: string }) {
   return (
     <section className="mx-auto grid max-w-[1180px] gap-4 px-4 py-4 md:grid-cols-[1fr_275px]">
       <div className="border bg-white">
-        <div className="bg-[#181b21] px-4 py-5 text-white">
+        <div className="bg-[#181b21] bg-[linear-gradient(rgba(15,17,22,0.78),rgba(15,17,22,0.9)),url('/banners/hero-football.jpg')] bg-cover bg-center px-4 py-5 text-white">
           <Link href="/" className="mb-3 inline-flex items-center text-xs text-white/70"><ChevronLeft size={14} /> Back to matches</Link>
           {match ? (
             <>
