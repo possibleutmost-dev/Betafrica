@@ -5,17 +5,18 @@ import { X } from 'lucide-react'
 import type { Player } from '@/lib/store'
 
 const countries = [
-  { code: 'NG', name: 'Nigeria' },
-  { code: 'GH', name: 'Ghana' },
-  { code: 'KE', name: 'Kenya' },
-  { code: 'ZA', name: 'South Africa' },
+  { code: 'GH', name: 'Ghana', dial: '+233', example: '24 123 4567' },
+  { code: 'NG', name: 'Nigeria', dial: '+234', example: '803 123 4567' },
+  { code: 'KE', name: 'Kenya', dial: '+254', example: '712 345 678' },
+  { code: 'ZA', name: 'South Africa', dial: '+27', example: '82 123 4567' },
 ]
 
 export function AuthForm({ mode, onClose, switchMode, onSignedIn }: { mode: 'login' | 'register'; onClose: () => void; switchMode: () => void; onSignedIn: (player: Player) => void }) {
   const [identifier, setIdentifier] = useState('')
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
-  const [countryCode, setCountryCode] = useState('NG')
+  const [countryCode, setCountryCode] = useState('GH')
+  const country = countries.find((item) => item.code === countryCode) ?? countries[0]
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -66,7 +67,14 @@ export function AuthForm({ mode, onClose, switchMode, onSignedIn }: { mode: 'log
         </>
       )}
       <label className="mb-1 block text-xs font-semibold">{mode === 'login' ? 'Mobile number or email' : 'Mobile number'}</label>
-      <input value={identifier} onChange={(event) => setIdentifier(event.target.value)} className="mb-3 h-11 w-full border px-3 text-sm" placeholder="+234 Mobile Number" />
+      {mode === 'login' ? (
+        <input value={identifier} onChange={(event) => setIdentifier(event.target.value)} className="mb-3 h-11 w-full border px-3 text-sm" placeholder="+233 Mobile Number" autoComplete="username" />
+      ) : (
+        <div className="mb-3 flex h-11 border focus-within:border-[#0b9b3a]">
+          <span className="flex items-center border-r bg-[#f5f6f7] px-3 text-sm font-semibold">{country.dial}</span>
+          <input value={identifier} onChange={(event) => setIdentifier(event.target.value)} inputMode="tel" autoComplete="tel-national" className="min-w-0 flex-1 px-3 text-sm outline-none" placeholder={country.example} />
+        </div>
+      )}
       <label className="mb-1 block text-xs font-semibold">Password</label>
       <input value={password} onChange={(event) => setPassword(event.target.value)} className="mb-4 h-11 w-full border px-3 text-sm" placeholder="Password" type="password" />
       {error && <p className="mb-3 text-xs text-[#ed1324]">{error}</p>}

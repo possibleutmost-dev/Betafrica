@@ -126,7 +126,7 @@ export function QuickRegister({ onNeedAuth, onNotice }: { onNeedAuth: () => void
     <aside className="hidden bg-[#f8f8f8] p-4 text-[#24262c] md:block">
       <h2 className="text-sm font-bold">Instant Registration</h2>
       <p className="my-3 text-xs font-semibold text-[#0b9b3a]">Make a Deposit and Start Betting!</p>
-      <input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+234 Mobile Number" className="mb-3 h-10 w-full px-3 text-xs" />
+      <input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+233 Mobile Number" className="mb-3 h-10 w-full px-3 text-xs" />
       <button
         onClick={() => {
           if (phone.trim()) sessionStorage.setItem('sporty-phone', phone.trim())

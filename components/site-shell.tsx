@@ -139,7 +139,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
           <div className="mx-auto flex max-w-[1180px] items-center gap-2 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3">
             <button onClick={() => setMenuOpen((open) => !open)} className="shrink-0 md:hidden" aria-label={menuOpen ? 'Close menu' : 'Open menu'}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>
             <Link href="/" className="whitespace-nowrap text-[22px] font-black italic tracking-[-1.5px] sm:text-[28px] sm:tracking-[-2px]">WinnBet</Link>
-            <span className="hidden text-xs font-semibold md:block">{player ? player.country_code : 'Nigeria'} <ChevronDown size={13} className="inline" /></span>
+            <span className="hidden text-xs font-semibold md:block">{player ? player.country_code : 'Ghana'} <ChevronDown size={13} className="inline" /></span>
             <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2">
               {player ? (
                 <>

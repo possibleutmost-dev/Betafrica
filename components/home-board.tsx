@@ -145,7 +145,7 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-[1180px] gap-4 px-3 py-4 sm:px-4 grid-cols-1 md:grid-cols-[minmax(0,1fr)_280px]">
+      <section className="mx-auto grid max-w-[1180px] gap-3 px-0 py-0 sm:gap-4 sm:px-4 sm:py-4 grid-cols-1 md:grid-cols-[minmax(0,1fr)_280px]">
         <div className="min-w-0 space-y-4">
           <div className="bg-[#1b1e24] text-white">
             <BoardHeader title="Live Betting" onRefresh={reload} dark />
@@ -169,7 +169,7 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
           </div>
 
           {!liveOnly && (
-            <div className="border bg-white">
+            <div className="bg-white sm:border">
               <VirtualWorldBanner />
               <BoardHeader title={filterTitle} onRefresh={reload} dark={false}>
                 {filter.kind !== 'all' && <button onClick={() => setFilter({ kind: 'all' })} className="text-xs text-[#ed1324]">Clear filter</button>}
@@ -190,7 +190,7 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
           )}
         </div>
 
-        <aside className="space-y-4">
+        <aside className="space-y-4 px-3 pb-4 sm:px-0 sm:pb-0">
           <BetslipPanel legs={legs} onNeedAuth={onNeedAuth} onNotice={onNotice} />
           <MiniGames />
           <Link href="/virtuals" className="relative block h-44 overflow-hidden bg-[#0c0c0c]">
