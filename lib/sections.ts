@@ -1,0 +1,18 @@
+/** Top-level URLs served by `app/[section]/page.tsx`. */
+export const SECTIONS = [
+  'football',
+  'live',
+  'basketball',
+  'tennis',
+  'virtuals',
+  'crash-games',
+  'jackpot',
+  'promotions',
+  'help',
+  'deposit',
+  'withdraw',
+  'transactions',
+  'login',
+  'register',
+  'sub-admin',
+] as const

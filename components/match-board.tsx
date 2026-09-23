@@ -1,0 +1,461 @@
+'use client'
+
+import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
+import { ChevronLeft, Trophy } from 'lucide-react'
+import { useShell } from '@/components/site-shell'
+import { BookedCode, PlacedReceipt, type PlacedTicket } from '@/components/tickets'
+import { bonusAmount, combinationCount, combinations } from '@/lib/bonus'
+import { formatMoney } from '@/lib/countries'
+import { useSession, useSlip, type SlipLeg } from '@/lib/store'
+
+export type BoardPrice = { outcome: string; label: string; odds: number }
+export type BoardMarket = { key: string; label: string; prices: BoardPrice[] }
+export type BoardMatch = {
+  id: string
+  league: string
+  sport: string
+  homeTeam: string
+  awayTeam: string
+  homeCrest?: string | null
+  awayCrest?: string | null
+  kickoff: string
+  isLive: boolean
+  isLocked: boolean
+  postponed: boolean
+  minuteLabel: string
+  scoreHome: number | null
+  scoreAway: number | null
+  markets: BoardMarket[]
+}
+
+const POLL_MS = 30_000
+
+export function useFixtureFeed() {
+  const [matches, setMatches] = useState<BoardMatch[] | null>(null)
+  const [error, setError] = useState('')
+  const [nonce, setNonce] = useState(0)
+
+  useEffect(() => {
+    let alive = true
+    const load = async () => {
+      try {
+        const res = await fetch('/api/fixtures', { cache: 'no-store' })
+        if (!res.ok) {
+          if (alive) setError('Fixtures are unavailable right now.')
+          return
+        }
+        const json = await res.json()
+        if (alive) {
+          setMatches(json.matches ?? [])
+          setError('')
+        }
+      } catch {
+        if (alive) setError('Fixtures are unavailable right now.')
+      }
+    }
+    load()
+    const timer = setInterval(load, POLL_MS)
+    return () => {
+      alive = false
+      clearInterval(timer)
+    }
+  }, [nonce])
+
+  return { matches, error, reload: () => setNonce((n) => n + 1) }
+}
+
+export function Crest({ src, name, size = 20 }: { src?: string | null; name: string; size?: number }) {
+  const [failed, setFailed] = useState(false)
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src && !failed ? src : '/crest-fallback.svg'}
+      alt={`${name} crest`}
+      width={size}
+      height={size}
+      onError={() => setFailed(true)}
+      className="shrink-0 rounded-full bg-white object-contain"
+      style={{ width: size, height: size }}
+    />
+  )
+}
+
+export function legFor(match: BoardMatch, market: BoardMarket, price: BoardPrice, onNotice: (message: string) => void): SlipLeg | null {
+  if (match.isLocked || match.postponed) {
+    onNotice(match.postponed ? 'This fixture is postponed.' : 'Live betting is locked.')
+    return null
+  }
+  return {
+    matchId: match.id,
+    homeTeam: match.homeTeam,
+    awayTeam: match.awayTeam,
+    league: match.league,
+    kickoff: match.kickoff,
+    market: market.key,
+    marketLabel: market.label,
+    outcome: price.outcome,
+    outcomeLabel: price.label,
+    odds: price.odds,
+  }
+}
+
+export function resultMarket(match: BoardMatch) {
+  return match.markets.find((market) => market.key === '1x2') ?? match.markets[0]
+}
+
+export function kickoffLabel(match: BoardMatch) {
+  if (match.postponed) return 'Postponed'
+  if (match.isLive) return match.minuteLabel || 'LIVE'
+  return new Date(match.kickoff).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' })
+}
+
+export function QuickRegister({ onNeedAuth, onNotice }: { onNeedAuth: () => void; onNotice: (message: string) => void }) {
+  const { player } = useShell()
+  const [phone, setPhone] = useState('')
+  if (player) {
+    return (
+      <aside className="hidden bg-[#f8f8f8] p-4 text-[#24262c] md:block">
+        <h2 className="text-sm font-bold">{player.name}</h2>
+        <p className="my-3 text-xs font-semibold text-[#0b9b3a]">{formatMoney(player.balance, player.currency)} available</p>
+        <p className="text-xs text-[#6b7077]">Deposit, then add a selection from the board.</p>
+      </aside>
+    )
+  }
+  return (
+    <aside className="hidden bg-[#f8f8f8] p-4 text-[#24262c] md:block">
+      <h2 className="text-sm font-bold">Instant Registration</h2>
+      <p className="my-3 text-xs font-semibold text-[#0b9b3a]">Make a Deposit and Start Betting!</p>
+      <input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+234 Mobile Number" className="mb-3 h-10 w-full px-3 text-xs" />
+      <button
+        onClick={() => {
+          if (phone.trim()) sessionStorage.setItem('sporty-phone', phone.trim())
+          onNotice('Create your account to start betting.')
+          onNeedAuth()
+        }}
+        className="h-10 w-full bg-[#0b9b3a] text-sm text-white"
+      >
+        Register
+      </button>
+    </aside>
+  )
+}
+
+export function BetslipPanel({
+  legs,
+  onNeedAuth,
+  onNotice,
+}: {
+  legs: SlipLeg[]
+  onNeedAuth: () => void
+  onNotice: (message: string) => void
+}) {
+  const { player } = useShell()
+  const setBalance = useSession((state) => state.setBalance)
+  const stake = useSlip((state) => state.stake)
+  const setStake = useSlip((state) => state.setStake)
+  const mode = useSlip((state) => state.mode)
+  const setMode = useSlip((state) => state.setMode)
+  const systemSize = useSlip((state) => state.systemSize)
+  const setSystemSize = useSlip((state) => state.setSystemSize)
+  const acceptOddsChanges = useSlip((state) => state.acceptOddsChanges)
+  const totalOdds = useSlip((state) => state.totalOdds)
+  const clearLegs = useSlip((state) => state.clearLegs)
+  const remove = useSlip((state) => state.remove)
+  const load = useSlip((state) => state.load)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [code, setCode] = useState('')
+  const [booked, setBooked] = useState<{ code: string; expiresAt: string | null } | null>(null)
+  const [placed, setPlaced] = useState<{
+    ticket: PlacedTicket
+    legs: SlipLeg[]
+    lines: number
+    totalCost: number
+    oddsChanged: { match: string; from: number; to: number }[]
+  } | null>(null)
+
+  const odds = legs.length ? totalOdds() : 0
+  const lines = mode === 'single' ? Math.max(legs.length, 1) : mode === 'system' ? combinationCount(legs.length, systemSize) : 1
+  const bonus = mode === 'multiple' && legs.length >= 2 ? bonusAmount(stake, odds, legs.map((leg) => leg.odds)) : 0
+  const returns = mode === 'single'
+    ? Math.round(legs.reduce((sum, leg) => sum + stake * leg.odds, 0) * 100) / 100
+    : mode === 'system'
+      ? Math.round(combinations(legs, systemSize).reduce((sum, line) => sum + stake * line.reduce((acc, leg) => acc * leg.odds, 1), 0) * 100) / 100
+      : Math.round((stake * odds + bonus) * 100) / 100
+
+  const place = async () => {
+    setError('')
+    if (!player) {
+      onNeedAuth()
+      return
+    }
+    if (!legs.length) return
+    setBusy(true)
+    try {
+      const res = await fetch('/api/bets/place', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: player.id,
+          stake,
+          mode,
+          systemSize,
+          acceptOddsChanges,
+          selections: legs.map((leg) => ({
+            matchId: leg.matchId,
+            market: leg.market,
+            outcome: leg.outcome,
+            odds: leg.odds,
+          })),
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        setError(json.error ?? 'Could not place your bet')
+        return
+      }
+      if (typeof json.balance === 'number') setBalance(json.balance)
+      if (json.ticket) {
+        setPlaced({
+          ticket: json.ticket,
+          legs,
+          lines: Number(json.lines ?? 1),
+          totalCost: Number(json.totalCost ?? stake),
+          oddsChanged: json.oddsChanged ?? [],
+        })
+      }
+      clearLegs()
+    } catch {
+      setError('Could not place your bet')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const book = async () => {
+    setError('')
+    if (!legs.length) return
+    setBusy(true)
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: player?.id,
+          selections: legs,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        setError(json.error ?? 'Could not book this slip')
+        return
+      }
+      setBooked({ code: json.code, expiresAt: json.expiresAt ?? null })
+    } catch {
+      setError('Could not book this slip')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const loadCode = async () => {
+    const trimmed = code.trim()
+    if (!trimmed) return
+    setError('')
+    setBusy(true)
+    try {
+      const res = await fetch(`/api/bookings/${encodeURIComponent(trimmed)}`)
+      const json = await res.json()
+      if (!res.ok) {
+        setError(json.error ?? 'Booking code was not found')
+        return
+      }
+      const selections = (json.booking?.selections ?? []) as SlipLeg[]
+      if (!selections.length) {
+        setError('That code has no selections')
+        return
+      }
+      load(selections)
+      setCode('')
+    } catch {
+      setError('Could not load that code')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <aside className="border bg-white">
+      <div className="border-b px-4 py-4 text-sm font-semibold">
+        Betslip {legs.length > 0 && <span className="ml-1 rounded-full bg-[#ed1324] px-1.5 text-[10px] text-white">{legs.length}</span>}
+      </div>
+      {legs.length ? (
+        <div className="space-y-3 p-3 text-xs">
+          <div className="grid grid-cols-3 gap-1">
+            {(['single', 'multiple', 'system'] as const).map((item) => (
+              <button key={item} onClick={() => setMode(item)} className={`border py-2 capitalize ${mode === item ? 'border-[#ed1324] text-[#ed1324]' : ''}`}>{item}</button>
+            ))}
+          </div>
+          {mode === 'system' && (
+            <label className="block text-[11px] text-[#6b7077]">
+              Combination size
+              <input type="number" min={2} max={legs.length || 2} value={systemSize} onChange={(event) => setSystemSize(Number(event.target.value))} className="mt-1 h-9 w-full border px-2" />
+            </label>
+          )}
+          {legs.map((leg) => (
+            <div key={leg.matchId} className="flex items-start justify-between gap-2 border-b pb-2">
+              <div>
+                <p className="font-semibold">{leg.homeTeam} vs {leg.awayTeam}</p>
+                <p className="text-[#6b7077]">{leg.marketLabel} · {leg.outcomeLabel} @ {leg.odds.toFixed(2)}</p>
+              </div>
+              <button onClick={() => remove(leg.matchId)} className="text-[#ed1324]">Remove</button>
+            </div>
+          ))}
+          <label className="block text-[11px] text-[#6b7077]">
+            Stake {mode === 'single' || mode === 'system' ? 'per line' : ''}
+            <input type="number" min={0} value={stake} onChange={(event) => setStake(Number(event.target.value))} className="mt-1 h-10 w-full border px-2 text-sm" />
+          </label>
+          <p className="flex justify-between"><span>{mode === 'multiple' ? 'Total odds' : 'Lines'}</span><strong>{mode === 'multiple' ? odds.toFixed(2) : lines}</strong></p>
+          <p className="flex justify-between"><span>Total stake</span><strong>{formatMoney(stake * lines, player?.currency ?? 'NGN')}</strong></p>
+          {bonus > 0 && <p className="flex justify-between text-[#0b9b3a]"><span>Accumulator bonus</span><strong>{formatMoney(bonus, player?.currency ?? 'NGN')}</strong></p>}
+          <p className="flex justify-between"><span>Potential win</span><strong>{formatMoney(returns, player?.currency ?? 'NGN')}</strong></p>
+          {error && <p className="text-[#ed1324]">{error}</p>}
+          <button disabled={busy} onClick={place} className="w-full bg-[#0b9b3a] py-3 font-semibold text-white disabled:opacity-60">{busy ? 'Please wait…' : 'Place Bet'}</button>
+          <button disabled={busy} onClick={book} className="w-full border py-2 font-semibold">Book code</button>
+        </div>
+      ) : (
+        <div className="px-6 py-12 text-center text-sm text-[#888d93]">
+          <Trophy size={38} className="mx-auto mb-3 text-[#c9cdd2]" />
+          Your betslip is empty
+          <p className="mt-1 text-xs">Click on odds to add selections</p>
+          {error && <p className="mt-3 text-xs text-[#ed1324]">{error}</p>}
+        </div>
+      )}
+      <div className="border-t p-3">
+        <p className="mb-2 text-[11px] font-semibold text-[#6b7077]">Load booking code</p>
+        <div className="flex gap-2">
+          <input value={code} onChange={(event) => setCode(event.target.value)} placeholder="Code" className="h-10 min-w-0 flex-1 border px-2 text-sm" />
+          <button onClick={loadCode} className="bg-[#171a20] px-3 text-xs font-semibold text-white">Load</button>
+        </div>
+      </div>
+      {booked && <BookedCode code={booked.code} expiresAt={booked.expiresAt} onClose={() => setBooked(null)} />}
+      {placed && <PlacedReceipt {...placed} onClose={() => setPlaced(null)} />}
+    </aside>
+  )
+}
+
+type DetailMarket = BoardMarket & { group?: string; badge?: string; dense?: boolean }
+
+const GROUP_LABELS: Record<string, string> = {
+  main: 'Main',
+  goals: 'Goals',
+  half: 'Halves',
+  handicap: 'Handicap',
+  corners: 'Corners',
+  teams: 'Teams',
+  specials: 'Specials',
+}
+
+export function MatchDetail({ id }: { id: string }) {
+  const { notify, openAuth } = useShell()
+  const [match, setMatch] = useState<(Omit<BoardMatch, 'markets'> & { markets: DetailMarket[] }) | null>(null)
+  const [error, setError] = useState('')
+  const [group, setGroup] = useState('all')
+  const legs = useSlip((state) => state.legs)
+  const has = useSlip((state) => state.has)
+  const toggle = useSlip((state) => state.toggle)
+
+  useEffect(() => {
+    let alive = true
+    const load = async () => {
+      try {
+        const res = await fetch(`/api/match/${encodeURIComponent(id)}`, { cache: 'no-store' })
+        const json = await res.json()
+        if (!alive) return
+        if (!res.ok) {
+          setError(json.error ?? 'This match is not available.')
+          return
+        }
+        setMatch(json.match)
+        setError('')
+      } catch {
+        if (alive) setError('This match is not available.')
+      }
+    }
+    load()
+    const timer = setInterval(load, POLL_MS)
+    return () => {
+      alive = false
+      clearInterval(timer)
+    }
+  }, [id])
+
+  const groups = useMemo(() => [...new Set((match?.markets ?? []).map((market) => market.group ?? 'main'))], [match])
+  const shown = (match?.markets ?? []).filter((market) => group === 'all' || (market.group ?? 'main') === group)
+  const score = match && match.scoreHome != null && match.scoreAway != null ? `${match.scoreHome} - ${match.scoreAway}` : 'vs'
+
+  return (
+    <section className="mx-auto grid max-w-[1180px] gap-4 px-4 py-4 md:grid-cols-[1fr_275px]">
+      <div className="border bg-white">
+        <div className="bg-[#181b21] px-4 py-5 text-white">
+          <Link href="/" className="mb-3 inline-flex items-center text-xs text-white/70"><ChevronLeft size={14} /> Back to matches</Link>
+          {match ? (
+            <>
+              <p className="text-center text-xs text-white/60">{match.league}</p>
+              <div className="mt-2 grid grid-cols-[1fr_auto_1fr] items-center gap-4 text-center">
+                <div className="flex flex-col items-center gap-2"><Crest src={match.homeCrest} name={match.homeTeam} size={56} /><p className="text-lg font-bold">{match.homeTeam}</p></div>
+                <p className="text-2xl font-black text-[#ffcf00]">{score}</p>
+                <div className="flex flex-col items-center gap-2"><Crest src={match.awayCrest} name={match.awayTeam} size={56} /><p className="text-lg font-bold">{match.awayTeam}</p></div>
+              </div>
+              <p className="mt-2 text-center text-xs text-white/60">{kickoffLabel(match)}</p>
+            </>
+          ) : (
+            <p className="py-6 text-center text-sm text-white/70">{error || 'Loading match…'}</p>
+          )}
+        </div>
+        {match && (
+          <>
+            <div className="flex overflow-x-auto border-b">
+              {['all', ...groups].map((item) => (
+                <button key={item} onClick={() => setGroup(item)} className={`whitespace-nowrap px-4 py-3 text-sm ${group === item ? 'border-b-4 border-[#ed1324] font-semibold' : 'text-[#5c6068]'}`}>
+                  {item === 'all' ? 'All' : GROUP_LABELS[item] ?? item}
+                </button>
+              ))}
+            </div>
+            <div className="space-y-4 p-4">
+              {match.isLocked && <p className="bg-[#fff0f1] px-3 py-2 text-xs text-[#ed1324]">{match.postponed ? 'This fixture is postponed.' : 'Betting is locked on this match.'}</p>}
+              {shown.map((market) => (
+                <div key={market.key}>
+                  <p className="mb-1 text-xs font-semibold text-[#70747a]">
+                    {market.label}
+                    {market.badge && <span className="ml-2 bg-[#ed1324] px-1.5 py-0.5 text-[10px] text-white">{market.badge}</span>}
+                  </p>
+                  <div className={`grid gap-1 ${market.dense ? 'grid-cols-3 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-3'}`}>
+                    {market.prices.map((price) => {
+                      const selected = has(match.id, market.key, price.outcome)
+                      return (
+                        <button
+                          key={price.outcome}
+                          onClick={() => {
+                            const leg = legFor(match, market, price, notify)
+                            if (leg) toggle(leg)
+                          }}
+                          className={`border px-2 py-2 text-left text-xs font-semibold ${selected ? 'border-[#ed1324] bg-[#fff0f1] text-[#ed1324]' : 'bg-[#f8f9fa]'}`}
+                        >
+                          <span className="block font-normal text-[#8b8f94]">{price.label}</span>
+                          {price.odds.toFixed(2)}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+      <BetslipPanel legs={legs} onNeedAuth={() => openAuth('login')} onNotice={notify} />
+    </section>
+  )
+}
