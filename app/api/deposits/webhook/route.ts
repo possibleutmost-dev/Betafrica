@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { db } from "@/lib/supabase";
+import { config, refreshConfig } from "@/lib/config";
 import { applyDepositCredit } from "@/lib/money";
 
 /**
@@ -11,6 +12,7 @@ import { applyDepositCredit } from "@/lib/money";
  * harmless.
  */
 export async function POST(req: Request) {
+  await refreshConfig();
   const supabase = db();
   if (!supabase) return NextResponse.json({ ok: false }, { status: 503 });
 
@@ -75,18 +77,18 @@ function safeCompare(a: string, b: string): boolean {
 function verify(provider: string, req: Request, raw: string): boolean {
   switch (provider) {
     case "flutterwave": {
-      const expected = process.env.FLUTTERWAVE_WEBHOOK_HASH;
+      const expected = config("FLUTTERWAVE_WEBHOOK_HASH");
       const got = req.headers.get("verif-hash") ?? "";
       return Boolean(expected) && safeCompare(got, expected!);
     }
     case "paystack": {
-      const key = process.env.PAYSTACK_SECRET_KEY;
+      const key = config("PAYSTACK_SECRET_KEY");
       if (!key) return false;
       const expected = createHmac("sha512", key).update(raw).digest("hex");
       return safeCompare(req.headers.get("x-paystack-signature") ?? "", expected);
     }
     case "korapay": {
-      const key = process.env.KORAPAY_SECRET_KEY;
+      const key = config("KORAPAY_SECRET_KEY");
       if (!key) return false;
       let payload = raw;
       try {
@@ -98,7 +100,7 @@ function verify(provider: string, req: Request, raw: string): boolean {
       return safeCompare(req.headers.get("x-korapay-signature") ?? "", expected);
     }
     default: {
-      const secret = process.env.MOOLRE_WEBHOOK_SECRET;
+      const secret = config("MOOLRE_WEBHOOK_SECRET");
       if (!secret) return false;
       const expected = createHmac("sha256", secret).update(raw).digest("hex");
       return safeCompare(req.headers.get("x-moolre-signature") ?? "", expected);

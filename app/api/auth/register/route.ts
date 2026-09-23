@@ -51,6 +51,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "That phone number already has an account" }, { status: 409 });
   }
 
+  const cleanEmail = email?.trim().toLowerCase() || null;
+  if (cleanEmail) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return NextResponse.json({ error: "Enter a valid email address" }, { status: 400 });
+    }
+    const { data: taken } = await supabase.from("users").select("id").eq("email", cleanEmail).maybeSingle();
+    if (taken) return NextResponse.json({ error: "That email already has an account" }, { status: 409 });
+  }
+
   // A referral code attributes the player to a partner permanently.
   let referredBy: string | null = null;
   if (referralCode?.trim()) {
@@ -69,7 +78,7 @@ export async function POST(req: Request) {
     .insert({
       name: name.trim(),
       phone: normalisedPhone,
-      email: email?.trim().toLowerCase() || null,
+      email: cleanEmail,
       password_hash: passwordHash,
       country_code: country.code,
       currency: country.currency,

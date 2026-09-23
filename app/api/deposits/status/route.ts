@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/supabase";
+import { refreshConfig } from "@/lib/config";
 import { adapterFor, settledAmount } from "@/lib/gateways";
 import { applyDepositCredit } from "@/lib/money";
 import type { Gateway } from "@/lib/countries";
@@ -12,6 +13,7 @@ export const dynamic = "force-dynamic";
  * player is sitting on the screen watching for it.
  */
 export async function GET(req: Request) {
+  await refreshConfig();
   const supabase = db();
   if (!supabase) return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
 

@@ -317,9 +317,9 @@ export function BetslipPanel({
             <input type="number" min={0} value={stake} onChange={(event) => setStake(Number(event.target.value))} className="mt-1 h-10 w-full border px-2 text-sm" />
           </label>
           <p className="flex justify-between"><span>{mode === 'multiple' ? 'Total odds' : 'Lines'}</span><strong>{mode === 'multiple' ? odds.toFixed(2) : lines}</strong></p>
-          <p className="flex justify-between"><span>Total stake</span><strong>{formatMoney(stake * lines, player?.currency ?? 'NGN')}</strong></p>
-          {bonus > 0 && <p className="flex justify-between text-[#0b9b3a]"><span>Accumulator bonus</span><strong>{formatMoney(bonus, player?.currency ?? 'NGN')}</strong></p>}
-          <p className="flex justify-between"><span>Potential win</span><strong>{formatMoney(returns, player?.currency ?? 'NGN')}</strong></p>
+          <p className="flex justify-between"><span>Total stake</span><strong>{formatMoney(stake * lines, player?.currency ?? 'GHS')}</strong></p>
+          {bonus > 0 && <p className="flex justify-between text-[#0b9b3a]"><span>Accumulator bonus</span><strong>{formatMoney(bonus, player?.currency ?? 'GHS')}</strong></p>}
+          <p className="flex justify-between"><span>Potential win</span><strong>{formatMoney(returns, player?.currency ?? 'GHS')}</strong></p>
           {error && <p className="text-[#ed1324]">{error}</p>}
           <button disabled={busy} onClick={place} className="w-full bg-[#0b9b3a] py-3 font-semibold text-white disabled:opacity-60">{busy ? 'Please wait…' : 'Place Bet'}</button>
           <button disabled={busy} onClick={book} className="w-full border py-2 font-semibold">Book code</button>

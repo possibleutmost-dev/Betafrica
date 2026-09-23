@@ -1,8 +1,8 @@
 import { dbOrThrow } from "./supabase";
+import { commissionRate, configNumber, refreshConfig } from "./config";
 import { getCountry } from "./countries";
 import { sendSms, paymentReceivedSms } from "./sms";
 
-export const COMMISSION_RATE = 0.7;
 export const MAX_VERIFICATION_STEP = 4;
 
 export interface CreditResult {
@@ -30,6 +30,7 @@ export async function applyDepositCredit(opts: {
   reference: string;
   provider: string;
 }): Promise<CreditResult> {
+  await refreshConfig();
   const { userId, amount, currency, reference, provider } = opts;
   const supabase = dbOrThrow();
 
@@ -114,7 +115,7 @@ export async function applyDepositCredit(opts: {
   // --- Step 2: one-time welcome bonus ------------------------------------
   // A pure gift. It does not count toward verification and earns no commission.
   if (isFirst && !user.bonus_paid) {
-    const bonus = Number(process.env.FIRST_DEPOSIT_BONUS ?? 100);
+    const bonus = configNumber("FIRST_DEPOSIT_BONUS", 100);
     if (bonus > 0) {
       try {
         const withBonus = balance + bonus;
@@ -214,7 +215,8 @@ async function payCommission(opts: {
       return;
     }
 
-    const earned = Math.round(amount * COMMISSION_RATE * 100) / 100;
+    const rate = commissionRate();
+    const earned = Math.round(amount * rate * 100) / 100;
 
     // Balances are held per currency, so a partner working Ghana and Nigeria
     // sees each market separately rather than a meaningless sum.
@@ -229,7 +231,7 @@ async function payCommission(opts: {
       payment_reference: reference,
       deposit_amount: amount,
       currency,
-      rate: COMMISSION_RATE,
+      rate,
       amount: earned,
     });
 

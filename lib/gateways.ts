@@ -1,3 +1,4 @@
+import { config } from "./config";
 import { ghanaNetwork, type Gateway } from "./countries";
 import {
   cardsConfigured,
@@ -71,7 +72,7 @@ export interface StartOpts {
 }
 
 function env(name: string): string | null {
-  return process.env[name] || null;
+  return config(name) ?? null;
 }
 
 // ------------------------------------------------------------ Flutterwave

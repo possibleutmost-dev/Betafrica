@@ -1,3 +1,4 @@
+import { config, refreshConfig } from "./config";
 import { db } from "./supabase";
 import { matchClock } from "./clock";
 
@@ -43,10 +44,11 @@ export interface Tracker {
 const cache = new Map<string, { at: number; value: Tracker }>();
 
 function key(): string | null {
-  return process.env.API_FOOTBALL_KEY || null;
+  return config("API_FOOTBALL_KEY") ?? null;
 }
 
 async function call<T>(path: string): Promise<T | null> {
+  await refreshConfig();
   const k = key();
   if (!k) return null;
   try {

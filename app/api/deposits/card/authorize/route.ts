@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/supabase";
+import { refreshConfig } from "@/lib/config";
 import { authorizeCharge, type Authorization } from "@/lib/flutterwave-v4";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic";
  * with the charge, and comes back here to be answered.
  */
 export async function POST(req: Request) {
+  await refreshConfig();
   const supabase = db();
   if (!supabase) return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
 

@@ -98,7 +98,7 @@ export function GamePlay({ slug }: { slug: string }) {
   }
 
   const api: PlayApi = { stake, busy, play, last }
-  const currency = player?.currency ?? 'NGN'
+  const currency = player?.currency ?? 'GHS'
 
   return (
     <div className="games-felt min-h-[calc(100vh-120px)] py-5 text-white">
@@ -319,7 +319,7 @@ function CrashGame({ game, stake, onError, onRound }: { game: CasinoGame; stake:
           </button>
         ) : (
           <button disabled={busy} onClick={start} className="h-14 self-end bg-[#0b9b3a] text-lg font-black disabled:opacity-60">
-            BET {formatMoney(stake, player?.currency ?? 'NGN')}
+            BET {formatMoney(stake, player?.currency ?? 'GHS')}
           </button>
         )}
       </div>

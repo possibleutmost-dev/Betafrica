@@ -14,6 +14,7 @@ const countries = [
 export function AuthForm({ mode, onClose, switchMode, onSignedIn }: { mode: 'login' | 'register'; onClose: () => void; switchMode: () => void; onSignedIn: (player: Player) => void }) {
   const [identifier, setIdentifier] = useState('')
   const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [countryCode, setCountryCode] = useState('GH')
   const country = countries.find((item) => item.code === countryCode) ?? countries[0]
@@ -27,12 +28,16 @@ export function AuthForm({ mode, onClose, switchMode, onSignedIn }: { mode: 'log
 
   const submit = async () => {
     setError('')
+    if (mode === 'register' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Enter a valid email address')
+      return
+    }
     setBusy(true)
     try {
       const res = await fetch(mode === 'login' ? '/api/auth/login' : '/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mode === 'login' ? { identifier, password } : { name, phone: identifier, password, countryCode }),
+        body: JSON.stringify(mode === 'login' ? { identifier, password } : { name, phone: identifier, email, password, countryCode }),
       })
       const json = await res.json()
       if (!res.ok) {
@@ -74,6 +79,12 @@ export function AuthForm({ mode, onClose, switchMode, onSignedIn }: { mode: 'log
           <span className="flex items-center border-r bg-[#f5f6f7] px-3 text-sm font-semibold">{country.dial}</span>
           <input value={identifier} onChange={(event) => setIdentifier(event.target.value)} inputMode="tel" autoComplete="tel-national" className="min-w-0 flex-1 px-3 text-sm outline-none" placeholder={country.example} />
         </div>
+      )}
+      {mode === 'register' && (
+        <>
+          <label className="mb-1 block text-xs font-semibold">Email</label>
+          <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" inputMode="email" autoComplete="email" className="mb-3 h-11 w-full border px-3 text-sm" placeholder="you@example.com" />
+        </>
       )}
       <label className="mb-1 block text-xs font-semibold">Password</label>
       <input value={password} onChange={(event) => setPassword(event.target.value)} className="mb-4 h-11 w-full border px-3 text-sm" placeholder="Password" type="password" />

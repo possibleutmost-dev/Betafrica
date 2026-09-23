@@ -1,3 +1,4 @@
+import { config } from "./config";
 /**
  * Flutterwave v4, which is now the only rail we talk to.
  *
@@ -17,8 +18,7 @@ const SANDBOX = "https://developersandbox-api.flutterwave.com";
 const LIVE = "https://f4bexperience.flutterwave.com";
 
 function env(name: string): string | undefined {
-  const v = process.env[name];
-  return v && v.trim() ? v.trim() : undefined;
+  return config(name);
 }
 
 /**
@@ -29,7 +29,8 @@ function env(name: string): string | undefined {
  * set one of them does not go dark when the other is the one being asked for.
  */
 function credential(kind: "CLIENT_ID" | "CLIENT_SECRET"): string | undefined {
-  return env(`FLUTTERWAVE_V4_${kind}`) ?? env(`FLUTTERWAVE_${kind}`);
+  // The short name first: it is the one the admin console saves under.
+  return env(`FLUTTERWAVE_${kind}`) ?? env(`FLUTTERWAVE_V4_${kind}`);
 }
 
 function baseUrl(): string {

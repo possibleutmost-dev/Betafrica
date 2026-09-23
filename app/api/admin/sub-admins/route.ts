@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 import { db } from "@/lib/supabase";
+import { referralCode } from "@/lib/auth";
 import { requireAdmin } from "@/lib/admin-guard";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +28,45 @@ export async function GET() {
   return NextResponse.json({
     partners: (partners ?? []).map((p) => ({ ...p, referredPlayers: byPartner.get(p.id) ?? 0 })),
   });
+}
+
+/** The operator opens a sub-admin account directly. It starts approved. */
+export async function POST(req: Request) {
+  if (!(await requireAdmin())) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
+  const supabase = db();
+  if (!supabase) return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+
+  const body = await req.json().catch(() => null);
+  const name = String(body?.name ?? "").trim();
+  const email = String(body?.email ?? "").trim().toLowerCase();
+  const password = String(body?.password ?? "");
+  if (!name || !email || !password) return NextResponse.json({ error: "Fill in name, email and password" }, { status: 400 });
+  if (password.length < 8) return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+
+  const { data: existing } = await supabase.from("sub_admins").select("id").eq("email", email).maybeSingle();
+  if (existing) return NextResponse.json({ error: "That email already has an account" }, { status: 409 });
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const { data, error } = await supabase
+      .from("sub_admins")
+      .insert({
+        name,
+        email,
+        phone: String(body?.phone ?? "").trim() || null,
+        password_hash: passwordHash,
+        referral_code: referralCode(),
+        approved: true,
+      })
+      .select("id, name, email, referral_code, approved")
+      .single();
+    if (!error && data) return NextResponse.json({ partner: data });
+    if ((error as { code?: string } | null)?.code !== "23505") {
+      console.error("[admin] create sub-admin failed", error);
+      return NextResponse.json({ error: "Could not create the sub-admin" }, { status: 500 });
+    }
+  }
+  return NextResponse.json({ error: "Could not create the sub-admin" }, { status: 500 });
 }
 
 export async function PATCH(req: Request) {

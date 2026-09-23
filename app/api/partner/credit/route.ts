@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/supabase";
+import { configNumber, refreshConfig } from "@/lib/config";
 import { currentPartner } from "@/lib/partner";
 import { paymentReference } from "@/lib/codes";
 
@@ -23,12 +24,13 @@ import { paymentReference } from "@/lib/codes";
 /** Per-transaction and rolling-24h caps, so a mistake or a stolen session is bounded. */
 function limits() {
   return {
-    perCredit: Number(process.env.PARTNER_CREDIT_MAX ?? 5000),
-    perDay: Number(process.env.PARTNER_CREDIT_DAILY_MAX ?? 20000),
+    perCredit: configNumber("PARTNER_CREDIT_MAX", 5000),
+    perDay: configNumber("PARTNER_CREDIT_DAILY_MAX", 20000),
   };
 }
 
 export async function POST(req: Request) {
+  await refreshConfig();
   const supabase = db();
   if (!supabase) return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
 

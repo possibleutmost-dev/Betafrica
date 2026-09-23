@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { BarChart3, FileCheck2, Settings, UserCog, Users, WalletCards } from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
+import Link from 'next/link'
+import { BarChart3, ExternalLink, FileCheck2, KeyRound, Settings, UserCog, Users, WalletCards, X } from 'lucide-react'
+import { CONFIG_GROUPS } from '@/lib/config-fields'
 import { formatMoney } from '@/lib/countries'
 
 type Role = 'admin' | 'subadmin'
@@ -21,7 +23,7 @@ export function AdminDashboard({ role, close }: { role: Role; close: () => void 
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#ed1324]">Operations console</p>
           <h1 className="mt-1 text-2xl font-black sm:text-3xl">{isAdmin ? 'Admin dashboard' : 'Sub-admin workspace'}</h1>
-          <p className="mt-1 text-sm text-[#6b7077]">{isAdmin ? 'Full platform controls, financials and staff permissions.' : 'Manage assigned operations without access to sensitive platform settings.'}</p>
+          <p className="mt-1 text-sm text-[#6b7077]">{isAdmin ? 'Full platform controls, financials and staff permissions.' : 'Your referred players, commission and betting wallet.'}</p>
         </div>
         <button onClick={close} className="border bg-white px-4 py-2 text-sm font-semibold">Back to site</button>
       </div>
@@ -32,65 +34,173 @@ export function AdminDashboard({ role, close }: { role: Role; close: () => void 
   )
 }
 
+// ------------------------------------------------------------------ shared
+
+function Dialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => event.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={title}>
+      <button className="absolute inset-0 bg-black/55" onClick={onClose} aria-label="Close" />
+      <div className="relative max-h-[92vh] w-full overflow-y-auto bg-white shadow-xl sm:max-w-md sm:rounded-lg">
+        <div className="flex items-center justify-between border-b px-5 py-4">
+          <h2 className="text-lg font-bold">{title}</h2>
+          <button onClick={onClose} aria-label="Close"><X size={20} /></button>
+        </div>
+        <div className="p-5">{children}</div>
+      </div>
+    </div>
+  )
+}
+
+function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+  return (
+    <label className="mb-4 block">
+      <span className="mb-1 block text-xs font-semibold text-[#3d4148]">{label}</span>
+      {children}
+      {hint && <span className="mt-1 block text-[11px] text-[#8b8f94]">{hint}</span>}
+    </label>
+  )
+}
+
+const inputClass = 'h-11 w-full border px-3 text-sm outline-none focus:border-[#ed1324]'
+
+function DialogActions({ busy, confirm, tone = 'red', onCancel, onConfirm, disabled }: { busy?: boolean; confirm: string; tone?: 'red' | 'green'; onCancel: () => void; onConfirm: () => void; disabled?: boolean }) {
+  return (
+    <div className="mt-2 grid grid-cols-2 gap-2">
+      <button onClick={onCancel} className="h-11 border text-sm font-semibold">Cancel</button>
+      <button
+        disabled={busy || disabled}
+        onClick={onConfirm}
+        className={`h-11 text-sm font-semibold text-white disabled:opacity-50 ${tone === 'green' ? 'bg-[#0b9b3a]' : 'bg-[#ed1324]'}`}
+      >
+        {busy ? 'Please wait…' : confirm}
+      </button>
+    </div>
+  )
+}
+
+function Message({ text, tone = 'ok' }: { text: string; tone?: 'ok' | 'error' }) {
+  if (!text) return null
+  return <p className={`mt-2 px-3 py-2 text-xs ${tone === 'ok' ? 'bg-[#e9f7ef] text-[#0b7a2e]' : 'bg-[#fff0f1] text-[#ed1324]'}`}>{text}</p>
+}
+
+async function send(url: string, method: string, body: unknown) {
+  const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  const json = await res.json().catch(() => ({}))
+  return { ok: res.ok, json: json as Record<string, unknown> }
+}
+
+// ------------------------------------------------------------------ logins
+
 export function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const submit = async () => {
     setError('')
-    const res = await fetch('/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
-    })
-    const json = await res.json()
-    if (!res.ok) {
-      setError(json.error ?? 'Could not sign in')
+    const { ok, json } = await send('/api/admin/login', 'POST', { password })
+    if (!ok) {
+      setError(String(json.error ?? 'Could not sign in'))
       return
     }
     onSuccess()
   }
   return (
-    <div className="mx-auto max-w-sm bg-white p-6 shadow-sm">
+    <form onSubmit={(event) => { event.preventDefault(); submit() }} className="mx-auto max-w-sm bg-white p-6 shadow-sm">
       <h2 className="text-lg font-bold">Admin sign in</h2>
-      <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" className="mt-4 h-11 w-full border px-3 text-sm" />
+      <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" className={`mt-4 ${inputClass}`} />
       {error && <p className="mt-2 text-xs text-[#ed1324]">{error}</p>}
-      <button onClick={submit} className="mt-4 w-full bg-[#ed1324] py-3 text-sm font-semibold text-white">Enter console</button>
-    </div>
+      <button type="submit" className="mt-4 w-full bg-[#ed1324] py-3 text-sm font-semibold text-white">Enter console</button>
+    </form>
   )
 }
 
 function PartnerLogin({ onSuccess }: { onSuccess: () => void }) {
+  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const [busy, setBusy] = useState(false)
+
   const submit = async () => {
     setError('')
-    const res = await fetch('/api/partner/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-    const json = await res.json()
-    if (!res.ok) {
-      setError(json.error ?? 'Could not sign in')
-      return
+    setNotice('')
+    setBusy(true)
+    try {
+      if (mode === 'register') {
+        const { ok, json } = await send('/api/partner/register', 'POST', { name, phone, email, password })
+        if (!ok) {
+          setError(String(json.error ?? 'Could not create your account'))
+          return
+        }
+        setNotice(String(json.message ?? 'Account created. Sign in below.'))
+        setMode('login')
+        return
+      }
+      const { ok, json } = await send('/api/partner/login', 'POST', { email, password })
+      if (!ok) {
+        setError(String(json.error ?? 'Could not sign in'))
+        return
+      }
+      onSuccess()
+    } finally {
+      setBusy(false)
     }
-    onSuccess()
   }
+
   return (
-    <div className="mx-auto max-w-sm bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-bold">Sub-admin sign in</h2>
-      <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" className="mt-4 h-11 w-full border px-3 text-sm" />
-      <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" className="mt-3 h-11 w-full border px-3 text-sm" />
-      {error && <p className="mt-2 text-xs text-[#ed1324]">{error}</p>}
-      <button onClick={submit} className="mt-4 w-full bg-[#ed1324] py-3 text-sm font-semibold text-white">Enter workspace</button>
-    </div>
+    <form onSubmit={(event) => { event.preventDefault(); submit() }} className="mx-auto max-w-sm bg-white p-6 shadow-sm">
+      <div className="mb-4 grid grid-cols-2 border">
+        {(['login', 'register'] as const).map((item) => (
+          <button type="button" key={item} onClick={() => { setMode(item); setError('') }} className={`py-2.5 text-sm font-semibold ${mode === item ? 'bg-[#ed1324] text-white' : ''}`}>
+            {item === 'login' ? 'Sign in' : 'Create account'}
+          </button>
+        ))}
+      </div>
+      {mode === 'register' && (
+        <>
+          <Field label="Full name"><input value={name} onChange={(event) => setName(event.target.value)} className={inputClass} /></Field>
+          <Field label="Phone"><input value={phone} onChange={(event) => setPhone(event.target.value)} inputMode="tel" placeholder="+233" className={inputClass} /></Field>
+        </>
+      )}
+      <Field label="Email"><input value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="username" className={inputClass} /></Field>
+      <Field label="Password" hint={mode === 'register' ? 'At least 8 characters.' : undefined}>
+        <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} className={inputClass} />
+      </Field>
+      {error && <p className="mb-3 text-xs text-[#ed1324]">{error}</p>}
+      {notice && <p className="mb-3 bg-[#e9f7ef] px-3 py-2 text-xs text-[#0b7a2e]">{notice}</p>}
+      <button type="submit" disabled={busy} className="w-full bg-[#ed1324] py-3 text-sm font-semibold text-white disabled:opacity-60">
+        {busy ? 'Please wait…' : mode === 'login' ? 'Enter workspace' : 'Create sub-admin account'}
+      </button>
+      {mode === 'register' && <p className="mt-3 text-center text-[11px] text-[#8b8f94]">New accounts start earning once the admin approves them.</p>}
+    </form>
   )
 }
 
+// ------------------------------------------------------------ admin console
+
+const NAV = [
+  { key: 'Overview', icon: BarChart3 },
+  { key: 'Users & KYC', icon: Users },
+  { key: 'Wallets', icon: WalletCards },
+  { key: 'Sportsbook', icon: FileCheck2 },
+  { key: 'Reports', icon: BarChart3 },
+  { key: 'Sub-admins', icon: UserCog },
+  { key: 'API keys & commission', icon: KeyRound },
+  { key: 'Settings', icon: Settings },
+] as const
+
+type Section = (typeof NAV)[number]['key']
+
 function AdminConsole() {
-  const nav = ['Overview', 'Users & KYC', 'Wallets', 'Sportsbook', 'Reports', 'Team & roles', 'Settings']
-  const [section, setSection] = useState(nav[0])
+  const [section, setSection] = useState<Section>('Overview')
   const [overview, setOverview] = useState<Record<string, unknown> | null>(null)
 
   useEffect(() => {
@@ -104,8 +214,10 @@ function AdminConsole() {
     ['Liability', moneyMap(overview?.liability), 'Open potential wins', WalletCards],
   ] as const
 
+  const signOut = () => fetch('/api/admin/logout', { method: 'POST' }).then(() => window.location.reload())
+
   return (
-    <div className="grid gap-4 grid-cols-1 md:grid-cols-[205px_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-[215px_minmax(0,1fr)]">
       <aside className="min-w-0 self-start bg-[#171a20] p-3 text-white">
         <div className="mb-3 flex items-center gap-2 border-b border-white/10 px-3 pb-3 md:mb-4 md:pb-4">
           <UserCog size={20} className="text-[#ffcf00]" />
@@ -113,17 +225,19 @@ function AdminConsole() {
             <p className="text-xs font-bold">Super Admin</p>
             <p className="text-[10px] text-white/50">All permissions</p>
           </div>
-          <button onClick={() => fetch('/api/admin/logout', { method: 'POST' }).then(() => window.location.reload())} className="ml-auto text-xs text-white/50 md:hidden">Sign out</button>
+          <button onClick={signOut} className="ml-auto text-xs text-white/50 md:hidden">Sign out</button>
         </div>
-        <nav className="scrollbar-none flex overflow-x-auto md:block">
-          {nav.map((item) => (
-            <button key={item} onClick={() => setSection(item)} className={`flex shrink-0 items-center gap-3 whitespace-nowrap px-3 py-3 text-left text-sm md:w-full ${section === item ? 'bg-[#ed1324] font-semibold' : 'text-white/70 hover:bg-white/10'}`}>
-              {item === 'Settings' ? <Settings size={16} /> : <BarChart3 size={16} />}
-              {item}
-            </button>
-          ))}
-        </nav>
-        <button onClick={() => fetch('/api/admin/logout', { method: 'POST' }).then(() => window.location.reload())} className="mt-4 hidden w-full px-3 py-2 text-left text-xs text-white/50 md:block">Sign out</button>
+        <div className="overflow-hidden">
+          <nav className="scrollbar-none -mb-5 flex overflow-x-auto pb-5 md:mb-0 md:block md:pb-0">
+            {NAV.map(({ key, icon: Icon }) => (
+              <button key={key} onClick={() => setSection(key)} className={`flex shrink-0 items-center gap-3 whitespace-nowrap px-3 py-3 text-left text-sm md:w-full ${section === key ? 'bg-[#ed1324] font-semibold' : 'text-white/70 hover:bg-white/10'}`}>
+                <Icon size={16} />
+                {key}
+              </button>
+            ))}
+          </nav>
+        </div>
+        <button onClick={signOut} className="mt-4 hidden w-full px-3 py-2 text-left text-xs text-white/50 md:block">Sign out</button>
       </aside>
       <div className="min-w-0 space-y-4">
         {section === 'Overview' && (
@@ -132,28 +246,33 @@ function AdminConsole() {
               {cards.map(([label, value, change, Icon]) => (
                 <div key={label} className="bg-white p-4 shadow-sm">
                   <div className="flex justify-between text-[#6b7077]"><span className="text-xs font-semibold">{label}</span><Icon size={18} /></div>
-                  <p className="mt-4 text-2xl font-black">{value}</p>
+                  <p className="mt-4 break-words text-2xl font-black">{value}</p>
                   <p className="mt-1 text-xs text-[#0b9b3a]">{change}</p>
                 </div>
               ))}
             </div>
-            <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
+            <Card>
               <h2 className="font-bold">Deposits by currency</h2>
-              <p className="mt-2 text-[#6b7077]">{moneyMap(overview?.deposits) || 'No settled deposits yet.'}</p>
+              <p className="mt-2 text-[#6b7077]">{moneyMap(overview?.deposits)}</p>
               <h2 className="mt-4 font-bold">Withdrawals by currency</h2>
-              <p className="mt-2 text-[#6b7077]">{moneyMap(overview?.withdrawals) || 'No settled withdrawals yet.'}</p>
-            </div>
+              <p className="mt-2 text-[#6b7077]">{moneyMap(overview?.withdrawals)}</p>
+            </Card>
           </>
         )}
         {section === 'Users & KYC' && <PlayersPanel />}
         {section === 'Wallets' && <DepositsPanel />}
         {section === 'Sportsbook' && <MatchesPanel />}
         {section === 'Reports' && <ReportsPanel />}
-        {section === 'Team & roles' && <PartnersPanel />}
+        {section === 'Sub-admins' && <PartnersPanel />}
+        {section === 'API keys & commission' && <ConfigPanel />}
         {section === 'Settings' && <SettingsPanel />}
       </div>
     </div>
   )
+}
+
+function Card({ children }: { children: ReactNode }) {
+  return <div className="min-w-0 break-words bg-white p-4 text-sm shadow-sm sm:p-5">{children}</div>
 }
 
 function moneyMap(value: unknown) {
@@ -163,177 +282,275 @@ function moneyMap(value: unknown) {
   return entries.map(([currency, amount]) => formatMoney(amount, currency)).join(' · ')
 }
 
+// ------------------------------------------------------------------ players
+
+type PlayerRow = { id: string; name: string; phone: string; balance: number; currency: string; total_deposited: number; withdrawal_approved: boolean }
+
 function PlayersPanel() {
-  const [players, setPlayers] = useState<Record<string, unknown>[]>([])
+  const [players, setPlayers] = useState<PlayerRow[]>([])
   const [query, setQuery] = useState('')
-  const [message, setMessage] = useState('')
+  const [message, setMessage] = useState<{ text: string; tone: 'ok' | 'error' }>({ text: '', tone: 'ok' })
+  const [crediting, setCrediting] = useState<PlayerRow | null>(null)
 
   const load = (q = query) => {
-    fetch(`/api/admin/players?q=${encodeURIComponent(q)}`).then((res) => res.json()).then((json) => setPlayers(json.players ?? []))
+    fetch(`/api/admin/players?q=${encodeURIComponent(q)}`).then((res) => res.json()).then((json) => setPlayers(json.players ?? [])).catch(() => {})
   }
-  useEffect(() => { load('') }, [])
+  useEffect(() => { load('') }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const act = async (userId: string, action: string, amount?: number) => {
-    const res = await fetch('/api/admin/players', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, action, amount }),
-    })
-    const json = await res.json()
-    setMessage(res.ok ? 'Saved.' : json.error ?? 'Could not update the player')
+    const { ok, json } = await send('/api/admin/players', 'PATCH', { userId, action, amount })
+    setMessage(ok ? { text: 'Saved.', tone: 'ok' } : { text: String(json.error ?? 'Could not update the player'), tone: 'error' })
     load()
+    return ok
   }
 
   return (
-    <div className="bg-white p-5">
-      <div className="flex gap-2">
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, phone or email" className="h-10 flex-1 border px-3 text-sm" />
-        <button onClick={() => load()} className="bg-[#171a20] px-4 text-sm font-semibold text-white">Search</button>
-      </div>
-      {message && <p className="mt-2 text-xs text-[#0b9b3a]">{message}</p>}
-      <div className="mt-4 divide-y text-sm">
+    <Card>
+      <form onSubmit={(event) => { event.preventDefault(); load() }} className="flex gap-2">
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, phone or email" className="h-10 min-w-0 flex-1 border px-3 text-sm" />
+        <button type="submit" className="bg-[#171a20] px-4 text-sm font-semibold text-white">Search</button>
+      </form>
+      <Message text={message.text} tone={message.tone} />
+      <div className="mt-4 divide-y">
+        {players.length === 0 && <p className="py-4 text-[#6b7077]">No players found.</p>}
         {players.map((player) => (
-          <div key={String(player.id)} className="flex flex-wrap items-center justify-between gap-2 py-3">
-            <div>
-              <p className="font-semibold">{String(player.name)} · {String(player.phone)}</p>
-              <p className="text-xs text-[#6b7077]">{formatMoney(Number(player.balance), String(player.currency))} · deposited {formatMoney(Number(player.total_deposited), String(player.currency))}</p>
+          <div key={player.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+            <div className="min-w-0">
+              <p className="font-semibold">{player.name} · {player.phone}</p>
+              <p className="text-xs text-[#6b7077]">{formatMoney(Number(player.balance), player.currency)} · deposited {formatMoney(Number(player.total_deposited), player.currency)}</p>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => act(String(player.id), player.withdrawal_approved ? 'revoke' : 'approve')} className="border px-2 py-1 text-xs">{player.withdrawal_approved ? 'Revoke' : 'Approve'}</button>
-              <button onClick={() => { const amount = Number(window.prompt('Credit amount (use a negative number to deduct)') ?? ''); if (amount) act(String(player.id), 'credit', amount) }} className="border px-2 py-1 text-xs">Credit</button>
+              <button onClick={() => act(player.id, player.withdrawal_approved ? 'revoke' : 'approve')} className="border px-3 py-1.5 text-xs">{player.withdrawal_approved ? 'Revoke withdrawals' : 'Approve withdrawals'}</button>
+              <button onClick={() => setCrediting(player)} className="bg-[#171a20] px-3 py-1.5 text-xs text-white">Adjust balance</button>
             </div>
           </div>
         ))}
       </div>
-    </div>
+      {crediting && <CreditDialog player={crediting} onClose={() => setCrediting(null)} onSubmit={(amount) => act(crediting.id, 'credit', amount)} />}
+    </Card>
   )
 }
 
+function CreditDialog({ player, onClose, onSubmit }: { player: PlayerRow; onClose: () => void; onSubmit: (amount: number) => Promise<boolean> }) {
+  const [direction, setDirection] = useState<'credit' | 'deduct'>('credit')
+  const [amount, setAmount] = useState('')
+  const [busy, setBusy] = useState(false)
+  const value = Number(amount)
+  const valid = Number.isFinite(value) && value > 0
+  const balance = Number(player.balance)
+  const next = balance + (direction === 'credit' ? value : -value)
+
+  return (
+    <Dialog title="Adjust balance" onClose={onClose}>
+      <p className="mb-4 text-sm"><b>{player.name}</b> · {player.phone}<br /><span className="text-[#6b7077]">Current balance {formatMoney(balance, player.currency)}</span></p>
+      <div className="mb-4 grid grid-cols-2 border">
+        {(['credit', 'deduct'] as const).map((item) => (
+          <button key={item} onClick={() => setDirection(item)} className={`py-2.5 text-sm font-semibold capitalize ${direction === item ? (item === 'credit' ? 'bg-[#0b9b3a] text-white' : 'bg-[#ed1324] text-white') : ''}`}>{item}</button>
+        ))}
+      </div>
+      <Field label={`Amount (${player.currency})`}>
+        <input autoFocus value={amount} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" placeholder="0.00" className={inputClass} />
+      </Field>
+      {valid && <p className="mb-4 text-xs text-[#6b7077]">New balance will be <b className={next < 0 ? 'text-[#ed1324]' : ''}>{formatMoney(next, player.currency)}</b></p>}
+      <DialogActions
+        busy={busy}
+        disabled={!valid}
+        tone={direction === 'credit' ? 'green' : 'red'}
+        confirm={direction === 'credit' ? 'Credit player' : 'Deduct from player'}
+        onCancel={onClose}
+        onConfirm={async () => {
+          setBusy(true)
+          const ok = await onSubmit(direction === 'credit' ? value : -value)
+          setBusy(false)
+          if (ok) onClose()
+        }}
+      />
+    </Dialog>
+  )
+}
+
+// ----------------------------------------------------------------- deposits
+
 function DepositsPanel() {
   const [rows, setRows] = useState<Record<string, unknown>[]>([])
-  const load = () => fetch('/api/admin/deposits').then((res) => res.json()).then((json) => setRows(json.deposits ?? []))
+  const [rejecting, setRejecting] = useState<string | null>(null)
+  const load = () => fetch('/api/admin/deposits').then((res) => res.json()).then((json) => setRows(json.deposits ?? [])).catch(() => {})
   useEffect(() => { load() }, [])
   const act = async (reference: string, action: string) => {
-    await fetch('/api/admin/deposits', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reference, action }) })
+    await send('/api/admin/deposits', 'POST', { reference, action })
     load()
   }
   return (
-    <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
+    <Card>
       <h2 className="font-bold">Pending manual deposits</h2>
+      <p className="mt-1 text-xs text-[#6b7077]">Players can no longer submit manual transfers. Anything left here was sent before that change.</p>
       {rows.length === 0 && <p className="mt-3 text-[#6b7077]">Nothing waiting.</p>}
       {rows.map((row) => {
         const user = row.users as { name?: string; phone?: string } | undefined
+        const reference = String(row.reference)
         return (
-          <div key={String(row.reference)} className="mt-3 border p-3">
+          <div key={reference} className="mt-3 border p-3">
             <p className="font-semibold">{user?.name} · {user?.phone}</p>
             <p>{formatMoney(Number(row.amount), String(row.currency))} · {String(row.senderNumber ?? '')}</p>
             {row.screenshotUrl ? <a className="text-xs text-[#ed1324]" href={String(row.screenshotUrl)} target="_blank" rel="noreferrer">Open screenshot</a> : null}
             <div className="mt-2 flex gap-2">
-              <button onClick={() => act(String(row.reference), 'confirm')} className="bg-[#0b9b3a] px-3 py-1 text-xs text-white">Confirm</button>
-              <button onClick={() => act(String(row.reference), 'reject')} className="border px-3 py-1 text-xs">Reject</button>
+              <button onClick={() => act(reference, 'confirm')} className="bg-[#0b9b3a] px-3 py-1.5 text-xs text-white">Confirm</button>
+              <button onClick={() => setRejecting(reference)} className="border px-3 py-1.5 text-xs">Reject</button>
             </div>
           </div>
         )
       })}
-    </div>
+      {rejecting && (
+        <Dialog title="Reject deposit?" onClose={() => setRejecting(null)}>
+          <p className="mb-4 text-sm text-[#3d4148]">The player will not be credited for reference <b>{rejecting}</b>. This cannot be undone.</p>
+          <DialogActions confirm="Reject deposit" onCancel={() => setRejecting(null)} onConfirm={async () => { await act(rejecting, 'reject'); setRejecting(null) }} />
+        </Dialog>
+      )}
+    </Card>
   )
 }
 
+// ---------------------------------------------------------------- matches
+
+type MatchRow = { id: string; home_team: string; away_team: string; league: string; finished: boolean; final_home: number | null; final_away: number | null }
+
 function MatchesPanel() {
-  const [matches, setMatches] = useState<Record<string, unknown>[]>([])
+  const [matches, setMatches] = useState<MatchRow[]>([])
   const [form, setForm] = useState({ home_team: '', away_team: '', home_crest: '', away_crest: '', league: '', kickoff: '', odds_home: '2.00', odds_draw: '3.20', odds_away: '3.50' })
-  const [uploadError, setUploadError] = useState('')
+  const [message, setMessage] = useState<{ text: string; tone: 'ok' | 'error' }>({ text: '', tone: 'ok' })
+  const [finishing, setFinishing] = useState<MatchRow | null>(null)
+
   const upload = async (side: 'home_crest' | 'away_crest', file: File | undefined) => {
     if (!file) return
-    setUploadError('')
     const body = new FormData()
     body.set('file', file)
     const res = await fetch('/api/admin/upload', { method: 'POST', body })
     const json = await res.json()
     if (!res.ok) {
-      setUploadError(json.error ?? 'Could not upload that crest')
+      setMessage({ text: json.error ?? 'Could not upload that crest', tone: 'error' })
       return
     }
     setForm((current) => ({ ...current, [side]: json.url }))
   }
-  const load = () => fetch('/api/admin/custom-matches').then((res) => res.json()).then((json) => setMatches(json.matches ?? []))
+  const load = () => fetch('/api/admin/custom-matches').then((res) => res.json()).then((json) => setMatches(json.matches ?? [])).catch(() => {})
   useEffect(() => { load() }, [])
+
   const create = async () => {
-    await fetch('/api/admin/custom-matches', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...form,
-        kickoff: form.kickoff ? new Date(form.kickoff).toISOString() : '',
-      }),
-    })
+    if (!form.home_team.trim() || !form.away_team.trim() || !form.kickoff) {
+      setMessage({ text: 'Add both teams and a kickoff time.', tone: 'error' })
+      return
+    }
+    const { ok, json } = await send('/api/admin/custom-matches', 'POST', { ...form, kickoff: new Date(form.kickoff).toISOString() })
+    if (!ok) {
+      setMessage({ text: String(json.error ?? 'Could not add the match'), tone: 'error' })
+      return
+    }
+    setMessage({ text: 'Match added.', tone: 'ok' })
     setForm({ ...form, home_team: '', away_team: '', home_crest: '', away_crest: '' })
     load()
   }
-  const finish = async (id: string) => {
-    const final_home = Number(window.prompt('Home score') ?? '')
-    const final_away = Number(window.prompt('Away score') ?? '')
-    if (!Number.isFinite(final_home) || !Number.isFinite(final_away)) return
-    await fetch('/api/admin/custom-matches', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, final_home, final_away }) })
-    load()
-  }
+
+  const set = (key: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [key]: event.target.value })
+
   return (
     <div className="space-y-4">
-      <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
+      <Card>
         <h2 className="font-bold">Create a match</h2>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
-          <input value={form.home_team} onChange={(event) => setForm({ ...form, home_team: event.target.value })} placeholder="Home team" className="h-10 border px-3" />
-          <input value={form.away_team} onChange={(event) => setForm({ ...form, away_team: event.target.value })} placeholder="Away team" className="h-10 border px-3" />
+          <input value={form.home_team} onChange={set('home_team')} placeholder="Home team" className="h-10 border px-3" />
+          <input value={form.away_team} onChange={set('away_team')} placeholder="Away team" className="h-10 border px-3" />
           {(['home_crest', 'away_crest'] as const).map((side) => (
             <div key={side} className="flex items-center gap-2 border px-2 py-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={form[side] || '/crest-fallback.svg'} alt="" className="h-8 w-8 rounded-full bg-white object-contain" />
-              <input value={form[side]} onChange={(event) => setForm({ ...form, [side]: event.target.value })} placeholder={side === 'home_crest' ? 'Home crest / flag URL' : 'Away crest / flag URL'} className="h-8 min-w-0 flex-1 px-1 text-xs outline-none" />
+              <input value={form[side]} onChange={set(side)} placeholder={side === 'home_crest' ? 'Home crest / flag URL' : 'Away crest / flag URL'} className="h-8 min-w-0 flex-1 px-1 text-xs outline-none" />
               <label className="cursor-pointer bg-[#171a20] px-2 py-1 text-[11px] font-semibold text-white">
                 Upload
                 <input type="file" accept="image/*" className="hidden" onChange={(event) => upload(side, event.target.files?.[0])} />
               </label>
             </div>
           ))}
-          <input value={form.league} onChange={(event) => setForm({ ...form, league: event.target.value })} placeholder="League" className="h-10 border px-3" />
-          <input type="datetime-local" value={form.kickoff} onChange={(event) => setForm({ ...form, kickoff: event.target.value })} className="h-10 border px-3" />
-          <input value={form.odds_home} onChange={(event) => setForm({ ...form, odds_home: event.target.value })} placeholder="Home odds" className="h-10 border px-3" />
-          <input value={form.odds_draw} onChange={(event) => setForm({ ...form, odds_draw: event.target.value })} placeholder="Draw odds" className="h-10 border px-3" />
-          <input value={form.odds_away} onChange={(event) => setForm({ ...form, odds_away: event.target.value })} placeholder="Away odds" className="h-10 border px-3" />
+          <input value={form.league} onChange={set('league')} placeholder="League" className="h-10 border px-3" />
+          <input type="datetime-local" value={form.kickoff} onChange={set('kickoff')} className="h-10 border px-3" />
+          <input value={form.odds_home} onChange={set('odds_home')} placeholder="Home odds" inputMode="decimal" className="h-10 border px-3" />
+          <input value={form.odds_draw} onChange={set('odds_draw')} placeholder="Draw odds" inputMode="decimal" className="h-10 border px-3" />
+          <input value={form.odds_away} onChange={set('odds_away')} placeholder="Away odds" inputMode="decimal" className="h-10 border px-3" />
         </div>
-        {uploadError && <p className="mt-2 text-xs text-[#ed1324]">{uploadError}</p>}
+        <Message text={message.text} tone={message.tone} />
         <button onClick={create} className="mt-3 bg-[#ed1324] px-4 py-2 text-sm font-semibold text-white">Add match</button>
-      </div>
-      <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
+      </Card>
+      <Card>
+        {matches.length === 0 && <p className="text-[#6b7077]">No custom matches yet.</p>}
         {matches.map((match) => (
-          <div key={String(match.id)} className="flex flex-wrap items-center justify-between gap-2 border-b py-3">
-            <div>
-              <p className="font-semibold">{String(match.home_team)} vs {String(match.away_team)}</p>
-              <p className="text-xs text-[#6b7077]">{String(match.league)} · {match.finished ? `FT ${match.final_home}-${match.final_away}` : 'Open'}</p>
+          <div key={match.id} className="flex flex-wrap items-center justify-between gap-2 border-b py-3">
+            <div className="min-w-0">
+              <p className="font-semibold">{match.home_team} vs {match.away_team}</p>
+              <p className="text-xs text-[#6b7077]">{match.league} · {match.finished ? `FT ${match.final_home}-${match.final_away}` : 'Open'}</p>
             </div>
-            {!match.finished && <button onClick={() => finish(String(match.id))} className="border px-3 py-1 text-xs">Set result</button>}
+            {!match.finished && <button onClick={() => setFinishing(match)} className="border px-3 py-1.5 text-xs">Set result</button>}
           </div>
         ))}
-      </div>
+      </Card>
+      {finishing && <ResultDialog match={finishing} onClose={() => setFinishing(null)} onSaved={load} />}
     </div>
   )
 }
 
+function ResultDialog({ match, onClose, onSaved }: { match: MatchRow; onClose: () => void; onSaved: () => void }) {
+  const [home, setHome] = useState('')
+  const [away, setAway] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const valid = /^\d+$/.test(home) && /^\d+$/.test(away)
+
+  return (
+    <Dialog title="Set final result" onClose={onClose}>
+      <div className="mb-4 grid grid-cols-[1fr_auto_1fr] items-end gap-3">
+        <Field label={match.home_team}><input autoFocus value={home} onChange={(event) => setHome(event.target.value.replace(/\D/g, ''))} inputMode="numeric" className={`${inputClass} text-center text-lg font-bold`} /></Field>
+        <span className="mb-7 text-lg font-bold">–</span>
+        <Field label={match.away_team}><input value={away} onChange={(event) => setAway(event.target.value.replace(/\D/g, ''))} inputMode="numeric" className={`${inputClass} text-center text-lg font-bold`} /></Field>
+      </div>
+      <p className="mb-4 text-xs text-[#6b7077]">Bets on this match settle from this score. Check it before saving.</p>
+      {error && <p className="mb-3 text-xs text-[#ed1324]">{error}</p>}
+      <DialogActions
+        busy={busy}
+        disabled={!valid}
+        tone="green"
+        confirm="Save result"
+        onCancel={onClose}
+        onConfirm={async () => {
+          setBusy(true)
+          const { ok, json } = await send('/api/admin/custom-matches', 'PATCH', { id: match.id, final_home: Number(home), final_away: Number(away) })
+          setBusy(false)
+          if (!ok) {
+            setError(String(json.error ?? 'Could not save the result'))
+            return
+          }
+          onSaved()
+          onClose()
+        }}
+      />
+    </Dialog>
+  )
+}
+
+// ----------------------------------------------------------------- reports
+
 function ReportsPanel() {
   const [bets, setBets] = useState<Record<string, unknown>[]>([])
   const [payments, setPayments] = useState<Record<string, unknown>[]>([])
+  const loadPayments = () => fetch('/api/admin/payments').then((res) => res.json()).then((json) => setPayments(json.payments ?? [])).catch(() => {})
   useEffect(() => {
-    fetch('/api/admin/bets').then((res) => res.json()).then((json) => setBets(json.bets ?? []))
-    fetch('/api/admin/payments').then((res) => res.json()).then((json) => setPayments(json.payments ?? []))
+    fetch('/api/admin/bets').then((res) => res.json()).then((json) => setBets(json.bets ?? [])).catch(() => {})
+    loadPayments()
   }, [])
   const resolve = async (reference: string) => {
-    await fetch('/api/admin/payments', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reference, status: 'resolved' }) })
-    const json = await fetch('/api/admin/payments').then((res) => res.json())
-    setPayments(json.payments ?? [])
+    await send('/api/admin/payments', 'PATCH', { reference, status: 'resolved' })
+    loadPayments()
   }
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
+      <Card>
         <h2 className="font-bold">Tickets</h2>
         {bets.slice(0, 30).map((bet) => (
           <div key={String(bet.code)} className="border-b py-2">
@@ -341,79 +558,236 @@ function ReportsPanel() {
             <p className="text-xs text-[#6b7077]">{formatMoney(Number(bet.stake), String(bet.currency))} → {formatMoney(Number(bet.potential_win), String(bet.currency))}</p>
           </div>
         ))}
-      </div>
-      <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
+      </Card>
+      <Card>
         <h2 className="font-bold">Payments</h2>
         {payments.slice(0, 30).map((payment) => (
           <div key={String(payment.reference)} className="flex flex-wrap items-center justify-between gap-2 border-b py-2">
-            <div>
+            <div className="min-w-0">
               <p className="font-semibold">{formatMoney(Number(payment.amount), String(payment.currency))} · {String(payment.status)}</p>
-              <p className="text-xs text-[#6b7077]">{String(payment.provider)} · {String(payment.reference)}</p>
+              <p className="break-all text-xs text-[#6b7077]">{String(payment.provider)} · {String(payment.reference)}</p>
             </div>
             {payment.status === 'pending' && <button onClick={() => resolve(String(payment.reference))} className="border px-2 py-1 text-xs">Resolve</button>}
           </div>
         ))}
-      </div>
+      </Card>
     </div>
   )
 }
 
+// --------------------------------------------------------------- sub-admins
+
+type Partner = { id: string; name: string; email: string; phone: string | null; referral_code: string; referredPlayers: number; approved: boolean; balances: Record<string, number> | null; lifetime: Record<string, number> | null }
+
 function PartnersPanel() {
-  const [partners, setPartners] = useState<Record<string, unknown>[]>([])
-  const load = () => fetch('/api/admin/sub-admins').then((res) => res.json()).then((json) => setPartners(json.partners ?? []))
+  const [partners, setPartners] = useState<Partner[]>([])
+  const [adding, setAdding] = useState(false)
+  const [settling, setSettling] = useState<{ partner: Partner; currency: string; amount: number } | null>(null)
+  const [message, setMessage] = useState('')
+
+  const load = () => fetch('/api/admin/sub-admins').then((res) => res.json()).then((json) => setPartners(json.partners ?? [])).catch(() => {})
   useEffect(() => { load() }, [])
-  const act = async (id: string, action: string) => {
-    await fetch('/api/admin/sub-admins', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, action }) })
+
+  const act = async (id: string, action: string, extra: Record<string, unknown> = {}) => {
+    await send('/api/admin/sub-admins', 'PATCH', { id, action, ...extra })
     load()
   }
+
   return (
-    <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
-      <h2 className="font-bold">Sub-admins</h2>
-      {partners.map((partner) => (
-        <div key={String(partner.id)} className="flex flex-wrap items-center justify-between gap-2 border-b py-3">
+    <div className="space-y-4">
+      <Card>
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="font-semibold">{String(partner.name)} · {String(partner.email)}</p>
-            <p className="text-xs text-[#6b7077]">Code {String(partner.referral_code)} · {String(partner.referredPlayers)} players · {partner.approved ? 'Approved' : 'Waiting'}</p>
+            <h2 className="font-bold">Sub-admins</h2>
+            <p className="text-xs text-[#6b7077]">Sub-admins sign in on their own page with their email and password.</p>
           </div>
-          <button onClick={() => act(String(partner.id), partner.approved ? 'revoke' : 'approve')} className="border px-3 py-1 text-xs">{partner.approved ? 'Revoke' : 'Approve'}</button>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/sub-admin" target="_blank" className="flex items-center gap-1.5 border px-3 py-2 text-xs font-semibold">Open sub-admin page <ExternalLink size={13} /></Link>
+            <button onClick={() => setAdding(true)} className="bg-[#ed1324] px-3 py-2 text-xs font-semibold text-white">Add sub-admin</button>
+          </div>
         </div>
-      ))}
+        <Message text={message} />
+      </Card>
+      <Card>
+        {partners.length === 0 && <p className="text-[#6b7077]">No sub-admins yet.</p>}
+        {partners.map((partner) => {
+          const owed = Object.entries(partner.balances ?? {}).filter(([, amount]) => Number(amount) > 0)
+          return (
+            <div key={partner.id} className="border-b py-3">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-semibold">{partner.name} <span className={`ml-1 px-1.5 py-0.5 text-[10px] font-bold uppercase ${partner.approved ? 'bg-[#e9f7ef] text-[#0b7a2e]' : 'bg-[#fff4d6] text-[#8a6100]'}`}>{partner.approved ? 'Approved' : 'Waiting'}</span></p>
+                  <p className="break-all text-xs text-[#6b7077]">{partner.email}{partner.phone ? ` · ${partner.phone}` : ''}</p>
+                  <p className="text-xs text-[#6b7077]">Code <b>{partner.referral_code}</b> · {partner.referredPlayers} players</p>
+                  <p className="mt-1 text-xs">Commission owed: {owed.length ? owed.map(([currency, amount]) => formatMoney(Number(amount), currency)).join(' · ') : 'none'}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {owed.map(([currency, amount]) => (
+                    <button key={currency} onClick={() => setSettling({ partner, currency, amount: Number(amount) })} className="bg-[#0b9b3a] px-3 py-1.5 text-xs text-white">Mark {currency} paid</button>
+                  ))}
+                  <button onClick={() => act(partner.id, partner.approved ? 'revoke' : 'approve')} className="border px-3 py-1.5 text-xs">{partner.approved ? 'Revoke' : 'Approve'}</button>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </Card>
+      {adding && <AddPartnerDialog onClose={() => setAdding(false)} onCreated={(name) => { setMessage(`${name} can now sign in on the sub-admin page.`); load() }} />}
+      {settling && (
+        <Dialog title="Mark commission as paid" onClose={() => setSettling(null)}>
+          <p className="mb-4 text-sm text-[#3d4148]">
+            Confirm you have paid <b>{settling.partner.name}</b> {formatMoney(settling.amount, settling.currency)}. Their owed balance resets to zero; the lifetime total is kept.
+          </p>
+          <DialogActions tone="green" confirm="Mark as paid" onCancel={() => setSettling(null)} onConfirm={async () => { await act(settling.partner.id, 'settle', { currency: settling.currency }); setSettling(null) }} />
+        </Dialog>
+      )}
     </div>
   )
 }
+
+function AddPartnerDialog({ onClose, onCreated }: { onClose: () => void; onCreated: (name: string) => void }) {
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' })
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const set = (key: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [key]: event.target.value })
+
+  return (
+    <Dialog title="Add sub-admin" onClose={onClose}>
+      <Field label="Full name"><input autoFocus value={form.name} onChange={set('name')} className={inputClass} /></Field>
+      <Field label="Email" hint="They sign in with this."><input value={form.email} onChange={set('email')} type="email" className={inputClass} /></Field>
+      <Field label="Phone (optional)"><input value={form.phone} onChange={set('phone')} inputMode="tel" placeholder="+233" className={inputClass} /></Field>
+      <Field label="Password" hint="At least 8 characters. Share it with them privately."><input value={form.password} onChange={set('password')} type="text" autoComplete="off" className={inputClass} /></Field>
+      {error && <p className="mb-3 text-xs text-[#ed1324]">{error}</p>}
+      <DialogActions
+        busy={busy}
+        tone="green"
+        confirm="Create sub-admin"
+        onCancel={onClose}
+        onConfirm={async () => {
+          setError('')
+          setBusy(true)
+          const { ok, json } = await send('/api/admin/sub-admins', 'POST', form)
+          setBusy(false)
+          if (!ok) {
+            setError(String(json.error ?? 'Could not create the sub-admin'))
+            return
+          }
+          onCreated(form.name)
+          onClose()
+        }}
+      />
+    </Dialog>
+  )
+}
+
+// ----------------------------------------------------- API keys & commission
+
+type Status = Record<string, { saved: string | null; inEnv: boolean }>
+
+function ConfigPanel() {
+  const [values, setValues] = useState<Record<string, string>>({})
+  const [status, setStatus] = useState<Status>({})
+  const [clear, setClear] = useState<string[]>([])
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState<{ text: string; tone: 'ok' | 'error' }>({ text: '', tone: 'ok' })
+
+  const load = () =>
+    fetch('/api/admin/settings').then((res) => res.json()).then((json) => {
+      setStatus(json.status ?? {})
+      setValues(json.settings ?? {})
+      setClear([])
+    }).catch(() => {})
+  useEffect(() => { load() }, [])
+
+  const save = async () => {
+    setBusy(true)
+    const { ok, json } = await send('/api/admin/settings', 'PUT', { settings: values, clear })
+    setBusy(false)
+    setMessage(ok ? { text: 'Saved. New values are used within 30 seconds.', tone: 'ok' } : { text: String(json.error ?? 'Could not save'), tone: 'error' })
+    if (ok) load()
+  }
+
+  return (
+    <div className="space-y-4">
+      {CONFIG_GROUPS.map((group) => (
+        <Card key={group.title}>
+          <h2 className="mb-3 font-bold">{group.title}</h2>
+          <div className="grid gap-x-4 md:grid-cols-2">
+            {group.fields.map((field) => {
+              const state = status[field.key]
+              const cleared = clear.includes(field.key)
+              const source = cleared
+                ? 'Will be removed on save'
+                : state?.saved
+                  ? field.secret ? `Saved here (${state.saved})` : 'Saved here'
+                  : state?.inEnv ? 'Using the value set in Vercel' : 'Not set'
+              return (
+                <Field key={field.key} label={field.label} hint={[field.hint, source].filter(Boolean).join(' · ')}>
+                  <div className="flex gap-2">
+                    <input
+                      value={values[field.key] ?? ''}
+                      onChange={(event) => setValues({ ...values, [field.key]: event.target.value })}
+                      type={field.secret ? 'password' : 'text'}
+                      autoComplete="off"
+                      placeholder={field.secret && state?.saved ? 'Enter a new value to replace it' : ''}
+                      className={`${inputClass} min-w-0 flex-1`}
+                    />
+                    {state?.saved && !cleared && (
+                      <button onClick={() => { setClear([...clear, field.key]); setValues({ ...values, [field.key]: '' }) }} className="shrink-0 border px-3 text-xs">Clear</button>
+                    )}
+                  </div>
+                </Field>
+              )
+            })}
+          </div>
+        </Card>
+      ))}
+      <Card>
+        <p className="text-xs text-[#6b7077]">A value saved here overrides the same variable in Vercel. Clear it to go back to the Vercel value. Secret keys are never shown again after saving.</p>
+        <Message text={message.text} tone={message.tone} />
+        <button disabled={busy} onClick={save} className="mt-3 bg-[#171a20] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60">{busy ? 'Saving…' : 'Save changes'}</button>
+      </Card>
+    </div>
+  )
+}
+
+// ----------------------------------------------------------------- settings
 
 function SettingsPanel() {
   const [settings, setSettings] = useState<Record<string, string>>({})
   const [message, setMessage] = useState('')
   useEffect(() => {
-    fetch('/api/admin/settings').then((res) => res.json()).then((json) => setSettings(json.settings ?? {}))
+    fetch('/api/admin/settings').then((res) => res.json()).then((json) => setSettings(json.settings ?? {})).catch(() => {})
   }, [])
-  const save = async () => {
-    const res = await fetch('/api/admin/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ settings }) })
-    setMessage(res.ok ? 'Saved.' : 'Could not save settings')
-  }
   const keys = ['deposit_account_name', 'deposit_account_number', 'deposit_account_network']
+  const save = async () => {
+    const { ok } = await send('/api/admin/settings', 'PUT', { settings: Object.fromEntries(keys.map((key) => [key, settings[key] ?? ''])) })
+    setMessage(ok ? 'Saved.' : 'Could not save settings')
+  }
   return (
-    <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
+    <Card>
       <h2 className="font-bold">Deposit account</h2>
       {keys.map((key) => (
-        <label key={key} className="mt-3 block text-xs font-semibold">
+        <label key={key} className="mt-3 block text-xs font-semibold capitalize">
           {key.replaceAll('_', ' ')}
           <input value={settings[key] ?? ''} onChange={(event) => setSettings({ ...settings, [key]: event.target.value })} className="mt-1 h-10 w-full border px-3 text-sm font-normal" />
         </label>
       ))}
-      {message && <p className="mt-2 text-xs text-[#0b9b3a]">{message}</p>}
+      <Message text={message} />
       <button onClick={save} className="mt-4 bg-[#171a20] px-4 py-2 text-sm font-semibold text-white">Save settings</button>
-    </div>
+    </Card>
   )
 }
+
+// ---------------------------------------------------------- partner console
 
 function PartnerConsole({ onSignedOut }: { onSignedOut: () => void }) {
   const [data, setData] = useState<Record<string, unknown> | null>(null)
   const [amount, setAmount] = useState('')
-  const [message, setMessage] = useState('')
+  const [message, setMessage] = useState<{ text: string; tone: 'ok' | 'error' }>({ text: '', tone: 'ok' })
+  const [opening, setOpening] = useState(false)
 
-  const load = () => fetch('/api/partner/dashboard').then((res) => res.json()).then(setData)
+  const load = () => fetch('/api/partner/dashboard').then((res) => res.json()).then(setData).catch(() => {})
   useEffect(() => { load() }, [])
 
   const partner = (data?.partner ?? {}) as { name?: string; referral_code?: string; approved?: boolean }
@@ -422,69 +796,87 @@ function PartnerConsole({ onSignedOut }: { onSignedOut: () => void }) {
   const commissions = (data?.commissions ?? []) as { id: string; amount: number; currency: string; deposit_amount: number }[]
 
   const credit = async () => {
-    const res = await fetch('/api/partner/credit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: Number(amount) }) })
-    const json = await res.json()
-    setMessage(res.ok ? 'Wallet credited.' : json.error ?? 'Could not credit')
+    const { ok, json } = await send('/api/partner/credit', 'POST', { amount: Number(amount) })
+    setMessage(ok ? { text: 'Wallet credited.', tone: 'ok' } : { text: String(json.error ?? 'Could not credit'), tone: 'error' })
     setAmount('')
     load()
   }
 
   return (
-    <div className="grid gap-4 grid-cols-1 md:grid-cols-[205px_minmax(0,1fr)]">
-      <aside className="bg-[#171a20] p-3 text-white">
-        <div className="mb-4 flex items-center gap-2 border-b border-white/10 px-3 pb-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-[215px_minmax(0,1fr)]">
+      <aside className="min-w-0 self-start bg-[#171a20] p-3 text-white">
+        <div className="mb-2 flex items-center gap-2 px-3 pb-2">
           <UserCog size={20} className="text-[#ffcf00]" />
-          <div>
-            <p className="text-xs font-bold">Sub-admin</p>
+          <div className="min-w-0">
+            <p className="truncate text-xs font-bold">{partner.name ?? 'Sub-admin'}</p>
             <p className="text-[10px] text-white/50">{partner.approved ? 'Approved' : 'Waiting for approval'}</p>
           </div>
         </div>
         <button onClick={async () => { await fetch('/api/partner/logout', { method: 'POST' }); onSignedOut() }} className="w-full px-3 py-2 text-left text-xs text-white/50">Sign out</button>
       </aside>
-      <div className="space-y-4">
+      <div className="min-w-0 space-y-4">
         <div className="grid gap-3 sm:grid-cols-3">
           <Stat label="Referral code" value={partner.referral_code ?? '—'} />
           <Stat label="Players" value={String(players.length)} />
-          <Stat label="Betting wallet" value={wallet ? formatMoney(Number(wallet.balance), wallet.currency ?? 'NGN') : 'Not opened'} />
+          <Stat label="Betting wallet" value={wallet ? formatMoney(Number(wallet.balance), wallet.currency ?? 'GHS') : 'Not opened'} />
         </div>
-        <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
+        <Card>
           <h2 className="font-bold">Credit betting wallet</h2>
-          {!wallet && (
-            <button
-              onClick={async () => {
-                const phone = window.prompt('Phone number for the betting account') ?? ''
-                const res = await fetch('/api/partner/play', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, countryCode: 'NG' }) })
-                const json = await res.json()
-                setMessage(res.ok ? 'Betting account opened.' : json.error ?? 'Could not open the account')
-                load()
-              }}
-              className="mt-3 border px-3 py-2 text-xs font-semibold"
-            >
-              Open betting account
-            </button>
-          )}
+          {!wallet && <button onClick={() => setOpening(true)} className="mt-3 border px-3 py-2 text-xs font-semibold">Open betting account</button>}
           <div className="mt-3 flex gap-2">
-            <input value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="Amount" className="h-10 flex-1 border px-3" />
-            <button onClick={credit} className="bg-[#0b9b3a] px-4 text-sm font-semibold text-white">Credit</button>
+            <input value={amount} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" placeholder="Amount" className="h-10 min-w-0 flex-1 border px-3" />
+            <button onClick={credit} disabled={!Number(amount)} className="bg-[#0b9b3a] px-4 text-sm font-semibold text-white disabled:opacity-50">Credit</button>
           </div>
-          {message && <p className="mt-2 text-xs">{message}</p>}
+          <Message text={message.text} tone={message.tone} />
           <p className="mt-2 text-xs text-[#6b7077]">Used today {String(data?.creditedToday ?? 0)} of {String(data?.dailyLimit ?? 0)}.</p>
-        </div>
+        </Card>
         <div className="grid gap-4 lg:grid-cols-2">
-          <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
+          <Card>
             <h2 className="font-bold">Referred players</h2>
+            {players.length === 0 && <p className="mt-2 text-[#6b7077]">Share your code {partner.referral_code} to bring players in.</p>}
             {players.map((player) => <p key={player.id} className="border-b py-2">{player.name} · {player.phone} · {formatMoney(player.total_deposited, player.currency)}</p>)}
-          </div>
-          <div className="min-w-0 break-words bg-white p-4 text-sm sm:p-5">
+          </Card>
+          <Card>
             <h2 className="font-bold">Commission</h2>
+            {commissions.length === 0 && <p className="mt-2 text-[#6b7077]">No commission yet.</p>}
             {commissions.map((row) => <p key={row.id} className="border-b py-2">{formatMoney(row.amount, row.currency)} on {formatMoney(row.deposit_amount, row.currency)}</p>)}
-          </div>
+          </Card>
         </div>
       </div>
+      {opening && <OpenAccountDialog onClose={() => setOpening(false)} onDone={(text, ok) => { setMessage({ text, tone: ok ? 'ok' : 'error' }); load() }} />}
     </div>
   )
 }
 
+function OpenAccountDialog({ onClose, onDone }: { onClose: () => void; onDone: (text: string, ok: boolean) => void }) {
+  const [phone, setPhone] = useState('')
+  const [busy, setBusy] = useState(false)
+  return (
+    <Dialog title="Open betting account" onClose={onClose}>
+      <Field label="Phone number for the betting account" hint="You sign in to the betting site with this number.">
+        <div className="flex h-11 border focus-within:border-[#ed1324]">
+          <span className="flex items-center border-r bg-[#f5f6f7] px-3 text-sm font-semibold">+233</span>
+          <input autoFocus value={phone} onChange={(event) => setPhone(event.target.value)} inputMode="tel" placeholder="24 123 4567" className="min-w-0 flex-1 px-3 text-sm outline-none" />
+        </div>
+      </Field>
+      <DialogActions
+        busy={busy}
+        disabled={phone.replace(/\D/g, '').length < 9}
+        tone="green"
+        confirm="Open account"
+        onCancel={onClose}
+        onConfirm={async () => {
+          setBusy(true)
+          const { ok, json } = await send('/api/partner/play', 'POST', { phone, countryCode: 'GH' })
+          setBusy(false)
+          onDone(ok ? 'Betting account opened.' : String(json.error ?? 'Could not open the account'), ok)
+          onClose()
+        }}
+      />
+    </Dialog>
+  )
+}
+
 function Stat({ label, value }: { label: string; value: string }) {
-  return <div className="bg-white p-4 shadow-sm"><p className="text-xs font-semibold text-[#6b7077]">{label}</p><p className="mt-3 text-xl font-black">{value}</p></div>
+  return <div className="bg-white p-4 shadow-sm"><p className="text-xs font-semibold text-[#6b7077]">{label}</p><p className="mt-3 break-words text-xl font-black">{value}</p></div>
 }

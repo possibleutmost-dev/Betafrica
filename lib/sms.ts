@@ -1,3 +1,5 @@
+import { config, refreshConfig } from "./config";
+
 /**
  * Arkesel SMS. Always best-effort: a failed message must never block money
  * that has already moved, so every function here swallows its errors.
@@ -6,8 +8,9 @@
 const ENDPOINT = "https://sms.arkesel.com/api/v2/sms/send";
 
 export async function sendSms(to: string, message: string): Promise<boolean> {
-  const key = process.env.ARKESEL_API_KEY;
-  const sender = process.env.ARKESEL_SENDER_ID || "3btafric";
+  await refreshConfig();
+  const key = config("ARKESEL_API_KEY");
+  const sender = config("ARKESEL_SENDER_ID") || "WinnBet";
 
   if (!key) {
     console.warn("[sms] ARKESEL_API_KEY unset — skipping:", to, message);

@@ -1,3 +1,4 @@
+import { config, refreshConfig } from "./config";
 /**
  * API-Football v3. Upstream fixtures, restricted to a competition whitelist and
  * cached in-process for 60 seconds.
@@ -69,10 +70,11 @@ type CacheEntry = { at: number; value: UpstreamFixture[] };
 const cache = new Map<string, CacheEntry>();
 
 function key(): string | null {
-  return process.env.API_FOOTBALL_KEY || null;
+  return config("API_FOOTBALL_KEY") ?? null;
 }
 
 async function call<T>(path: string): Promise<T | null> {
+  await refreshConfig();
   const k = key();
   if (!k) return null;
   try {
@@ -266,6 +268,7 @@ interface Paged {
 }
 
 async function callPaged(path: string): Promise<Paged | null> {
+  await refreshConfig();
   const k = key();
   if (!k) return null;
   try {

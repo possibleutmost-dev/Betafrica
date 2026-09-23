@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/supabase";
+import { refreshConfig } from "@/lib/config";
 import { getCountry } from "@/lib/countries";
 import { adapterFor } from "@/lib/gateways";
 import { paymentReference } from "@/lib/codes";
@@ -12,6 +13,7 @@ import { paymentReference } from "@/lib/codes";
  * webhooks both key off that row.
  */
 export async function POST(req: Request) {
+  await refreshConfig();
   const supabase = db();
   if (!supabase) return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
 

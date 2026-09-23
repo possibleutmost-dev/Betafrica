@@ -1,3 +1,4 @@
+import { config, refreshConfig } from "./config";
 /**
  * Match results for settlement.
  *
@@ -27,10 +28,11 @@ export interface MatchResult {
 const cache = new Map<string, { at: number; value: MatchResult }>();
 
 function key(): string | null {
-  return process.env.API_FOOTBALL_KEY || null;
+  return config("API_FOOTBALL_KEY") ?? null;
 }
 
 async function call<T>(path: string): Promise<T | null> {
+  await refreshConfig();
   const k = key();
   if (!k) return null;
   try {
@@ -67,6 +69,7 @@ interface RawFixture {
  * request, joined with dashes.
  */
 export async function fetchResults(ids: string[]): Promise<Map<string, MatchResult>> {
+  await refreshConfig();
   const out = new Map<string, MatchResult>();
   const wanted: string[] = [];
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/supabase";
+import { refreshConfig } from "@/lib/config";
 import { adapterFor, settledAmount } from "@/lib/gateways";
 import { applyDepositCredit } from "@/lib/money";
 import type { Gateway } from "@/lib/countries";
@@ -14,6 +15,7 @@ export const dynamic = "force-dynamic";
  * credits are idempotent it is safe to call as often as it likes.
  */
 export async function POST(req: Request) {
+  await refreshConfig();
   const supabase = db();
   if (!supabase) return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
 

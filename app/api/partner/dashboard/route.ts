@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/supabase";
+import { configNumber, refreshConfig } from "@/lib/config";
 import { currentPartner, publicPartner } from "@/lib/partner";
 
 export const dynamic = "force-dynamic";
 
 /** Referred players, their deposits and the partner's earnings. */
 export async function GET() {
+  await refreshConfig();
   const supabase = db();
   if (!supabase) return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
 
@@ -56,7 +58,7 @@ export async function GET() {
     commissions: commissions ?? [],
     wallet,
     creditedToday: Math.round(creditedToday * 100) / 100,
-    dailyLimit: Number(process.env.PARTNER_CREDIT_DAILY_MAX ?? 20000),
+    dailyLimit: configNumber("PARTNER_CREDIT_DAILY_MAX", 20000),
   });
 }
 
@@ -66,6 +68,7 @@ export async function GET() {
  * method the day a new market opens.
  */
 export async function PATCH(req: Request) {
+  await refreshConfig();
   const supabase = db();
   if (!supabase) return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
 
