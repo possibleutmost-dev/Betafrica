@@ -126,7 +126,7 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
   return (
     <>
       <section className="bg-[#181b21] text-white">
-        <div className="mx-auto grid max-w-[1180px] gap-3 px-0 py-0 sm:gap-5 sm:px-4 sm:py-5 md:grid-cols-[230px_1fr_200px]">
+        <div className="mx-auto grid max-w-[1180px] gap-3 px-0 py-0 sm:gap-5 sm:px-4 sm:py-5 grid-cols-1 md:grid-cols-[230px_minmax(0,1fr)_200px]">
           <aside className="hidden md:block">
             <h2 className="mb-2 text-xl font-bold">Popular</h2>
             {popular.map((item) => (
@@ -145,7 +145,7 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-[1180px] gap-4 px-3 py-4 sm:px-4 md:grid-cols-[1fr_280px]">
+      <section className="mx-auto grid max-w-[1180px] gap-4 px-3 py-4 sm:px-4 grid-cols-1 md:grid-cols-[minmax(0,1fr)_280px]">
         <div className="min-w-0 space-y-4">
           <div className="bg-[#1b1e24] text-white">
             <BoardHeader title="Live Betting" onRefresh={reload} dark />

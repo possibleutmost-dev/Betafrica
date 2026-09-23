@@ -104,7 +104,7 @@ export function GamePlay({ slug }: { slug: string }) {
     <div className="games-felt min-h-[calc(100vh-120px)] py-5 text-white">
       <div className="mx-auto max-w-[1000px] px-3 sm:px-4">
         <Link href="/games" className="mb-3 inline-flex items-center text-xs text-white/70"><ChevronLeft size={14} /> All games</Link>
-        <div className="grid gap-3 md:grid-cols-[1fr_280px]">
+        <div className="grid gap-3 grid-cols-1 md:grid-cols-[minmax(0,1fr)_280px]">
           <div className="overflow-hidden bg-[#2a2e37]">
             <div className={`flex items-center gap-3 bg-gradient-to-r ${game.art} px-4 py-3 sm:gap-4 sm:px-5 sm:py-4`}>
               <span className="text-4xl drop-shadow sm:text-5xl">{game.glyph}</span>

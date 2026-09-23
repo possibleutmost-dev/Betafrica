@@ -105,7 +105,7 @@ function AdminConsole() {
   ] as const
 
   return (
-    <div className="grid gap-4 md:grid-cols-[205px_1fr]">
+    <div className="grid gap-4 grid-cols-1 md:grid-cols-[205px_minmax(0,1fr)]">
       <aside className="min-w-0 self-start bg-[#171a20] p-3 text-white">
         <div className="mb-3 flex items-center gap-2 border-b border-white/10 px-3 pb-3 md:mb-4 md:pb-4">
           <UserCog size={20} className="text-[#ffcf00]" />
@@ -430,7 +430,7 @@ function PartnerConsole({ onSignedOut }: { onSignedOut: () => void }) {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-[205px_1fr]">
+    <div className="grid gap-4 grid-cols-1 md:grid-cols-[205px_minmax(0,1fr)]">
       <aside className="bg-[#171a20] p-3 text-white">
         <div className="mb-4 flex items-center gap-2 border-b border-white/10 px-3 pb-4">
           <UserCog size={20} className="text-[#ffcf00]" />

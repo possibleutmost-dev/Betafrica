@@ -396,7 +396,7 @@ export function MatchDetail({ id }: { id: string }) {
   const score = match && match.scoreHome != null && match.scoreAway != null ? `${match.scoreHome} - ${match.scoreAway}` : 'vs'
 
   return (
-    <section className="mx-auto grid max-w-[1180px] gap-4 px-3 py-4 sm:px-4 md:grid-cols-[1fr_275px]">
+    <section className="mx-auto grid max-w-[1180px] gap-4 px-3 py-4 sm:px-4 grid-cols-1 md:grid-cols-[minmax(0,1fr)_275px]">
       <div className="min-w-0 border bg-white">
         <div className="bg-[#181b21] bg-[linear-gradient(rgba(15,17,22,0.78),rgba(15,17,22,0.9)),url('/banners/hero-football.jpg')] bg-cover bg-center px-4 py-5 text-white">
           <Link href="/" className="mb-3 inline-flex items-center text-xs text-white/70"><ChevronLeft size={14} /> Back to matches</Link>

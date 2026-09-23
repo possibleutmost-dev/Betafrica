@@ -48,9 +48,9 @@ export function GamesLobby({ initialCategory = 'all' }: { initialCategory?: stri
 
   return (
     <div className="games-felt min-h-[calc(100vh-120px)] py-5">
-      <div className="mx-auto grid max-w-[1180px] gap-3 px-3 sm:px-4 md:grid-cols-[180px_1fr]">
-        <aside className="self-start bg-[#353a45] text-white">
-          <nav className="scrollbar-none flex overflow-x-auto md:flex-col">
+      <div className="mx-auto grid max-w-[1180px] grid-cols-1 gap-3 px-3 sm:px-4 md:grid-cols-[180px_minmax(0,1fr)]">
+        <aside className="min-w-0 self-start overflow-hidden bg-[#353a45] text-white">
+          <nav className="scrollbar-none -mb-5 flex overflow-x-auto pb-5 md:mb-0 md:flex-col md:pb-0">
             {CATEGORIES.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
@@ -67,7 +67,7 @@ export function GamesLobby({ initialCategory = 'all' }: { initialCategory?: stri
           <div className="overflow-hidden border border-[#b8892c] bg-[linear-gradient(90deg,#1c1506,#3b2a07_50%,#1c1506)] p-3 text-white">
             <h2 className="mb-2 text-sm font-bold">Top Wins Today</h2>
             {wins.length ? (
-              <div className="scrollbar-none flex gap-3 overflow-x-auto">
+              <div className="scrollbar-none -mb-5 flex gap-3 overflow-x-auto pb-5">
                 {wins.map((win) => (
                   <div key={win.code} className="flex shrink-0 items-center gap-3 border border-white/20 bg-black/40 px-3 py-2">
                     <TrophyIcon size={22} className="text-[#ffcf00]" />
