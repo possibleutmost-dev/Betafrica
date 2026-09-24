@@ -10,6 +10,7 @@ import { SiteFooter } from '@/components/info-pages'
 import { WinCelebration, hasCelebrated, markCelebrated } from '@/components/tickets'
 import { formatMoney } from '@/lib/countries'
 import { useSession, useSlip, type Player } from '@/lib/store'
+import { BrandMark } from '@/components/brand-mark'
 
 type AuthMode = 'login' | 'register'
 type Shell = { notify: (message: string) => void; openAuth: (mode?: AuthMode) => void; player: Player | null }
@@ -146,7 +147,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         <header className="sticky top-0 z-40 bg-[#0b1b33] text-white">
           <div className="mx-auto flex max-w-[1180px] items-center gap-2 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3">
             <button onClick={() => setMenuOpen((open) => !open)} className="shrink-0 md:hidden" aria-label={menuOpen ? 'Close menu' : 'Open menu'}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>
-            <Link href="/" className="flex items-center gap-1.5 whitespace-nowrap text-[20px] font-extrabold tracking-tight sm:text-[24px]"><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#facc15] text-[15px] font-black text-[#0b1b33]">B</span>Bet<span className="-ml-1.5 text-[#facc15]">Africa</span></Link>
+            <Link href="/" className="flex items-center gap-1.5 whitespace-nowrap text-[20px] font-extrabold tracking-tight sm:text-[24px]"><BrandMark size={28} />Bet<span className="-ml-1.5 text-[#facc15]">Africa</span></Link>
             <span className="hidden text-xs font-semibold md:block">{player ? player.country_code : 'Ghana'} <ChevronDown size={13} className="inline" /></span>
             <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2">
               {player ? (

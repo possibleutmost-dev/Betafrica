@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { ChevronDown, ChevronLeft, Mail, MessageCircle, ShieldCheck } from 'lucide-react'
+import { BrandMark } from '@/components/brand-mark'
 
 const UPDATED = '23 September 2026'
 
@@ -297,7 +298,7 @@ export function SiteFooter({ className = '' }: { className?: string }) {
           <span className="inline-flex items-center gap-1 rounded-full border border-[#0b9b3a]/40 bg-[#e9f7ef] px-3 py-1 text-sm font-bold text-[#0b7a2e]"><ShieldCheck size={16} /> 18+</span>
           <span className="text-sm text-[#64748b]">Responsible Gaming</span>
         </div>
-        <p className="mt-5 text-3xl font-extrabold tracking-tight text-[#0b1b33]">Bet<span className="text-[#0d9488]">Africa</span></p>
+        <p className="mt-5 flex items-center justify-center gap-2 text-3xl font-extrabold tracking-tight text-[#0b1b33]"><BrandMark size={34} />Bet<span className="text-[#0d9488]">Africa</span></p>
         <p className="mt-1 text-xs font-semibold uppercase tracking-[0.25em] text-[#94a3b8]">Sports Betting</p>
         <nav className="mx-auto mt-6 flex max-w-md flex-wrap justify-center gap-x-6 gap-y-3 text-[15px] text-[#5c6068]">
           <Link href="/terms" className="hover:text-[#0f766e]">Terms &amp; Conditions</Link>
