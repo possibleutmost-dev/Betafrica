@@ -404,7 +404,7 @@ export function MatchDetail({ id }: { id: string }) {
   return (
     <section className="mx-auto grid max-w-[1180px] gap-4 px-3 py-4 sm:px-4 grid-cols-1 md:grid-cols-[minmax(0,1fr)_275px]">
       <div className="min-w-0 overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white">
-        <div className="bg-[#0b1b33] bg-[linear-gradient(rgba(11,27,51,0.8),rgba(11,27,51,0.94)),url('/banners/hero-football.jpg')] bg-cover bg-center px-4 py-5 text-white">
+        <div className="bg-[#0b1b33] bg-[linear-gradient(rgba(11,27,51,0.8),rgba(11,27,51,0.94)),url('/banners/hero-football.svg')] bg-cover bg-center px-4 py-5 text-white">
           <Link href="/" className="mb-3 inline-flex items-center text-xs text-white/70"><ChevronLeft size={14} /> Back to matches</Link>
           {match ? (
             <>

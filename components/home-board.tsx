@@ -222,7 +222,7 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
           <BetslipPanel legs={legs} onNeedAuth={onNeedAuth} onNotice={onNotice} />
           <Link href="/virtuals" className="relative block h-40 overflow-hidden rounded-2xl bg-[#0c0c0c]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/banners/instant-virtuals.jpg" alt="" className="absolute inset-0 h-full w-full object-cover" />
+            <img src="/banners/instant-virtuals.svg" alt="" className="absolute inset-0 h-full w-full object-cover" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_55%,rgba(250,204,21,0.3),rgba(0,0,0,0.55)_70%)]" />
             <span className="absolute inset-0 flex flex-col items-center justify-center text-center">
               <span className="text-4xl">⚡</span>
@@ -278,9 +278,9 @@ function PopularLink({ active, onClick, children }: { active: boolean; onClick: 
 }
 
 const SLIDES = [
-  { title: 'One Cut', sub: 'Bet on live action every second', image: '/banners/hero-football.jpg', href: null },
-  { title: 'Virtual World', sub: 'Football, racing and more, non-stop', image: '/banners/virtual-world.jpg', href: '/virtuals' },
-  { title: 'Instant Games', sub: 'Sky Rocket, Spin The Bottle and more', image: '/banners/instant-games.jpg', href: '/games' },
+  { title: 'One Cut', sub: 'Bet on live action every second', image: '/banners/hero-football.svg', href: null },
+  { title: 'Virtual World', sub: 'Football, racing and more, non-stop', image: '/banners/virtual-world.svg', href: '/virtuals' },
+  { title: 'Instant Games', sub: 'Sky Rocket, Spin The Bottle and more', image: '/banners/instant-games.svg', href: '/games' },
 ] as const
 
 function HeroBanner({ onNotice }: { onNotice: (message: string) => void }) {
@@ -295,7 +295,7 @@ function HeroBanner({ onNotice }: { onNotice: (message: string) => void }) {
     <div className="relative flex min-h-[176px] flex-col justify-end overflow-hidden rounded-2xl bg-[#111319] p-5 text-white sm:min-h-[220px] sm:p-6">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img key={slide.image} src={slide.image} alt="" className="absolute inset-0 h-full w-full object-cover object-right" />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0b1b33]/85 via-[#0b1b33]/40 to-transparent" />
       <div className="relative">
         <p className="text-[11px] font-bold uppercase tracking-wider text-[#facc15]">BetAfrica</p>
         <div className="text-[28px] font-extrabold leading-tight sm:text-4xl">{slide.title}</div>
@@ -506,7 +506,7 @@ function VirtualWorldBanner() {
   return (
     <Link href="/virtuals" className="relative mb-4 flex h-20 items-center overflow-hidden rounded-2xl bg-[#0b1b33] sm:h-24">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/banners/virtual-world.jpg" alt="" className="absolute inset-y-0 right-0 h-full w-[62%] object-cover object-[center_35%]" />
+      <img src="/banners/virtual-world.svg" alt="" className="absolute inset-y-0 right-0 h-full w-[62%] object-cover object-[center_35%]" />
       <div className="absolute inset-y-0 left-[38%] w-24 bg-gradient-to-r from-[#0b1b33] to-transparent" />
       <span className="relative pl-5 leading-tight">
         <span className="block text-[11px] font-bold uppercase tracking-wider text-[#facc15]">24/7 action</span>

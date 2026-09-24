@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" preserveAspectRatio="xMidYMid slice">
+  <defs><linearGradient id="ib" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="#0b1b33"/><stop offset="1" stop-color="#12305a"/>
+</linearGradient></defs><rect width="1280" height="720" fill="url(#ib)"/>
+  <defs><radialGradient id="ig1" cx="640" cy="360" r="620" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#0d9488" stop-opacity="0.55"/><stop offset="1" stop-color="#0d9488" stop-opacity="0"/>
+  </radialGradient></defs><rect width="1280" height="720" fill="url(#ig1)"/>
+  <g stroke="#2dd4bf" stroke-opacity="0.18" stroke-width="26"><line x1="760" y1="360" x2="1540" y2="360"/><line x1="751" y1="406" x2="1471" y2="704"/><line x1="725" y1="445" x2="1276" y2="996"/><line x1="686" y1="471" x2="984" y2="1191"/><line x1="640" y1="480" x2="640" y2="1260"/><line x1="594" y1="471" x2="296" y2="1191"/><line x1="555" y1="445" x2="4" y2="996"/><line x1="529" y1="406" x2="-191" y2="704"/><line x1="520" y1="360" x2="-260" y2="360"/><line x1="529" y1="314" x2="-191" y2="16"/><line x1="555" y1="275" x2="4" y2="-276"/><line x1="594" y1="249" x2="296" y2="-471"/><line x1="640" y1="240" x2="640" y2="-540"/><line x1="686" y1="249" x2="984" y2="-471"/><line x1="725" y1="275" x2="1276" y2="-276"/><line x1="751" y1="314" x2="1471" y2="16"/></g>
+  <path d="M700 110 L510 400 H630 L570 620 L790 300 H665Z" fill="#facc15" opacity="0.2"/>
+  
+  <defs>
+    <clipPath id="ball2c"><circle cx="170" cy="560" r="130"/></clipPath>
+    <radialGradient id="ball2s" cx="0.35" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#0b1b33" stop-opacity="0.5"/>
+    </radialGradient>
+  </defs>
+  <circle cx="170" cy="560" r="130" fill="#f8fafc"/>
+  <g clip-path="url(#ball2c)">
+    <polygon points="170.0,513.2 214.5,545.5 197.5,597.9 142.5,597.9 125.5,545.5" fill="#0b1b33"/>
+    <g fill="#0b1b33"><polygon points="170.0,471.6 132.9,444.7 147.1,401.0 192.9,401.0 207.1,444.7"/><polygon points="254.1,532.7 268.2,489.1 314.1,489.1 328.3,532.7 291.2,559.6"/><polygon points="222.0,631.5 267.8,631.5 282.0,675.1 244.9,702.1 207.8,675.1"/><polygon points="118.0,631.5 132.2,675.1 95.1,702.1 58.0,675.1 72.2,631.5"/><polygon points="85.9,532.7 48.8,559.6 11.7,532.7 25.9,489.1 71.8,489.1"/></g>
+    <g stroke="#0b1b33" stroke-width="4.6" stroke-linecap="round"><line x1="170.0" y1="513.2" x2="170.0" y2="469.0"/><line x1="214.5" y1="545.5" x2="256.5" y2="531.9"/><line x1="197.5" y1="597.9" x2="223.5" y2="633.6"/><line x1="142.5" y1="597.9" x2="116.5" y2="633.6"/><line x1="125.5" y1="545.5" x2="83.5" y2="531.9"/></g>
+    <circle cx="170" cy="560" r="130" fill="url(#ball2s)"/>
+  </g>
+  <g transform="translate(1120 170) scale(1 0.9)">
+    <circle r="64" fill="#ca8a04"/>
+    <circle r="57.6" fill="#facc15"/>
+    <circle r="40.96" fill="none" stroke="#ca8a04" stroke-width="5.76"/>
+  </g><g transform="translate(1200 300) scale(1 0.6)">
+    <circle r="38" fill="#ca8a04"/>
+    <circle r="34.2" fill="#facc15"/>
+    <circle r="24.32" fill="none" stroke="#ca8a04" stroke-width="3.42"/>
+  </g>
+</svg>
