@@ -67,7 +67,7 @@ function byLeague(matches: BoardMatch[]) {
 }
 
 export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNeedAuth: () => void; onNotice: (message: string) => void }) {
-  const { matches, error, reload } = useFixtureFeed()
+  const { matches, error, loading, updatedAt, reload } = useFixtureFeed()
   const legs = useSlip((state) => state.legs)
   const has = useSlip((state) => state.has)
   const toggle = useSlip((state) => state.toggle)
@@ -170,7 +170,7 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
       <section className="mx-auto grid max-w-[1180px] grid-cols-1 gap-4 px-3 py-4 sm:px-4 md:grid-cols-[minmax(0,1fr)_300px]">
         <div className="min-w-0 space-y-6">
           <div>
-            <BoardHeader title="Live Now" live onRefresh={reload} />
+            <BoardHeader title="Live Now" live onRefresh={reload} loading={loading} updatedAt={updatedAt} />
             <SportTabs value={liveTab} onChange={setLiveTab} />
             <div className="space-y-2.5">
               {matches === null && !error && <Empty>Loading live matches…</Empty>}
@@ -183,11 +183,11 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
           {!liveOnly && (
             <div>
               <VirtualWorldBanner />
-              <BoardHeader title={filterTitle} onRefresh={reload}>
+              <BoardHeader title={filterTitle} onRefresh={reload} loading={loading} updatedAt={updatedAt}>
                 {filter.kind !== 'all' && <button onClick={() => setFilter({ kind: 'all' })} className="text-xs font-semibold text-[#0b6e4f]">Clear filter</button>}
               </BoardHeader>
-              <SportTabs value={tab} onChange={setTab} onFilter={() => setPickerOpen((open) => !open)} filterCount={chosenLeagues.length} filterOpen={pickerOpen} />
-              {pickerOpen && (
+              <SportTabs value={tab} onChange={setTab} />
+              {pickerOpen ? (
                 <LeaguePicker
                   leagues={leagueCounts}
                   chosen={chosenLeagues}
@@ -197,6 +197,15 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
                     setPickerOpen(false)
                   }}
                 />
+              ) : (
+                <button onClick={() => setPickerOpen(true)} className="mb-3 flex w-full items-center gap-2 rounded-2xl border border-[#dde7e2] bg-white px-4 py-3 text-left">
+                  <ChevronRight size={16} className="text-[#5f6f69]" />
+                  <span className="flex-1 text-[15px] font-bold">Top Leagues 🏆</span>
+                  {chosenLeagues.length > 0
+                    ? <span className="rounded-full bg-[#0b6e4f] px-2 py-0.5 text-[11px] font-bold text-white">{chosenLeagues.length} selected</span>
+                    : <span className="text-xs text-[#5f6f69]">{leagueCounts.length} leagues</span>}
+                  <SlidersHorizontal size={15} className="text-[#0b6e4f]" />
+                </button>
               )}
               <div className="space-y-2.5">
                 {matches === null && !error && <Empty>Loading fixtures…</Empty>}
@@ -302,7 +311,7 @@ function HeroBanner({ onNotice }: { onNotice: (message: string) => void }) {
   )
 }
 
-function BoardHeader({ title, onRefresh, live = false, children }: { title: string; onRefresh: () => void; live?: boolean; children?: ReactNode }) {
+function BoardHeader({ title, onRefresh, loading = false, updatedAt = null, live = false, children }: { title: string; onRefresh: () => void; loading?: boolean; updatedAt?: Date | null; live?: boolean; children?: ReactNode }) {
   return (
     <div className="mb-2 mt-1 flex items-center justify-between gap-3">
       <h1 className="flex min-w-0 items-center gap-2 text-[15px] font-extrabold uppercase tracking-wide text-[#0f1f1a]">
@@ -312,7 +321,10 @@ function BoardHeader({ title, onRefresh, live = false, children }: { title: stri
       <div className="flex shrink-0 items-center gap-4 text-xs font-medium text-[#5f6f69]">
         {children}
         <button onClick={() => window.print()} className="hidden items-center gap-1.5 sm:flex"><Printer size={14} /> Print</button>
-        <button onClick={onRefresh} className="flex items-center gap-1.5"><RotateCw size={14} /> Refresh</button>
+        <button onClick={onRefresh} disabled={loading} className="flex items-center gap-1.5 disabled:opacity-70" aria-live="polite">
+          <RotateCw size={14} className={loading ? 'animate-spin text-[#0b6e4f]' : ''} />
+          {updatedAt ? `Updated ${updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : loading ? 'Updating…' : 'Refresh'}
+        </button>
       </div>
     </div>
   )

@@ -35,10 +35,13 @@ export function useFixtureFeed() {
   const [matches, setMatches] = useState<BoardMatch[] | null>(null)
   const [error, setError] = useState('')
   const [nonce, setNonce] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null)
 
   useEffect(() => {
     let alive = true
     const load = async () => {
+      setLoading(true)
       try {
         const res = await fetch('/api/fixtures', { cache: 'no-store' })
         if (!res.ok) {
@@ -49,9 +52,12 @@ export function useFixtureFeed() {
         if (alive) {
           setMatches(json.matches ?? [])
           setError('')
+          setUpdatedAt(new Date())
         }
       } catch {
         if (alive) setError('Fixtures are unavailable right now.')
+      } finally {
+        if (alive) setLoading(false)
       }
     }
     load()
@@ -62,7 +68,7 @@ export function useFixtureFeed() {
     }
   }, [nonce])
 
-  return { matches, error, reload: () => setNonce((n) => n + 1) }
+  return { matches, error, loading, updatedAt, reload: () => setNonce((n) => n + 1) }
 }
 
 export function Crest({ src, name, size = 20 }: { src?: string | null; name: string; size?: number }) {
