@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import Link from 'next/link'
-import { ChevronDown, ChevronRight, Lock, Printer, RotateCw, SlidersHorizontal } from 'lucide-react'
+import { ChevronDown, ChevronRight, Lock, Printer, Radio, RotateCw, SlidersHorizontal } from 'lucide-react'
 import {
   BetslipPanel, Crest, QuickRegister, kickoffLabel, legFor, resultMarket, useFixtureFeed,
   type BoardMarket, type BoardMatch, type BoardPrice,
@@ -27,7 +27,12 @@ const SPORT_KEYS: Record<SportTab, string[]> = {
   Cricket: ['cricket'],
 }
 
-type Filter = { kind: 'all' } | { kind: 'today' } | { kind: 'next3h' } | { kind: 'league'; league: string; test: RegExp }
+type Filter =
+  | { kind: 'all' }
+  | { kind: 'today' }
+  | { kind: 'next3h' }
+  | { kind: 'league'; league: string; test: RegExp }
+  | { kind: 'leagues'; names: string[] }
 
 const POPULAR_LEAGUES: { label: string; test: RegExp }[] = [
   { label: 'AFCON Qualifiers', test: /africa cup of nations|afcon/i },
@@ -97,6 +102,7 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
       if (filter.kind === 'today') return kickoff.toDateString() === today
       if (filter.kind === 'next3h') return kickoff.getTime() - now <= 3 * 3_600_000 && kickoff.getTime() >= now
       if (filter.kind === 'league') return filter.test.test(match.league)
+      if (filter.kind === 'leagues') return filter.names.includes(match.league)
       return true
     })
   }, [all, filter, tab])
@@ -118,7 +124,24 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
     })),
   ]
 
-  const filterTitle = filter.kind === 'today' ? "Today's Football" : filter.kind === 'next3h' ? 'Football in Next 3 Hours' : filter.kind === 'league' ? filter.league : 'Highlights'
+  // Every upcoming league in the chosen sport, busiest first, for the league picker.
+  const leagueCounts = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const match of all) {
+      if (match.isLive || !ofSport(match, tab)) continue
+      counts.set(match.league, (counts.get(match.league) ?? 0) + 1)
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+  }, [all, tab])
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const chosenLeagues = filter.kind === 'leagues' ? filter.names : []
+
+  const filterTitle =
+    filter.kind === 'today' ? "Today's Football"
+      : filter.kind === 'next3h' ? 'Football in Next 3 Hours'
+        : filter.kind === 'league' ? filter.league
+          : filter.kind === 'leagues' ? (filter.names.length === 1 ? filter.names[0] : `${filter.names.length} leagues`)
+            : 'Highlights'
   const liveOnly = view === 'Live Betting'
 
   return (
@@ -163,7 +186,18 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
               <BoardHeader title={filterTitle} onRefresh={reload}>
                 {filter.kind !== 'all' && <button onClick={() => setFilter({ kind: 'all' })} className="text-xs font-semibold text-[#0b6e4f]">Clear filter</button>}
               </BoardHeader>
-              <SportTabs value={tab} onChange={setTab} />
+              <SportTabs value={tab} onChange={setTab} onFilter={() => setPickerOpen((open) => !open)} filterCount={chosenLeagues.length} filterOpen={pickerOpen} />
+              {pickerOpen && (
+                <LeaguePicker
+                  leagues={leagueCounts}
+                  chosen={chosenLeagues}
+                  onClose={() => setPickerOpen(false)}
+                  onApply={(names) => {
+                    setFilter(names.length ? { kind: 'leagues', names } : { kind: 'all' })
+                    setPickerOpen(false)
+                  }}
+                />
+              )}
               <div className="space-y-2.5">
                 {matches === null && !error && <Empty>Loading fixtures…</Empty>}
                 {error && <Empty tone="error">{error}</Empty>}
@@ -284,7 +318,7 @@ function BoardHeader({ title, onRefresh, live = false, children }: { title: stri
   )
 }
 
-function SportTabs({ value, onChange }: { value: SportTab; onChange: (tab: SportTab) => void }) {
+function SportTabs({ value, onChange, onFilter, filterCount = 0, filterOpen = false }: { value: SportTab; onChange: (tab: SportTab) => void; onFilter?: () => void; filterCount?: number; filterOpen?: boolean }) {
   const [more, setMore] = useState(false)
   const moreActive = (MORE_SPORTS as readonly string[]).includes(value)
   const tabClass = (active: boolean) =>
@@ -297,7 +331,16 @@ function SportTabs({ value, onChange }: { value: SportTab; onChange: (tab: Sport
           <button onClick={() => setMore((open) => !open)} className={`${tabClass(moreActive)} flex items-center gap-1`}>{moreActive ? value : 'More'} <ChevronDown size={14} /></button>
         </div>
       </div>
-      <span className="ml-2 hidden shrink-0 items-center gap-1.5 text-xs text-[#5f6f69] md:flex"><SlidersHorizontal size={14} /> Filter</span>
+      {onFilter && (
+        <button
+          onClick={onFilter}
+          aria-expanded={filterOpen}
+          className={`relative ml-2 flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium ${filterOpen || filterCount ? 'border-[#0b6e4f] bg-[#0b6e4f] text-white' : 'border-[#dde7e2] bg-white text-[#0f1f1a]'}`}
+        >
+          <SlidersHorizontal size={14} /> Leagues
+          {filterCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#ff7a1a] px-1 text-[11px] font-bold text-[#0f1f1a]">{filterCount}</span>}
+        </button>
+      )}
       {more && (
         <div className="absolute right-0 top-full z-20 mt-1 w-44 overflow-hidden rounded-xl border border-[#dde7e2] bg-white py-1 shadow-lg">
           {MORE_SPORTS.map((item) => (
@@ -306,6 +349,45 @@ function SportTabs({ value, onChange }: { value: SportTab; onChange: (tab: Sport
         </div>
       )}
     </div>
+  )
+}
+
+function LeaguePicker({ leagues, chosen, onApply, onClose }: { leagues: [string, number][]; chosen: string[]; onApply: (names: string[]) => void; onClose: () => void }) {
+  const [picked, setPicked] = useState<string[]>(chosen)
+  const total = leagues.reduce((sum, [, count]) => sum + count, 0)
+  const allPicked = picked.length === 0 || picked.length === leagues.length
+  const matchCount = picked.length === 0 ? total : leagues.filter(([name]) => picked.includes(name)).reduce((sum, [, count]) => sum + count, 0)
+  const toggle = (name: string) => setPicked((current) => (current.includes(name) ? current.filter((item) => item !== name) : [...current, name]))
+
+  return (
+    <div className="mb-3 overflow-hidden rounded-2xl border border-[#dde7e2] bg-white">
+      <button onClick={onClose} className="flex w-full items-center gap-2 border-b border-[#dde7e2] px-4 py-3 text-left">
+        <ChevronDown size={16} className="text-[#5f6f69]" />
+        <span className="flex-1 text-[15px] font-bold">Top Leagues 🏆</span>
+        <span className="text-xs text-[#5f6f69]">{leagues.length}</span>
+      </button>
+      <div className="max-h-[50vh] overflow-y-auto">
+        <LeagueRow label="All" count={total} checked={allPicked} onToggle={() => setPicked([])} bold />
+        {leagues.map(([name, count]) => (
+          <LeagueRow key={name} label={name} count={count} checked={picked.includes(name)} onToggle={() => toggle(name)} />
+        ))}
+        {leagues.length === 0 && <p className="px-4 py-6 text-center text-sm text-[#5f6f69]">No leagues to choose from yet.</p>}
+      </div>
+      <div className="grid grid-cols-2 gap-2 border-t border-[#dde7e2] p-3">
+        <button onClick={() => setPicked([])} className="h-11 rounded-xl border border-[#0b6e4f] text-sm font-semibold text-[#0b6e4f]">Clear</button>
+        <button onClick={() => onApply(allPicked ? [] : picked)} className="h-11 rounded-xl bg-[#ff7a1a] text-sm font-bold text-[#0f1f1a]">Apply ({matchCount})</button>
+      </div>
+    </div>
+  )
+}
+
+function LeagueRow({ label, count, checked, onToggle, bold = false }: { label: string; count: number; checked: boolean; onToggle: () => void; bold?: boolean }) {
+  return (
+    <label className="flex cursor-pointer items-center gap-3 border-b border-[#edf3f0] px-4 py-3 last:border-b-0">
+      <span className={`min-w-0 flex-1 truncate text-sm ${bold ? 'font-semibold' : ''}`}>{label}</span>
+      <span className="text-xs tabular-nums text-[#5f6f69]">{count}</span>
+      <input type="checkbox" checked={checked} onChange={onToggle} className="h-5 w-5 shrink-0 accent-[#0b6e4f]" />
+    </label>
   )
 }
 
@@ -320,6 +402,20 @@ function halfLabel(match: BoardMatch) {
   const minute = parseInt(label, 10)
   if (!Number.isFinite(minute)) return ''
   return minute <= 45 ? 'H1' : 'H2'
+}
+
+/**
+ * A 1X2 price earns the badge only when the bookmaker's margin on it is thin.
+ * Typical football margins run 5-10%; at 5% or under the player is getting a
+ * genuinely sharp price, so the claim is true when we make it.
+ */
+const BEST_ODDS_MARGIN = 0.05
+
+function hasBestOdds(market?: BoardMarket) {
+  const prices = market?.prices.slice(0, 3) ?? []
+  if (prices.length < 3 || prices.some((price) => !(price.odds > 1))) return false
+  const overround = prices.reduce((sum, price) => sum + 1 / price.odds, 0) - 1
+  return overround <= BEST_ODDS_MARGIN
 }
 
 /** One fixture: when and where on top, the two teams, then the 1X2 prices. */
@@ -338,7 +434,6 @@ function MatchCard({ match, has, pick }: { match: BoardMatch; has: HasFn; pick: 
             : <span>{kickoffLabel(match)}</span>}
           <span> · {match.league}</span>
         </p>
-        <Link href={`/match/${match.id}`} className="flex shrink-0 items-center font-semibold text-[#0b6e4f]">+{extra} <ChevronRight size={14} /></Link>
       </div>
       <Link href={`/match/${match.id}`} className="mt-2.5 block space-y-1.5 text-[14px] text-[#0f1f1a]">
         <TeamLine crest={match.homeCrest} name={match.homeTeam} score={match.isLive ? match.scoreHome ?? 0 : null} />
@@ -347,6 +442,13 @@ function MatchCard({ match, has, pick }: { match: BoardMatch; has: HasFn; pick: 
       <div className="mt-3 grid grid-cols-1 gap-2 lg:grid-cols-[3fr_2fr]">
         <OddsPills match={match} market={main} count={3} has={has} pick={pick} />
         {second && <div className="hidden lg:block"><OddsPills match={match} market={second} count={second.prices.length >= 3 ? 3 : 2} has={has} pick={pick} /></div>}
+      </div>
+      <div className="mt-2.5 flex items-center gap-2.5 text-xs">
+        <Link href={`/match/${match.id}`} className="flex items-center font-semibold text-[#5f6f69] hover:text-[#0b6e4f]">+{extra} <ChevronRight size={14} /></Link>
+        {match.isLive && <span className="flex items-center gap-1 text-[#5f6f69]"><Radio size={13} /> Live</span>}
+        {hasBestOdds(main) && !match.isLocked && (
+          <span className="flex items-center gap-1 rounded-md border border-[#0b6e4f]/25 bg-[#e8f5ee] px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#0b6e4f]">👍 Best odds</span>
+        )}
       </div>
     </div>
   )
