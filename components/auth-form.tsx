@@ -56,7 +56,7 @@ export function AuthForm({ mode, onClose, switchMode, onSignedIn }: { mode: 'log
     <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0b6e4f]">WinnBet</p>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0f766e]">WinnBet</p>
           <h2 className="mt-1 text-xl font-bold">{mode === 'login' ? 'Welcome back' : 'Create your account'}</h2>
         </div>
         <button onClick={onClose} aria-label="Close dialog"><X /></button>
@@ -64,34 +64,34 @@ export function AuthForm({ mode, onClose, switchMode, onSignedIn }: { mode: 'log
       {mode === 'register' && (
         <>
           <label className="mb-1 block text-xs font-semibold">Full name</label>
-          <input value={name} onChange={(event) => setName(event.target.value)} className="mb-3 h-11 w-full rounded-xl border border-[#dde7e2] px-3 text-sm outline-none focus:border-[#0b6e4f]" placeholder="Your name" />
+          <input value={name} onChange={(event) => setName(event.target.value)} className="mb-3 h-11 w-full rounded-xl border border-[#e2e8f0] px-3 text-sm outline-none focus:border-[#0d9488]" placeholder="Your name" />
           <label className="mb-1 block text-xs font-semibold">Country</label>
-          <select value={countryCode} onChange={(event) => setCountryCode(event.target.value)} className="mb-3 h-11 w-full rounded-xl border border-[#dde7e2] px-3 text-sm outline-none focus:border-[#0b6e4f]">
+          <select value={countryCode} onChange={(event) => setCountryCode(event.target.value)} className="mb-3 h-11 w-full rounded-xl border border-[#e2e8f0] px-3 text-sm outline-none focus:border-[#0d9488]">
             {countries.map((country) => <option key={country.code} value={country.code}>{country.name}</option>)}
           </select>
         </>
       )}
       <label className="mb-1 block text-xs font-semibold">{mode === 'login' ? 'Mobile number or email' : 'Mobile number'}</label>
       {mode === 'login' ? (
-        <input value={identifier} onChange={(event) => setIdentifier(event.target.value)} className="mb-3 h-11 w-full rounded-xl border border-[#dde7e2] px-3 text-sm outline-none focus:border-[#0b6e4f]" placeholder="+233 Mobile Number" autoComplete="username" />
+        <input value={identifier} onChange={(event) => setIdentifier(event.target.value)} className="mb-3 h-11 w-full rounded-xl border border-[#e2e8f0] px-3 text-sm outline-none focus:border-[#0d9488]" placeholder="+233 Mobile Number" autoComplete="username" />
       ) : (
-        <div className="mb-3 flex h-11 overflow-hidden rounded-xl border border-[#dde7e2] focus-within:border-[#0b6e4f]">
-          <span className="flex items-center border-r bg-[#f5f6f7] px-3 text-sm font-semibold">{country.dial}</span>
+        <div className="mb-3 flex h-11 overflow-hidden rounded-xl border border-[#e2e8f0] focus-within:border-[#0d9488]">
+          <span className="flex items-center border-r bg-[#f1f5f9] px-3 text-sm font-semibold">{country.dial}</span>
           <input value={identifier} onChange={(event) => setIdentifier(event.target.value)} inputMode="tel" autoComplete="tel-national" className="min-w-0 flex-1 px-3 text-sm outline-none" placeholder={country.example} />
         </div>
       )}
       {mode === 'register' && (
         <>
           <label className="mb-1 block text-xs font-semibold">Email</label>
-          <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" inputMode="email" autoComplete="email" className="mb-3 h-11 w-full rounded-xl border border-[#dde7e2] px-3 text-sm outline-none focus:border-[#0b6e4f]" placeholder="you@example.com" />
+          <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" inputMode="email" autoComplete="email" className="mb-3 h-11 w-full rounded-xl border border-[#e2e8f0] px-3 text-sm outline-none focus:border-[#0d9488]" placeholder="you@example.com" />
         </>
       )}
       <label className="mb-1 block text-xs font-semibold">Password</label>
-      <input value={password} onChange={(event) => setPassword(event.target.value)} className="mb-4 h-11 w-full rounded-xl border border-[#dde7e2] px-3 text-sm outline-none focus:border-[#0b6e4f]" placeholder="Password" type="password" />
-      {error && <p className="mb-3 text-xs text-[#0b6e4f]">{error}</p>}
-      <button disabled={busy} onClick={submit} className="w-full rounded-xl bg-[#ff7a1a] py-3 font-bold text-[#0f1f1a] disabled:opacity-60">{busy ? 'Please wait…' : mode === 'login' ? 'Login' : 'Register'}</button>
-      <button onClick={switchMode} className="mt-4 w-full text-center text-xs text-[#0b6e4f]">{mode === 'login' ? 'Need an account? Register' : 'Already registered? Login'}</button>
-      <p className="mt-4 text-center text-xs text-[#8b8f94]">18+ Gamble responsibly. Never bet more than you can afford.</p>
+      <input value={password} onChange={(event) => setPassword(event.target.value)} className="mb-4 h-11 w-full rounded-xl border border-[#e2e8f0] px-3 text-sm outline-none focus:border-[#0d9488]" placeholder="Password" type="password" />
+      {error && <p className="mb-3 text-xs text-[#0f766e]">{error}</p>}
+      <button disabled={busy} onClick={submit} className="w-full rounded-xl bg-[#facc15] py-3 font-bold text-[#0f172a] disabled:opacity-60">{busy ? 'Please wait…' : mode === 'login' ? 'Login' : 'Register'}</button>
+      <button onClick={switchMode} className="mt-4 w-full text-center text-xs text-[#0f766e]">{mode === 'login' ? 'Need an account? Register' : 'Already registered? Login'}</button>
+      <p className="mt-4 text-center text-xs text-[#94a3b8]">18+ Gamble responsibly. Never bet more than you can afford.</p>
     </div>
   )
 }

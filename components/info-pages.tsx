@@ -36,18 +36,18 @@ export function whatsappLink(number?: string) {
 function InfoPage({ title, intro, children }: { title: string; intro?: string; children: ReactNode }) {
   return (
     <section className="mx-auto max-w-[820px] px-3 py-4 sm:px-4 sm:py-8">
-      <Link href="/account" className="mb-3 inline-flex items-center text-sm text-[#6b7077]"><ChevronLeft size={16} /> Back</Link>
-      <article className="rounded-2xl border border-[#dde7e2] bg-white p-5 sm:p-8">
+      <Link href="/account" className="mb-3 inline-flex items-center text-sm text-[#64748b]"><ChevronLeft size={16} /> Back</Link>
+      <article className="rounded-2xl border border-[#e2e8f0] bg-white p-5 sm:p-8">
         <h1 className="text-2xl font-black sm:text-3xl">{title}</h1>
-        <p className="mt-1 text-xs text-[#8b8f94]">Last updated {UPDATED}</p>
-        {intro && <p className="mt-4 leading-7 text-[#3d4148]">{intro}</p>}
+        <p className="mt-1 text-xs text-[#94a3b8]">Last updated {UPDATED}</p>
+        {intro && <p className="mt-4 leading-7 text-[#334155]">{intro}</p>}
         <div className="mt-6 space-y-6">{children}</div>
       </article>
-      <nav className="mt-4 flex flex-wrap gap-x-4 gap-y-2 px-1 text-sm text-[#6b7077]">
-        <Link href="/terms" className="hover:text-[#0b6e4f]">Terms &amp; Conditions</Link>
-        <Link href="/privacy" className="hover:text-[#0b6e4f]">Privacy Policy</Link>
-        <Link href="/responsible-gambling" className="hover:text-[#0b6e4f]">Responsible Gambling</Link>
-        <Link href="/help" className="hover:text-[#0b6e4f]">Help &amp; FAQ</Link>
+      <nav className="mt-4 flex flex-wrap gap-x-4 gap-y-2 px-1 text-sm text-[#64748b]">
+        <Link href="/terms" className="hover:text-[#0f766e]">Terms &amp; Conditions</Link>
+        <Link href="/privacy" className="hover:text-[#0f766e]">Privacy Policy</Link>
+        <Link href="/responsible-gambling" className="hover:text-[#0f766e]">Responsible Gambling</Link>
+        <Link href="/help" className="hover:text-[#0f766e]">Help &amp; FAQ</Link>
       </nav>
     </section>
   )
@@ -57,7 +57,7 @@ function Part({ n, title, children }: { n?: number; title: string; children: Rea
   return (
     <section>
       <h2 className="text-lg font-bold">{n ? `${n}. ` : ''}{title}</h2>
-      <div className="mt-2 space-y-3 leading-7 text-[#3d4148] [&_li]:ml-5 [&_li]:list-disc">{children}</div>
+      <div className="mt-2 space-y-3 leading-7 text-[#334155] [&_li]:ml-5 [&_li]:list-disc">{children}</div>
     </section>
   )
 }
@@ -258,9 +258,9 @@ export function FaqPage() {
           <div key={item.q}>
             <button onClick={() => setOpen(open === index ? null : index)} className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left font-semibold" aria-expanded={open === index}>
               {item.q}
-              <ChevronDown size={18} className={`shrink-0 text-[#8b8f94] transition-transform ${open === index ? 'rotate-180' : ''}`} />
+              <ChevronDown size={18} className={`shrink-0 text-[#94a3b8] transition-transform ${open === index ? 'rotate-180' : ''}`} />
             </button>
-            {open === index && <p className="px-4 pb-4 leading-7 text-[#3d4148]">{item.a}</p>}
+            {open === index && <p className="px-4 pb-4 leading-7 text-[#334155]">{item.a}</p>}
           </div>
         ))}
       </div>
@@ -269,16 +269,16 @@ export function FaqPage() {
           {whatsapp && (
             <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 border p-4 hover:border-[#0b9b3a]">
               <MessageCircle className="text-[#0b9b3a]" />
-              <span><b className="block">WhatsApp</b><span className="text-sm text-[#6b7077]">{info.support_whatsapp}</span></span>
+              <span><b className="block">WhatsApp</b><span className="text-sm text-[#64748b]">{info.support_whatsapp}</span></span>
             </a>
           )}
           {info.support_email && (
-            <a href={`mailto:${info.support_email}`} className="flex items-center gap-3 border p-4 hover:border-[#0b6e4f]">
-              <Mail className="text-[#0b6e4f]" />
-              <span><b className="block">Email</b><span className="break-all text-sm text-[#6b7077]">{info.support_email}</span></span>
+            <a href={`mailto:${info.support_email}`} className="flex items-center gap-3 border p-4 hover:border-[#0d9488]">
+              <Mail className="text-[#0f766e]" />
+              <span><b className="block">Email</b><span className="break-all text-sm text-[#64748b]">{info.support_email}</span></span>
             </a>
           )}
-          {!whatsapp && !info.support_email && <p className="text-sm text-[#6b7077]">Contact details will appear here soon.</p>}
+          {!whatsapp && !info.support_email && <p className="text-sm text-[#64748b]">Contact details will appear here soon.</p>}
         </div>
       </Part>
     </InfoPage>
@@ -292,18 +292,18 @@ export function SiteFooter({ className = '' }: { className?: string }) {
   const year = new Date().getFullYear()
   return (
     <footer className={`bg-[#eef0f4] px-3 pb-28 pt-6 md:pb-8 ${className}`}>
-      <div className="mx-auto max-w-[1180px] rounded-2xl border border-[#dde7e2] bg-white px-5 py-8 text-center">
+      <div className="mx-auto max-w-[1180px] rounded-2xl border border-[#e2e8f0] bg-white px-5 py-8 text-center">
         <div className="flex items-center justify-center gap-3">
           <span className="inline-flex items-center gap-1 rounded-full border border-[#0b9b3a]/40 bg-[#e9f7ef] px-3 py-1 text-sm font-bold text-[#0b7a2e]"><ShieldCheck size={16} /> 18+</span>
-          <span className="text-sm text-[#6b7077]">Responsible Gaming</span>
+          <span className="text-sm text-[#64748b]">Responsible Gaming</span>
         </div>
-        <p className="mt-5 text-3xl font-extrabold tracking-tight text-[#0b6e4f]">Winn<span className="text-[#ff7a1a]">Bet</span></p>
-        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.25em] text-[#8b8f94]">Sports Betting</p>
+        <p className="mt-5 text-3xl font-extrabold tracking-tight text-[#0b1b33]">Winn<span className="text-[#0d9488]">Bet</span></p>
+        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.25em] text-[#94a3b8]">Sports Betting</p>
         <nav className="mx-auto mt-6 flex max-w-md flex-wrap justify-center gap-x-6 gap-y-3 text-[15px] text-[#5c6068]">
-          <Link href="/terms" className="hover:text-[#0b6e4f]">Terms &amp; Conditions</Link>
-          <Link href="/privacy" className="hover:text-[#0b6e4f]">Privacy Policy</Link>
-          <Link href="/help" className="hover:text-[#0b6e4f]">Help &amp; FAQ</Link>
-          <Link href="/responsible-gambling" className="hover:text-[#0b6e4f]">Responsible Gambling</Link>
+          <Link href="/terms" className="hover:text-[#0f766e]">Terms &amp; Conditions</Link>
+          <Link href="/privacy" className="hover:text-[#0f766e]">Privacy Policy</Link>
+          <Link href="/help" className="hover:text-[#0f766e]">Help &amp; FAQ</Link>
+          <Link href="/responsible-gambling" className="hover:text-[#0f766e]">Responsible Gambling</Link>
         </nav>
         <div className="mt-6 flex flex-wrap justify-center gap-2 text-xs font-bold">
           <span className="rounded border bg-[#ffcc00] px-2.5 py-1.5 text-[#1f1f1f]">MTN MoMo</span>
@@ -311,12 +311,12 @@ export function SiteFooter({ className = '' }: { className?: string }) {
           <span className="rounded border bg-[#0033a0] px-2.5 py-1.5 text-white">AirtelTigo Money</span>
         </div>
         <hr className="mx-auto mt-6 max-w-lg" />
-        <p className="mx-auto mt-5 max-w-lg text-sm leading-6 text-[#6b7077]">
+        <p className="mx-auto mt-5 max-w-lg text-sm leading-6 text-[#64748b]">
           You must be 18 or older. Gambling can be addictive and psychologically harmful —{' '}
           <Link href="/responsible-gambling" className="underline">play responsibly</Link>.
         </p>
-        {info.license_text && <p className="mx-auto mt-3 max-w-lg text-xs text-[#8b8f94]">{info.license_text}</p>}
-        <p className="mt-5 text-xs text-[#8b8f94]">© {year} WinnBet. All Rights Reserved.</p>
+        {info.license_text && <p className="mx-auto mt-3 max-w-lg text-xs text-[#94a3b8]">{info.license_text}</p>}
+        <p className="mt-5 text-xs text-[#94a3b8]">© {year} WinnBet. All Rights Reserved.</p>
       </div>
     </footer>
   )

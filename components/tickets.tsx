@@ -43,7 +43,7 @@ function Modal({ onClose, children }: { onClose: () => void; children: ReactNode
 
 function ModalHeader({ title, onClose }: { title: string; onClose: () => void }) {
   return (
-    <div className="flex items-center justify-between bg-[#0b6e4f] px-4 py-3 text-white">
+    <div className="flex items-center justify-between bg-[#0b1b33] px-4 py-3 text-white">
       <span className="text-lg font-black italic tracking-[-1px]">WinnBet</span>
       <span className="text-sm font-semibold">{title}</span>
       <button onClick={onClose} aria-label="Close"><X size={18} /></button>
@@ -112,18 +112,18 @@ export function BookedCode({ code, expiresAt, onClose }: { code: string; expires
   return (
     <Modal onClose={onClose}>
       <ModalHeader title="Booking Code" onClose={onClose} />
-      <div className="px-5 pb-5 pt-4 text-[#24262c]">
+      <div className="px-5 pb-5 pt-4 text-[#132640]">
         <button onClick={() => copy(code, 'code')} className="mx-auto flex items-center gap-2" aria-label="Copy booking code">
-          <span className="text-[32px] font-black tracking-[0.12em] text-[#ed1324]">{code}</span>
-          {copied === 'code' ? <Check size={18} className="text-[#0b9b3a]" /> : <Copy size={18} className="text-[#8b8f94]" />}
+          <span className="text-[32px] font-black tracking-[0.12em] text-[#0f766e]">{code}</span>
+          {copied === 'code' ? <Check size={18} className="text-[#0b9b3a]" /> : <Copy size={18} className="text-[#94a3b8]" />}
         </button>
-        <p className="text-center text-xs text-[#6b7077]">
+        <p className="text-center text-xs text-[#64748b]">
           {expiresAt
             ? `Expires ${new Date(expiresAt).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`
             : 'No expiry'}
         </p>
 
-        <button onClick={() => setZoom(true)} className="relative mx-auto mt-4 block h-[160px] w-[120px] overflow-hidden border bg-[#f5f6f7]" aria-label="Enlarge ticket">
+        <button onClick={() => setZoom(true)} className="relative mx-auto mt-4 block h-[160px] w-[120px] overflow-hidden border bg-[#f1f5f9]" aria-label="Enlarge ticket">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             key={attempt}
@@ -133,7 +133,7 @@ export function BookedCode({ code, expiresAt, onClose }: { code: string; expires
             onError={retry}
             className={`h-full w-full object-cover object-top transition-opacity ${loaded ? 'opacity-100' : 'opacity-0'}`}
           />
-          {!loaded && <span className="absolute inset-0 flex items-center justify-center text-[11px] text-[#8b8f94]">{attempt > MAX_IMAGE_RETRIES ? 'Preview unavailable' : 'Loading ticket…'}</span>}
+          {!loaded && <span className="absolute inset-0 flex items-center justify-center text-[11px] text-[#94a3b8]">{attempt > MAX_IMAGE_RETRIES ? 'Preview unavailable' : 'Loading ticket…'}</span>}
           {loaded && (
             <span className="absolute bottom-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white"><ZoomIn size={14} /></span>
           )}
@@ -145,7 +145,7 @@ export function BookedCode({ code, expiresAt, onClose }: { code: string; expires
             role="switch"
             aria-checked={shared}
             onClick={() => toggleShare(!shared)}
-            className={`relative h-6 w-11 rounded-full transition-colors ${shared ? 'bg-[#0b9b3a]' : 'bg-[#d7d9dd]'}`}
+            className={`relative h-6 w-11 rounded-full transition-colors ${shared ? 'bg-[#0d9488]' : 'bg-[#cbd5e1]'}`}
           >
             <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${shared ? 'left-[22px]' : 'left-0.5'}`} />
           </button>
@@ -159,7 +159,7 @@ export function BookedCode({ code, expiresAt, onClose }: { code: string; expires
           <ShareAction label="Save" href={imageUrl} download={`winnbet-${code}.png`} icon={<Download size={18} />} />
         </div>
 
-        <button onClick={onClose} className="mt-5 w-full bg-[#0b9b3a] py-3 text-sm font-semibold text-white">Back to betslip</button>
+        <button onClick={onClose} className="mt-5 w-full bg-[#0d9488] py-3 text-sm font-semibold text-white">Back to betslip</button>
       </div>
 
       {zoom && (
@@ -177,8 +177,8 @@ export function BookedCode({ code, expiresAt, onClose }: { code: string; expires
 function ShareAction({ label, icon, href, onClick, download }: { label: string; icon: ReactNode; href?: string; onClick?: () => void; download?: string }) {
   const body = (
     <>
-      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f1f2f4] text-[#24262c]">{icon}</span>
-      <span className="text-center text-[11px] leading-tight text-[#6b7077]">{label}</span>
+      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f1f2f4] text-[#132640]">{icon}</span>
+      <span className="text-center text-[11px] leading-tight text-[#64748b]">{label}</span>
     </>
   )
   const shell = 'flex flex-col items-center gap-1.5'
@@ -218,16 +218,16 @@ export function PlacedReceipt({
   return (
     <Modal onClose={onClose}>
       <ModalHeader title="Bet placed" onClose={onClose} />
-      <div className="text-[#24262c]">
+      <div className="text-[#132640]">
         <div className="px-4 pt-4 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#6b7077]">{lines > 1 ? 'First ticket code' : 'Ticket code'}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#64748b]">{lines > 1 ? 'First ticket code' : 'Ticket code'}</p>
           <button onClick={() => copy(ticket.code, 'code')} className="mx-auto mt-1 flex items-center gap-2">
-            <span className="text-[26px] font-black tracking-[0.1em] text-[#ed1324]">{ticket.code}</span>
-            {copied ? <Check size={17} className="text-[#0b9b3a]" /> : <Copy size={17} className="text-[#8b8f94]" />}
+            <span className="text-[26px] font-black tracking-[0.1em] text-[#0f766e]">{ticket.code}</span>
+            {copied ? <Check size={17} className="text-[#0b9b3a]" /> : <Copy size={17} className="text-[#94a3b8]" />}
           </button>
         </div>
         <div className="mx-4 mt-3 flex items-center justify-between border px-3 py-2">
-          <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#6b7077]">Total odds</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#64748b]">Total odds</span>
           <span className="text-xl font-black">{Number(ticket.total_odds).toFixed(2)}</span>
         </div>
         <SectionLabel>Bet</SectionLabel>
@@ -242,15 +242,15 @@ export function PlacedReceipt({
             <li key={`${leg.matchId}-${leg.outcome}`} className="px-4 py-2">
               <div className="flex items-center gap-2">
                 <span className="flex-1 truncate text-sm font-bold">{leg.outcomeLabel}</span>
-                <span className="text-sm font-black text-[#ed1324]">{leg.odds.toFixed(2)}</span>
+                <span className="text-sm font-black text-[#0f766e]">{leg.odds.toFixed(2)}</span>
               </div>
               <p className="truncate text-xs">{leg.homeTeam} vs {leg.awayTeam}</p>
-              <p className="text-[11px] text-[#8b8f94]">{leg.marketLabel}</p>
+              <p className="text-[11px] text-[#94a3b8]">{leg.marketLabel}</p>
             </li>
           ))}
         </ul>
         {oddsChanged.length > 0 && (
-          <p className="mx-4 mt-2 bg-[#f5f6f7] px-3 py-2 text-[11px] text-[#6b7077]">
+          <p className="mx-4 mt-2 bg-[#f1f5f9] px-3 py-2 text-[11px] text-[#64748b]">
             {oddsChanged.length === 1
               ? `The price on ${oddsChanged[0].match} was ${oddsChanged[0].to.toFixed(2)} at placement, not ${oddsChanged[0].from.toFixed(2)}.`
               : `${oddsChanged.length} prices changed at placement. Your ticket shows the prices you got.`}
@@ -258,7 +258,7 @@ export function PlacedReceipt({
         )}
         <div className="flex gap-2 p-4">
           <Link href={`/my-bets/${ticket.code}`} onClick={onClose} className="flex-1 border py-2.5 text-center text-sm font-semibold">View ticket</Link>
-          <button onClick={onClose} className="flex-1 bg-[#0b9b3a] py-2.5 text-sm font-semibold text-white">Keep betting</button>
+          <button onClick={onClose} className="flex-1 bg-[#0d9488] py-2.5 text-sm font-semibold text-white">Keep betting</button>
         </div>
       </div>
     </Modal>
@@ -266,13 +266,13 @@ export function PlacedReceipt({
 }
 
 function SectionLabel({ children }: { children: ReactNode }) {
-  return <p className="mt-3 border-y bg-[#f5f6f7] px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#6b7077]">{children}</p>
+  return <p className="mt-3 border-y bg-[#f1f5f9] px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#64748b]">{children}</p>
 }
 
 function Row({ label, value, tone = '' }: { label: string; value: string; tone?: string }) {
   return (
     <div className="flex items-center justify-between">
-      <dt className="text-[#6b7077]">{label}</dt>
+      <dt className="text-[#64748b]">{label}</dt>
       <dd className={`font-bold ${tone}`}>{value}</dd>
     </div>
   )
@@ -301,18 +301,18 @@ export function markCelebrated(code: string) {
 }
 
 const CONFETTI = [
-  { left: 6, delay: 0, dur: 3.2, drift: 30, color: '#0b9b3a' },
-  { left: 14, delay: 0.9, dur: 4.1, drift: -24, color: '#ffcf00' },
+  { left: 6, delay: 0, dur: 3.2, drift: 30, color: '#facc15' },
+  { left: 14, delay: 0.9, dur: 4.1, drift: -24, color: '#facc15' },
   { left: 22, delay: 0.35, dur: 3.6, drift: 18, color: '#ffffff' },
-  { left: 31, delay: 1.6, dur: 4.4, drift: -34, color: '#ed1324' },
-  { left: 39, delay: 0.15, dur: 3.9, drift: 26, color: '#ffcf00' },
-  { left: 47, delay: 2.1, dur: 3.4, drift: -16, color: '#0b9b3a' },
+  { left: 31, delay: 1.6, dur: 4.4, drift: -34, color: '#2dd4bf' },
+  { left: 39, delay: 0.15, dur: 3.9, drift: 26, color: '#facc15' },
+  { left: 47, delay: 2.1, dur: 3.4, drift: -16, color: '#facc15' },
   { left: 55, delay: 0.6, dur: 4.6, drift: 34, color: '#ffffff' },
-  { left: 63, delay: 1.2, dur: 3.3, drift: -28, color: '#ed1324' },
-  { left: 71, delay: 2.4, dur: 4.0, drift: 20, color: '#ffcf00' },
-  { left: 79, delay: 0.45, dur: 3.7, drift: -22, color: '#0b9b3a' },
+  { left: 63, delay: 1.2, dur: 3.3, drift: -28, color: '#2dd4bf' },
+  { left: 71, delay: 2.4, dur: 4.0, drift: 20, color: '#facc15' },
+  { left: 79, delay: 0.45, dur: 3.7, drift: -22, color: '#facc15' },
   { left: 87, delay: 1.85, dur: 4.3, drift: 30, color: '#ffffff' },
-  { left: 94, delay: 1.05, dur: 3.5, drift: -18, color: '#ed1324' },
+  { left: 94, delay: 1.05, dur: 3.5, drift: -18, color: '#2dd4bf' },
 ]
 
 export function WinCelebration({ code, amount, currency, onClose }: { code: string; amount: number; currency: string; onClose: () => void }) {
@@ -363,18 +363,18 @@ export function WinCelebration({ code, amount, currency, onClose }: { code: stri
       <button onClick={onClose} aria-label="Close" className="absolute right-4 top-4 z-10 text-white/80"><X size={26} /></button>
       <div className="relative flex w-full max-w-sm flex-col items-center">
         <p className="win-line text-[40px] font-black leading-none text-white">YOU WON</p>
-        <p className="win-line mt-2 text-[30px] font-black leading-none text-[#ffcf00]" style={{ animationDelay: '0.12s' }}>{formatMoney(amount, currency)}</p>
+        <p className="win-line mt-2 text-[30px] font-black leading-none text-[#facc15]" style={{ animationDelay: '0.12s' }}>{formatMoney(amount, currency)}</p>
         <div className="win-cup mt-2">
           <div className="win-cup-float">
             <Trophy size={230} className="drop-shadow-[0_0_28px_rgba(237,19,36,0.45)]" />
           </div>
         </div>
         <p className="win-line -mt-2 text-sm text-white/70" style={{ animationDelay: '0.75s' }}>
-          Ticket: <span className="font-bold tracking-wider text-[#ffcf00]">{code}</span>
+          Ticket: <span className="font-bold tracking-wider text-[#facc15]">{code}</span>
         </p>
         <div className="win-line mt-6 grid w-full grid-cols-2 gap-3" style={{ animationDelay: '0.85s' }}>
           <Link href={`/my-bets/${code}`} onClick={onClose} className="border border-white py-3 text-center font-semibold text-white">Details</Link>
-          <button onClick={share} className="flex items-center justify-center gap-2 bg-[#0b9b3a] py-3 font-semibold text-white">
+          <button onClick={share} className="flex items-center justify-center gap-2 bg-[#0d9488] py-3 font-semibold text-white">
             {copied ? <Check size={16} /> : <Share2 size={16} />}
             {copied ? 'Copied' : 'Show off'}
           </button>

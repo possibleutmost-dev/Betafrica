@@ -19,16 +19,16 @@ export function AdminDashboard({ role, close }: { role: Role; close: () => void 
   }, [isAdmin])
 
   return (
-    <section className="mx-auto min-h-[620px] max-w-[1180px] bg-[#f6f7f8] px-3 py-4 sm:px-4 sm:py-6">
+    <section className="mx-auto min-h-[620px] max-w-[1180px] rounded-2xl bg-[#f3f6f9] px-3 py-4 sm:px-4 sm:py-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#ed1324]">Operations console</p>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0f766e]">Operations console</p>
           <h1 className="mt-1 text-2xl font-black sm:text-3xl">{isAdmin ? 'Admin dashboard' : 'Sub-admin workspace'}</h1>
-          <p className="mt-1 text-sm text-[#6b7077]">{isAdmin ? 'Full platform controls, financials and staff permissions.' : 'Your referred players, commission and betting wallet.'}</p>
+          <p className="mt-1 text-sm text-[#64748b]">{isAdmin ? 'Full platform controls, financials and staff permissions.' : 'Your referred players, commission and betting wallet.'}</p>
         </div>
         <button onClick={close} className="border bg-white px-4 py-2 text-sm font-semibold">Back to site</button>
       </div>
-      {authed === 'checking' && <p className="text-sm text-[#6b7077]">Checking access…</p>}
+      {authed === 'checking' && <p className="text-sm text-[#64748b]">Checking access…</p>}
       {authed === 'no' && (isAdmin ? <AdminLogin onSuccess={() => setAuthed('yes')} /> : <PartnerLogin onSuccess={() => setAuthed('yes')} />)}
       {authed === 'yes' && (isAdmin ? <AdminConsole /> : <PartnerConsole onSignedOut={() => setAuthed('no')} />)}
     </section>
@@ -61,23 +61,23 @@ function Dialog({ title, onClose, children }: { title: string; onClose: () => vo
 function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
     <label className="mb-4 block">
-      <span className="mb-1 block text-xs font-semibold text-[#3d4148]">{label}</span>
+      <span className="mb-1 block text-xs font-semibold text-[#334155]">{label}</span>
       {children}
-      {hint && <span className="mt-1 block text-[11px] text-[#8b8f94]">{hint}</span>}
+      {hint && <span className="mt-1 block text-[11px] text-[#94a3b8]">{hint}</span>}
     </label>
   )
 }
 
-const inputClass = 'h-11 w-full border px-3 text-sm outline-none focus:border-[#ed1324]'
+const inputClass = 'h-11 w-full rounded-lg border px-3 text-sm outline-none focus:border-[#0d9488]'
 
 function DialogActions({ busy, confirm, tone = 'red', onCancel, onConfirm, disabled }: { busy?: boolean; confirm: string; tone?: 'red' | 'green'; onCancel: () => void; onConfirm: () => void; disabled?: boolean }) {
   return (
     <div className="mt-2 grid grid-cols-2 gap-2">
-      <button onClick={onCancel} className="h-11 border text-sm font-semibold">Cancel</button>
+      <button onClick={onCancel} className="h-11 rounded-lg border text-sm font-semibold">Cancel</button>
       <button
         disabled={busy || disabled}
         onClick={onConfirm}
-        className={`h-11 text-sm font-semibold text-white disabled:opacity-50 ${tone === 'green' ? 'bg-[#0b9b3a]' : 'bg-[#ed1324]'}`}
+        className={`h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-50 ${tone === 'green' ? 'bg-[#0d9488]' : 'bg-[#dc2626]'}`}
       >
         {busy ? 'Please wait…' : confirm}
       </button>
@@ -87,7 +87,7 @@ function DialogActions({ busy, confirm, tone = 'red', onCancel, onConfirm, disab
 
 function Message({ text, tone = 'ok' }: { text: string; tone?: 'ok' | 'error' }) {
   if (!text) return null
-  return <p className={`mt-2 px-3 py-2 text-xs ${tone === 'ok' ? 'bg-[#e9f7ef] text-[#0b7a2e]' : 'bg-[#fff0f1] text-[#ed1324]'}`}>{text}</p>
+  return <p className={`mt-2 px-3 py-2 text-xs ${tone === 'ok' ? 'bg-[#e6f6f4] text-[#0f766e]' : 'bg-[#fef2f2] text-[#dc2626]'}`}>{text}</p>
 }
 
 async function send(url: string, method: string, body: unknown) {
@@ -111,11 +111,11 @@ export function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
     onSuccess()
   }
   return (
-    <form onSubmit={(event) => { event.preventDefault(); submit() }} className="mx-auto max-w-sm bg-white p-6 shadow-sm">
+    <form onSubmit={(event) => { event.preventDefault(); submit() }} className="mx-auto max-w-sm rounded-2xl border border-[#e2e8f0] bg-white p-6">
       <h2 className="text-lg font-bold">Admin sign in</h2>
       <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" className={`mt-4 ${inputClass}`} />
-      {error && <p className="mt-2 text-xs text-[#ed1324]">{error}</p>}
-      <button type="submit" className="mt-4 w-full bg-[#ed1324] py-3 text-sm font-semibold text-white">Enter console</button>
+      {error && <p className="mt-2 text-xs text-[#dc2626]">{error}</p>}
+      <button type="submit" className="mt-4 w-full rounded-lg bg-[#0d9488] py-3 text-sm font-semibold text-white">Enter console</button>
     </form>
   )
 }
@@ -157,10 +157,10 @@ function PartnerLogin({ onSuccess }: { onSuccess: () => void }) {
   }
 
   return (
-    <form onSubmit={(event) => { event.preventDefault(); submit() }} className="mx-auto max-w-sm bg-white p-6 shadow-sm">
+    <form onSubmit={(event) => { event.preventDefault(); submit() }} className="mx-auto max-w-sm rounded-2xl border border-[#e2e8f0] bg-white p-6">
       <div className="mb-4 grid grid-cols-2 border">
         {(['login', 'register'] as const).map((item) => (
-          <button type="button" key={item} onClick={() => { setMode(item); setError('') }} className={`py-2.5 text-sm font-semibold ${mode === item ? 'bg-[#ed1324] text-white' : ''}`}>
+          <button type="button" key={item} onClick={() => { setMode(item); setError('') }} className={`py-2.5 text-sm font-semibold ${mode === item ? 'bg-[#0d9488] text-white' : ''}`}>
             {item === 'login' ? 'Sign in' : 'Create account'}
           </button>
         ))}
@@ -175,12 +175,12 @@ function PartnerLogin({ onSuccess }: { onSuccess: () => void }) {
       <Field label="Password" hint={mode === 'register' ? 'At least 8 characters.' : undefined}>
         <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} className={inputClass} />
       </Field>
-      {error && <p className="mb-3 text-xs text-[#ed1324]">{error}</p>}
-      {notice && <p className="mb-3 bg-[#e9f7ef] px-3 py-2 text-xs text-[#0b7a2e]">{notice}</p>}
-      <button type="submit" disabled={busy} className="w-full bg-[#ed1324] py-3 text-sm font-semibold text-white disabled:opacity-60">
+      {error && <p className="mb-3 text-xs text-[#dc2626]">{error}</p>}
+      {notice && <p className="mb-3 bg-[#e6f6f4] px-3 py-2 text-xs text-[#0f766e]">{notice}</p>}
+      <button type="submit" disabled={busy} className="w-full rounded-lg bg-[#0d9488] py-3 text-sm font-semibold text-white disabled:opacity-60">
         {busy ? 'Please wait…' : mode === 'login' ? 'Enter workspace' : 'Create sub-admin account'}
       </button>
-      {mode === 'register' && <p className="mt-3 text-center text-[11px] text-[#8b8f94]">New accounts start earning once the admin approves them.</p>}
+      {mode === 'register' && <p className="mt-3 text-center text-[11px] text-[#94a3b8]">New accounts start earning once the admin approves them.</p>}
     </form>
   )
 }
@@ -219,9 +219,9 @@ function AdminConsole() {
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-[215px_minmax(0,1fr)]">
-      <aside className="min-w-0 self-start bg-[#171a20] p-3 text-white">
+      <aside className="min-w-0 self-start rounded-2xl bg-[#0b1b33] p-3 text-white">
         <div className="mb-3 flex items-center gap-2 border-b border-white/10 px-3 pb-3 md:mb-4 md:pb-4">
-          <UserCog size={20} className="text-[#ffcf00]" />
+          <UserCog size={20} className="text-[#facc15]" />
           <div>
             <p className="text-xs font-bold">Super Admin</p>
             <p className="text-[10px] text-white/50">All permissions</p>
@@ -231,7 +231,7 @@ function AdminConsole() {
         <div className="overflow-hidden">
           <nav className="scrollbar-none -mb-5 flex overflow-x-auto pb-5 md:mb-0 md:block md:pb-0">
             {NAV.map(({ key, icon: Icon }) => (
-              <button key={key} onClick={() => setSection(key)} className={`flex shrink-0 items-center gap-3 whitespace-nowrap px-3 py-3 text-left text-sm md:w-full ${section === key ? 'bg-[#ed1324] font-semibold' : 'text-white/70 hover:bg-white/10'}`}>
+              <button key={key} onClick={() => setSection(key)} className={`flex shrink-0 items-center gap-3 whitespace-nowrap rounded-lg px-3 py-3 text-left text-sm md:w-full ${section === key ? 'bg-[#0d9488] font-semibold' : 'text-white/70 hover:bg-white/10'}`}>
                 <Icon size={16} />
                 {key}
               </button>
@@ -245,18 +245,18 @@ function AdminConsole() {
           <>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {cards.map(([label, value, change, Icon]) => (
-                <div key={label} className="bg-white p-4 shadow-sm">
-                  <div className="flex justify-between text-[#6b7077]"><span className="text-xs font-semibold">{label}</span><Icon size={18} /></div>
+                <div key={label} className="rounded-xl border border-[#e2e8f0] bg-white p-4">
+                  <div className="flex justify-between text-[#64748b]"><span className="text-xs font-semibold">{label}</span><Icon size={18} /></div>
                   <p className="mt-4 break-words text-2xl font-black">{value}</p>
-                  <p className="mt-1 text-xs text-[#0b9b3a]">{change}</p>
+                  <p className="mt-1 text-xs text-[#0d9488]">{change}</p>
                 </div>
               ))}
             </div>
             <Card>
               <h2 className="font-bold">Deposits by currency</h2>
-              <p className="mt-2 text-[#6b7077]">{moneyMap(overview?.deposits)}</p>
+              <p className="mt-2 text-[#64748b]">{moneyMap(overview?.deposits)}</p>
               <h2 className="mt-4 font-bold">Withdrawals by currency</h2>
-              <p className="mt-2 text-[#6b7077]">{moneyMap(overview?.withdrawals)}</p>
+              <p className="mt-2 text-[#64748b]">{moneyMap(overview?.withdrawals)}</p>
             </Card>
           </>
         )}
@@ -273,7 +273,7 @@ function AdminConsole() {
 }
 
 function Card({ children }: { children: ReactNode }) {
-  return <div className="min-w-0 break-words bg-white p-4 text-sm shadow-sm sm:p-5">{children}</div>
+  return <div className="min-w-0 break-words rounded-xl border border-[#e2e8f0] bg-white p-4 text-sm sm:p-5">{children}</div>
 }
 
 function moneyMap(value: unknown) {
@@ -309,20 +309,20 @@ function PlayersPanel() {
     <Card>
       <form onSubmit={(event) => { event.preventDefault(); load() }} className="flex gap-2">
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, phone or email" className="h-10 min-w-0 flex-1 border px-3 text-sm" />
-        <button type="submit" className="bg-[#171a20] px-4 text-sm font-semibold text-white">Search</button>
+        <button type="submit" className="bg-[#0b1b33] px-4 text-sm font-semibold text-white">Search</button>
       </form>
       <Message text={message.text} tone={message.tone} />
       <div className="mt-4 divide-y">
-        {players.length === 0 && <p className="py-4 text-[#6b7077]">No players found.</p>}
+        {players.length === 0 && <p className="py-4 text-[#64748b]">No players found.</p>}
         {players.map((player) => (
           <div key={player.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
             <div className="min-w-0">
               <p className="font-semibold">{player.name} · {player.phone}</p>
-              <p className="text-xs text-[#6b7077]">{formatMoney(Number(player.balance), player.currency)} · deposited {formatMoney(Number(player.total_deposited), player.currency)}</p>
+              <p className="text-xs text-[#64748b]">{formatMoney(Number(player.balance), player.currency)} · deposited {formatMoney(Number(player.total_deposited), player.currency)}</p>
             </div>
             <div className="flex gap-2">
               <button onClick={() => act(player.id, player.withdrawal_approved ? 'revoke' : 'approve')} className="border px-3 py-1.5 text-xs">{player.withdrawal_approved ? 'Revoke withdrawals' : 'Approve withdrawals'}</button>
-              <button onClick={() => setCrediting(player)} className="bg-[#171a20] px-3 py-1.5 text-xs text-white">Adjust balance</button>
+              <button onClick={() => setCrediting(player)} className="bg-[#0b1b33] px-3 py-1.5 text-xs text-white">Adjust balance</button>
             </div>
           </div>
         ))}
@@ -343,16 +343,16 @@ function CreditDialog({ player, onClose, onSubmit }: { player: PlayerRow; onClos
 
   return (
     <Dialog title="Adjust balance" onClose={onClose}>
-      <p className="mb-4 text-sm"><b>{player.name}</b> · {player.phone}<br /><span className="text-[#6b7077]">Current balance {formatMoney(balance, player.currency)}</span></p>
+      <p className="mb-4 text-sm"><b>{player.name}</b> · {player.phone}<br /><span className="text-[#64748b]">Current balance {formatMoney(balance, player.currency)}</span></p>
       <div className="mb-4 grid grid-cols-2 border">
         {(['credit', 'deduct'] as const).map((item) => (
-          <button key={item} onClick={() => setDirection(item)} className={`py-2.5 text-sm font-semibold capitalize ${direction === item ? (item === 'credit' ? 'bg-[#0b9b3a] text-white' : 'bg-[#ed1324] text-white') : ''}`}>{item}</button>
+          <button key={item} onClick={() => setDirection(item)} className={`py-2.5 text-sm font-semibold capitalize ${direction === item ? (item === 'credit' ? 'bg-[#0d9488] text-white' : 'bg-[#dc2626] text-white') : ''}`}>{item}</button>
         ))}
       </div>
       <Field label={`Amount (${player.currency})`}>
         <input autoFocus value={amount} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" placeholder="0.00" className={inputClass} />
       </Field>
-      {valid && <p className="mb-4 text-xs text-[#6b7077]">New balance will be <b className={next < 0 ? 'text-[#ed1324]' : ''}>{formatMoney(next, player.currency)}</b></p>}
+      {valid && <p className="mb-4 text-xs text-[#64748b]">New balance will be <b className={next < 0 ? 'text-[#dc2626]' : ''}>{formatMoney(next, player.currency)}</b></p>}
       <DialogActions
         busy={busy}
         disabled={!valid}
@@ -384,8 +384,8 @@ function DepositsPanel() {
   return (
     <Card>
       <h2 className="font-bold">Pending manual deposits</h2>
-      <p className="mt-1 text-xs text-[#6b7077]">Players can no longer submit manual transfers. Anything left here was sent before that change.</p>
-      {rows.length === 0 && <p className="mt-3 text-[#6b7077]">Nothing waiting.</p>}
+      <p className="mt-1 text-xs text-[#64748b]">Players can no longer submit manual transfers. Anything left here was sent before that change.</p>
+      {rows.length === 0 && <p className="mt-3 text-[#64748b]">Nothing waiting.</p>}
       {rows.map((row) => {
         const user = row.users as { name?: string; phone?: string } | undefined
         const reference = String(row.reference)
@@ -393,9 +393,9 @@ function DepositsPanel() {
           <div key={reference} className="mt-3 border p-3">
             <p className="font-semibold">{user?.name} · {user?.phone}</p>
             <p>{formatMoney(Number(row.amount), String(row.currency))} · {String(row.senderNumber ?? '')}</p>
-            {row.screenshotUrl ? <a className="text-xs text-[#ed1324]" href={String(row.screenshotUrl)} target="_blank" rel="noreferrer">Open screenshot</a> : null}
+            {row.screenshotUrl ? <a className="text-xs text-[#0f766e]" href={String(row.screenshotUrl)} target="_blank" rel="noreferrer">Open screenshot</a> : null}
             <div className="mt-2 flex gap-2">
-              <button onClick={() => act(reference, 'confirm')} className="bg-[#0b9b3a] px-3 py-1.5 text-xs text-white">Confirm</button>
+              <button onClick={() => act(reference, 'confirm')} className="bg-[#0d9488] px-3 py-1.5 text-xs text-white">Confirm</button>
               <button onClick={() => setRejecting(reference)} className="border px-3 py-1.5 text-xs">Reject</button>
             </div>
           </div>
@@ -403,7 +403,7 @@ function DepositsPanel() {
       })}
       {rejecting && (
         <Dialog title="Reject deposit?" onClose={() => setRejecting(null)}>
-          <p className="mb-4 text-sm text-[#3d4148]">The player will not be credited for reference <b>{rejecting}</b>. This cannot be undone.</p>
+          <p className="mb-4 text-sm text-[#334155]">The player will not be credited for reference <b>{rejecting}</b>. This cannot be undone.</p>
           <DialogActions confirm="Reject deposit" onCancel={() => setRejecting(null)} onConfirm={async () => { await act(rejecting, 'reject'); setRejecting(null) }} />
         </Dialog>
       )}
@@ -537,35 +537,35 @@ function MatchesPanel() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-bold">Custom matches</h2>
-            <p className="text-xs text-[#6b7077]">They start on their own at kickoff, score from your goal script, and finish and settle on their own at full time.</p>
+            <p className="text-xs text-[#64748b]">They start on their own at kickoff, score from your goal script, and finish and settle on their own at full time.</p>
           </div>
-          <button onClick={() => setAdding(true)} className="bg-[#ed1324] px-4 py-2 text-sm font-semibold text-white">Add match</button>
+          <button onClick={() => setAdding(true)} className="rounded-lg bg-[#0d9488] px-4 py-2 text-sm font-semibold text-white">Add match</button>
         </div>
         <Message text={message.text} tone={message.tone} />
         <div className="mt-4 grid grid-cols-2 border">
           {([['active', `Upcoming & live (${counts.active})`], ['finished', `Finished (${counts.finished})`]] as const).map(([key, label]) => (
-            <button key={key} onClick={() => setView(key)} className={`py-2 text-sm font-semibold ${view === key ? 'bg-[#171a20] text-white' : ''}`}>{label}</button>
+            <button key={key} onClick={() => setView(key)} className={`py-2 text-sm font-semibold ${view === key ? 'bg-[#0b1b33] text-white' : ''}`}>{label}</button>
           ))}
         </div>
       </Card>
 
-      {rows.length === 0 && <Card><p className="text-[#6b7077]">{view === 'active' ? 'No upcoming or live matches. Add one above.' : 'No finished matches.'}</p></Card>}
+      {rows.length === 0 && <Card><p className="text-[#64748b]">{view === 'active' ? 'No upcoming or live matches. Add one above.' : 'No finished matches.'}</p></Card>}
 
       {rows.map(({ row, status }) => (
         <Card key={row.id}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs text-[#6b7077]">{row.league}</p>
-              <p className="mt-1 font-semibold">{row.home_team} <span className="text-[#6b7077]">vs</span> {row.away_team}</p>
+              <p className="text-xs text-[#64748b]">{row.league}</p>
+              <p className="mt-1 font-semibold">{row.home_team} <span className="text-[#64748b]">vs</span> {row.away_team}</p>
               <p className="mt-1 flex flex-wrap items-center gap-2 text-xs">
-                <span className={`px-1.5 py-0.5 font-bold ${status.kind === 'live' ? 'bg-[#e9f7ef] text-[#0b7a2e]' : status.kind === 'ft' ? 'bg-[#eceef1] text-[#3d4148]' : 'bg-[#fff4d6] text-[#8a6100]'}`}>
+                <span className={`px-1.5 py-0.5 font-bold ${status.kind === 'live' ? 'bg-[#e6f6f4] text-[#0f766e]' : status.kind === 'ft' ? 'bg-[#e2e8f0] text-[#334155]' : 'bg-[#fff4d6] text-[#8a6100]'}`}>
                   {status.kind === 'live' ? `LIVE ${status.label}` : status.kind === 'ft' ? 'FT' : 'Starts'}
                 </span>
-                {status.kind === 'pre' ? <span className="text-[#6b7077]">{status.label}</span> : <b>{status.home} – {status.away}</b>}
-                {row.is_locked && <span className="bg-[#fff0f1] px-1.5 py-0.5 font-bold text-[#ed1324]">Locked</span>}
-                {row.best_odds && <span className="bg-[#e9f7ef] px-1.5 py-0.5 font-bold text-[#0b7a2e]">Best odds</span>}
+                {status.kind === 'pre' ? <span className="text-[#64748b]">{status.label}</span> : <b>{status.home} – {status.away}</b>}
+                {row.is_locked && <span className="bg-[#fef2f2] px-1.5 py-0.5 font-bold text-[#dc2626]">Locked</span>}
+                {row.best_odds && <span className="bg-[#e6f6f4] px-1.5 py-0.5 font-bold text-[#0f766e]">Best odds</span>}
               </p>
-              <p className="mt-1 text-xs text-[#6b7077]">
+              <p className="mt-1 text-xs text-[#64748b]">
                 Odds {Number(row.odds_home).toFixed(2)} / {Number(row.odds_draw).toFixed(2)} / {Number(row.odds_away).toFixed(2)}
                 {' · '}Goals: {(row.goal_timeline ?? []).length ? (row.goal_timeline ?? []).map((g) => `${g.minute}' ${g.team === 'home' ? row.home_team : row.away_team}`).join(', ') : 'none (0–0)'}
               </p>
@@ -579,7 +579,7 @@ function MatchesPanel() {
                   <button onClick={() => setFinishing(row)} className="border px-3 py-1.5 text-xs">Set result</button>
                 </>
               )}
-              <button onClick={() => setRemoving(row)} className="bg-[#ed1324] px-3 py-1.5 text-xs text-white">Remove</button>
+              <button onClick={() => setRemoving(row)} className="bg-[#dc2626] px-3 py-1.5 text-xs text-white">Remove</button>
             </div>
           </div>
         </Card>
@@ -656,7 +656,7 @@ function MatchDialog({ title, initial, allowStartNow = false, onClose, onSubmit 
           <div key={side} className="flex items-center gap-2 border px-2 py-1.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={form[side] || '/crest-fallback.svg'} alt="" className="h-8 w-8 shrink-0 rounded-full bg-white object-contain" />
-            <label className="cursor-pointer text-xs font-semibold text-[#ed1324]">
+            <label className="cursor-pointer text-xs font-semibold text-[#0f766e]">
               {form[side] ? 'Change crest' : 'Add crest'}
               <input type="file" accept="image/*" className="hidden" onChange={(event) => upload(side, event.target.files?.[0])} />
             </label>
@@ -665,7 +665,7 @@ function MatchDialog({ title, initial, allowStartNow = false, onClose, onSubmit 
       </div>
       {allowStartNow && (
         <label className="mb-3 flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={form.startNow} onChange={(event) => setForm({ ...form, startNow: event.target.checked })} className="h-4 w-4 accent-[#ed1324]" />
+          <input type="checkbox" checked={form.startNow} onChange={(event) => setForm({ ...form, startNow: event.target.checked })} className="h-4 w-4 accent-[#0d9488]" />
           Start the match now
         </label>
       )}
@@ -681,10 +681,10 @@ function MatchDialog({ title, initial, allowStartNow = false, onClose, onSubmit 
       </div>
       <GoalScript goals={form.goal_timeline} home={form.home_team || 'Home'} away={form.away_team || 'Away'} onChange={(goal_timeline) => setForm({ ...form, goal_timeline })} />
       <div className="mb-4 flex flex-wrap gap-4 text-sm">
-        <label className="flex items-center gap-2"><input type="checkbox" checked={form.is_locked} onChange={(event) => setForm({ ...form, is_locked: event.target.checked })} className="h-4 w-4 accent-[#ed1324]" /> Lock betting</label>
-        <label className="flex items-center gap-2"><input type="checkbox" checked={form.best_odds} onChange={(event) => setForm({ ...form, best_odds: event.target.checked })} className="h-4 w-4 accent-[#ed1324]" /> Best odds boost</label>
+        <label className="flex items-center gap-2"><input type="checkbox" checked={form.is_locked} onChange={(event) => setForm({ ...form, is_locked: event.target.checked })} className="h-4 w-4 accent-[#0d9488]" /> Lock betting</label>
+        <label className="flex items-center gap-2"><input type="checkbox" checked={form.best_odds} onChange={(event) => setForm({ ...form, best_odds: event.target.checked })} className="h-4 w-4 accent-[#0d9488]" /> Best odds boost</label>
       </div>
-      {error && <p className="mb-3 text-xs text-[#ed1324]">{error}</p>}
+      {error && <p className="mb-3 text-xs text-[#dc2626]">{error}</p>}
       <DialogActions
         busy={busy}
         disabled={!valid}
@@ -717,13 +717,13 @@ function GoalScript({ goals, home, away, onChange }: { goals: Goal[]; home: stri
 
   return (
     <div className="mb-4 border p-3">
-      <p className="text-xs font-semibold text-[#3d4148]">Goal script <span className="font-normal text-[#8b8f94]">· final score {final.home} – {final.away}</span></p>
+      <p className="text-xs font-semibold text-[#334155]">Goal script <span className="font-normal text-[#94a3b8]">· final score {final.home} – {final.away}</span></p>
       <div className="mt-2 flex flex-wrap gap-1.5">
-        {goals.length === 0 && <span className="text-xs text-[#8b8f94]">No goals: the match ends 0–0.</span>}
+        {goals.length === 0 && <span className="text-xs text-[#94a3b8]">No goals: the match ends 0–0.</span>}
         {goals.map((goal, index) => (
-          <span key={`${goal.minute}-${goal.team}-${index}`} className="flex items-center gap-1 bg-[#f6f7f8] px-2 py-1 text-xs">
+          <span key={`${goal.minute}-${goal.team}-${index}`} className="flex items-center gap-1 bg-[#f3f6f9] px-2 py-1 text-xs">
             {goal.minute}&apos; {goal.team === 'home' ? home : away}
-            <button onClick={() => onChange(goals.filter((_, i) => i !== index))} aria-label="Remove goal" className="text-[#8b8f94] hover:text-[#ed1324]"><X size={12} /></button>
+            <button onClick={() => onChange(goals.filter((_, i) => i !== index))} aria-label="Remove goal" className="text-[#94a3b8] hover:text-[#dc2626]"><X size={12} /></button>
           </span>
         ))}
       </div>
@@ -741,8 +741,8 @@ function RemoveDialog({ match, onClose, onRemoved }: { match: MatchRow; onClose:
   const [error, setError] = useState('')
   return (
     <Dialog title="Remove match?" onClose={onClose}>
-      <p className="mb-4 text-sm text-[#3d4148]"><b>{match.home_team} vs {match.away_team}</b> will disappear from the site. This cannot be undone.</p>
-      {error && <p className="mb-3 bg-[#fff0f1] px-3 py-2 text-xs text-[#ed1324]">{error}</p>}
+      <p className="mb-4 text-sm text-[#334155]"><b>{match.home_team} vs {match.away_team}</b> will disappear from the site. This cannot be undone.</p>
+      {error && <p className="mb-3 bg-[#fef2f2] px-3 py-2 text-xs text-[#dc2626]">{error}</p>}
       <DialogActions
         busy={busy}
         confirm="Remove match"
@@ -778,8 +778,8 @@ function ResultDialog({ match, onClose, onSaved }: { match: MatchRow; onClose: (
         <span className="mb-7 text-lg font-bold">–</span>
         <Field label={match.away_team}><input value={away} onChange={(event) => setAway(event.target.value.replace(/\D/g, ''))} inputMode="numeric" className={`${inputClass} text-center text-lg font-bold`} /></Field>
       </div>
-      <p className="mb-4 text-xs text-[#6b7077]">Bets on this match settle from this score. Check it before saving.</p>
-      {error && <p className="mb-3 text-xs text-[#ed1324]">{error}</p>}
+      <p className="mb-4 text-xs text-[#64748b]">Bets on this match settle from this score. Check it before saving.</p>
+      {error && <p className="mb-3 text-xs text-[#dc2626]">{error}</p>}
       <DialogActions
         busy={busy}
         disabled={!valid}
@@ -823,7 +823,7 @@ function ReportsPanel() {
         {bets.slice(0, 30).map((bet) => (
           <div key={String(bet.code)} className="border-b py-2">
             <p className="font-semibold">{String(bet.code)} · {String(bet.status)}</p>
-            <p className="text-xs text-[#6b7077]">{formatMoney(Number(bet.stake), String(bet.currency))} → {formatMoney(Number(bet.potential_win), String(bet.currency))}</p>
+            <p className="text-xs text-[#64748b]">{formatMoney(Number(bet.stake), String(bet.currency))} → {formatMoney(Number(bet.potential_win), String(bet.currency))}</p>
           </div>
         ))}
       </Card>
@@ -833,7 +833,7 @@ function ReportsPanel() {
           <div key={String(payment.reference)} className="flex flex-wrap items-center justify-between gap-2 border-b py-2">
             <div className="min-w-0">
               <p className="font-semibold">{formatMoney(Number(payment.amount), String(payment.currency))} · {String(payment.status)}</p>
-              <p className="break-all text-xs text-[#6b7077]">{String(payment.provider)} · {String(payment.reference)}</p>
+              <p className="break-all text-xs text-[#64748b]">{String(payment.provider)} · {String(payment.reference)}</p>
             </div>
             {payment.status === 'pending' && <button onClick={() => resolve(String(payment.reference))} className="border px-2 py-1 text-xs">Resolve</button>}
           </div>
@@ -867,31 +867,31 @@ function PartnersPanel() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-bold">Sub-admins</h2>
-            <p className="text-xs text-[#6b7077]">Sub-admins sign in on their own page with their email and password.</p>
+            <p className="text-xs text-[#64748b]">Sub-admins sign in on their own page with their email and password.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Link href="/sub-admin" target="_blank" className="flex items-center gap-1.5 border px-3 py-2 text-xs font-semibold">Open sub-admin page <ExternalLink size={13} /></Link>
-            <button onClick={() => setAdding(true)} className="bg-[#ed1324] px-3 py-2 text-xs font-semibold text-white">Add sub-admin</button>
+            <button onClick={() => setAdding(true)} className="rounded-lg bg-[#0d9488] px-3 py-2 text-xs font-semibold text-white">Add sub-admin</button>
           </div>
         </div>
         <Message text={message} />
       </Card>
       <Card>
-        {partners.length === 0 && <p className="text-[#6b7077]">No sub-admins yet.</p>}
+        {partners.length === 0 && <p className="text-[#64748b]">No sub-admins yet.</p>}
         {partners.map((partner) => {
           const owed = Object.entries(partner.balances ?? {}).filter(([, amount]) => Number(amount) > 0)
           return (
             <div key={partner.id} className="border-b py-3">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="font-semibold">{partner.name} <span className={`ml-1 px-1.5 py-0.5 text-[10px] font-bold uppercase ${partner.approved ? 'bg-[#e9f7ef] text-[#0b7a2e]' : 'bg-[#fff4d6] text-[#8a6100]'}`}>{partner.approved ? 'Approved' : 'Waiting'}</span></p>
-                  <p className="break-all text-xs text-[#6b7077]">{partner.email}{partner.phone ? ` · ${partner.phone}` : ''}</p>
-                  <p className="text-xs text-[#6b7077]">Code <b>{partner.referral_code}</b> · {partner.referredPlayers} players</p>
+                  <p className="font-semibold">{partner.name} <span className={`ml-1 px-1.5 py-0.5 text-[10px] font-bold uppercase ${partner.approved ? 'bg-[#e6f6f4] text-[#0f766e]' : 'bg-[#fff4d6] text-[#8a6100]'}`}>{partner.approved ? 'Approved' : 'Waiting'}</span></p>
+                  <p className="break-all text-xs text-[#64748b]">{partner.email}{partner.phone ? ` · ${partner.phone}` : ''}</p>
+                  <p className="text-xs text-[#64748b]">Code <b>{partner.referral_code}</b> · {partner.referredPlayers} players</p>
                   <p className="mt-1 text-xs">Commission owed: {owed.length ? owed.map(([currency, amount]) => formatMoney(Number(amount), currency)).join(' · ') : 'none'}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {owed.map(([currency, amount]) => (
-                    <button key={currency} onClick={() => setSettling({ partner, currency, amount: Number(amount) })} className="bg-[#0b9b3a] px-3 py-1.5 text-xs text-white">Mark {currency} paid</button>
+                    <button key={currency} onClick={() => setSettling({ partner, currency, amount: Number(amount) })} className="bg-[#0d9488] px-3 py-1.5 text-xs text-white">Mark {currency} paid</button>
                   ))}
                   <button onClick={() => act(partner.id, partner.approved ? 'revoke' : 'approve')} className="border px-3 py-1.5 text-xs">{partner.approved ? 'Revoke' : 'Approve'}</button>
                 </div>
@@ -903,7 +903,7 @@ function PartnersPanel() {
       {adding && <AddPartnerDialog onClose={() => setAdding(false)} onCreated={(name) => { setMessage(`${name} can now sign in on the sub-admin page.`); load() }} />}
       {settling && (
         <Dialog title="Mark commission as paid" onClose={() => setSettling(null)}>
-          <p className="mb-4 text-sm text-[#3d4148]">
+          <p className="mb-4 text-sm text-[#334155]">
             Confirm you have paid <b>{settling.partner.name}</b> {formatMoney(settling.amount, settling.currency)}. Their owed balance resets to zero; the lifetime total is kept.
           </p>
           <DialogActions tone="green" confirm="Mark as paid" onCancel={() => setSettling(null)} onConfirm={async () => { await act(settling.partner.id, 'settle', { currency: settling.currency }); setSettling(null) }} />
@@ -925,7 +925,7 @@ function AddPartnerDialog({ onClose, onCreated }: { onClose: () => void; onCreat
       <Field label="Email" hint="They sign in with this."><input value={form.email} onChange={set('email')} type="email" className={inputClass} /></Field>
       <Field label="Phone (optional)"><input value={form.phone} onChange={set('phone')} inputMode="tel" placeholder="+233" className={inputClass} /></Field>
       <Field label="Password" hint="At least 8 characters. Share it with them privately."><input value={form.password} onChange={set('password')} type="text" autoComplete="off" className={inputClass} /></Field>
-      {error && <p className="mb-3 text-xs text-[#ed1324]">{error}</p>}
+      {error && <p className="mb-3 text-xs text-[#dc2626]">{error}</p>}
       <DialogActions
         busy={busy}
         tone="green"
@@ -1011,9 +1011,9 @@ function ConfigPanel() {
         </Card>
       ))}
       <Card>
-        <p className="text-xs text-[#6b7077]">A value saved here overrides the same variable in Vercel. Clear it to go back to the Vercel value. Secret keys are never shown again after saving.</p>
+        <p className="text-xs text-[#64748b]">A value saved here overrides the same variable in Vercel. Clear it to go back to the Vercel value. Secret keys are never shown again after saving.</p>
         <Message text={message.text} tone={message.tone} />
-        <button disabled={busy} onClick={save} className="mt-3 bg-[#171a20] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60">{busy ? 'Saving…' : 'Save changes'}</button>
+        <button disabled={busy} onClick={save} className="mt-3 bg-[#0b1b33] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60">{busy ? 'Saving…' : 'Save changes'}</button>
       </Card>
     </div>
   )
@@ -1035,7 +1035,7 @@ function SettingsPanel() {
   return (
     <Card>
       <h2 className="font-bold">Support and footer</h2>
-      <p className="mt-1 text-xs text-[#6b7077]">Shown on the Help page and in the site footer. Leave the licence line empty until you have a licence number.</p>
+      <p className="mt-1 text-xs text-[#64748b]">Shown on the Help page and in the site footer. Leave the licence line empty until you have a licence number.</p>
       {keys.map((key) => (
         <label key={key} className="mt-3 block text-xs font-semibold">
           {{ support_whatsapp: 'Support WhatsApp number', support_email: 'Support email', license_text: 'Licence line (e.g. Licensed by the Gaming Commission of Ghana · your licence number)' }[key] ?? key}
@@ -1043,7 +1043,7 @@ function SettingsPanel() {
         </label>
       ))}
       <Message text={message} />
-      <button onClick={save} className="mt-4 bg-[#171a20] px-4 py-2 text-sm font-semibold text-white">Save settings</button>
+      <button onClick={save} className="mt-4 bg-[#0b1b33] px-4 py-2 text-sm font-semibold text-white">Save settings</button>
     </Card>
   )
 }
@@ -1079,9 +1079,9 @@ function PartnerConsole({ onSignedOut }: { onSignedOut: () => void }) {
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-[215px_minmax(0,1fr)]">
-      <aside className="min-w-0 self-start bg-[#171a20] p-3 text-white">
+      <aside className="min-w-0 self-start rounded-2xl bg-[#0b1b33] p-3 text-white">
         <div className="mb-2 flex items-center gap-2 px-3 pb-2">
-          <UserCog size={20} className="text-[#ffcf00]" />
+          <UserCog size={20} className="text-[#facc15]" />
           <div className="min-w-0">
             <p className="truncate text-xs font-bold">{partner.name ?? 'Sub-admin'}</p>
             <p className="text-[10px] text-white/50">{partner.approved ? 'Approved' : 'Waiting for approval'}</p>
@@ -1092,7 +1092,7 @@ function PartnerConsole({ onSignedOut }: { onSignedOut: () => void }) {
       <div className="min-w-0 space-y-4">
         <div className="flex gap-1 rounded-xl bg-white p-1 shadow-sm">
           {PERIODS.map((item) => (
-            <button key={item.key} onClick={() => setPeriod(item.key)} className={`flex-1 rounded-lg py-2 text-sm font-semibold ${period === item.key ? 'bg-[#171a20] text-white' : 'text-[#6b7077]'}`}>{item.label}</button>
+            <button key={item.key} onClick={() => setPeriod(item.key)} className={`flex-1 rounded-lg py-2 text-sm font-semibold ${period === item.key ? 'bg-[#0b1b33] text-white' : 'text-[#64748b]'}`}>{item.label}</button>
           ))}
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -1106,20 +1106,20 @@ function PartnerConsole({ onSignedOut }: { onSignedOut: () => void }) {
           {!wallet && <button onClick={() => setOpening(true)} className="mt-3 border px-3 py-2 text-xs font-semibold">Open betting account</button>}
           <div className="mt-3 flex gap-2">
             <input value={amount} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" placeholder="Amount" className="h-10 min-w-0 flex-1 border px-3" />
-            <button onClick={credit} disabled={!Number(amount)} className="bg-[#0b9b3a] px-4 text-sm font-semibold text-white disabled:opacity-50">Credit</button>
+            <button onClick={credit} disabled={!Number(amount)} className="bg-[#0d9488] px-4 text-sm font-semibold text-white disabled:opacity-50">Credit</button>
           </div>
           <Message text={message.text} tone={message.tone} />
-          <p className="mt-2 text-xs text-[#6b7077]">Used today {String(data?.creditedToday ?? 0)} of {String(data?.dailyLimit ?? 0)}.</p>
+          <p className="mt-2 text-xs text-[#64748b]">Used today {String(data?.creditedToday ?? 0)} of {String(data?.dailyLimit ?? 0)}.</p>
         </Card>
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
             <h2 className="font-bold">Referred players · {periodLabel}</h2>
-            {players.length === 0 && <p className="mt-2 text-[#6b7077]">{period === 'all' ? `Share your code ${partner.referral_code ?? ''} to bring players in.` : `No new players ${periodLabel.toLowerCase()}.`}</p>}
+            {players.length === 0 && <p className="mt-2 text-[#64748b]">{period === 'all' ? `Share your code ${partner.referral_code ?? ''} to bring players in.` : `No new players ${periodLabel.toLowerCase()}.`}</p>}
             {players.map((player) => <p key={player.id} className="border-b py-2">{player.name} · {player.phone} · {formatMoney(player.total_deposited, player.currency)}</p>)}
           </Card>
           <Card>
             <h2 className="font-bold">Commission · {periodLabel}</h2>
-            {commissions.length === 0 && <p className="mt-2 text-[#6b7077]">{period === 'all' ? 'No commission yet.' : `No commission ${periodLabel.toLowerCase()}.`}</p>}
+            {commissions.length === 0 && <p className="mt-2 text-[#64748b]">{period === 'all' ? 'No commission yet.' : `No commission ${periodLabel.toLowerCase()}.`}</p>}
             {commissions.map((row) => <p key={row.id} className="border-b py-2">{formatMoney(row.amount, row.currency)} on {formatMoney(row.deposit_amount, row.currency)}</p>)}
           </Card>
         </div>
@@ -1160,8 +1160,8 @@ function OpenAccountDialog({ onClose, onDone }: { onClose: () => void; onDone: (
   return (
     <Dialog title="Open betting account" onClose={onClose}>
       <Field label="Phone number for the betting account" hint="You sign in to the betting site with this number.">
-        <div className="flex h-11 border focus-within:border-[#ed1324]">
-          <span className="flex items-center border-r bg-[#f5f6f7] px-3 text-sm font-semibold">+233</span>
+        <div className="flex h-11 border focus-within:border-[#0d9488]">
+          <span className="flex items-center border-r bg-[#f1f5f9] px-3 text-sm font-semibold">+233</span>
           <input autoFocus value={phone} onChange={(event) => setPhone(event.target.value)} inputMode="tel" placeholder="24 123 4567" className="min-w-0 flex-1 px-3 text-sm outline-none" />
         </div>
       </Field>
@@ -1184,5 +1184,5 @@ function OpenAccountDialog({ onClose, onDone }: { onClose: () => void; onDone: (
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
-  return <div className="bg-white p-4 shadow-sm"><p className="text-xs font-semibold text-[#6b7077]">{label}</p><p className="mt-3 break-words text-xl font-black">{value}</p></div>
+  return <div className="rounded-xl border border-[#e2e8f0] bg-white p-4"><p className="text-xs font-semibold text-[#64748b]">{label}</p><p className="mt-3 break-words text-xl font-black">{value}</p></div>
 }

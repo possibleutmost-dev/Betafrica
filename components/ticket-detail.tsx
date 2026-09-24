@@ -47,17 +47,17 @@ type Detail = {
 
 const STATUS_STYLE: Record<string, string> = {
   won: 'bg-[#0b9b3a] text-white',
-  lost: 'bg-[#6b7077] text-white',
-  pending: 'bg-[#ffcf00] text-[#24262c]',
-  cashed_out: 'bg-[#171a20] text-white',
-  void: 'bg-[#d7d9dd] text-[#24262c]',
+  lost: 'bg-[#64748b] text-white',
+  pending: 'bg-[#facc15] text-[#132640]',
+  cashed_out: 'bg-[#0b1b33] text-white',
+  void: 'bg-[#cbd5e1] text-[#132640]',
 }
 
 const RESULT_STYLE: Record<string, string> = {
   won: 'text-[#0b9b3a]',
   lost: 'text-[#ed1324]',
-  pending: 'text-[#8b8f94]',
-  void: 'text-[#8b8f94]',
+  pending: 'text-[#94a3b8]',
+  void: 'text-[#94a3b8]',
 }
 
 export function TicketDetail({ code }: { code: string }) {
@@ -127,29 +127,29 @@ export function TicketDetail({ code }: { code: string }) {
 
   return (
     <section className="mx-auto max-w-[760px] px-4 py-6">
-      <Link href="/my-bets" className="mb-3 inline-flex items-center text-sm text-[#6b7077]"><ChevronLeft size={16} /> My bets</Link>
+      <Link href="/my-bets" className="mb-3 inline-flex items-center text-sm text-[#64748b]"><ChevronLeft size={16} /> My bets</Link>
       <div className="bg-white shadow-sm">
         {error && <p className="p-5 text-sm text-[#ed1324]">{error}</p>}
-        {!data && !error && <p className="p-5 text-sm text-[#6b7077]">Loading ticket…</p>}
+        {!data && !error && <p className="p-5 text-sm text-[#64748b]">Loading ticket…</p>}
         {bet && data && (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3 border-b p-5">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#6b7077]">Ticket code</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#64748b]">Ticket code</p>
                 <button onClick={copy} className="flex items-center gap-2">
-                  <span className="text-2xl font-black tracking-[0.1em] text-[#ed1324]">{bet.code}</span>
-                  {copied ? <Check size={16} className="text-[#0b9b3a]" /> : <Copy size={16} className="text-[#8b8f94]" />}
+                  <span className="text-2xl font-black tracking-[0.1em] text-[#0f766e]">{bet.code}</span>
+                  {copied ? <Check size={16} className="text-[#0b9b3a]" /> : <Copy size={16} className="text-[#94a3b8]" />}
                 </button>
-                <p className="text-xs text-[#8b8f94]">{new Date(bet.created_at).toLocaleString('en-GB')}</p>
+                <p className="text-xs text-[#94a3b8]">{new Date(bet.created_at).toLocaleString('en-GB')}</p>
               </div>
-              <span className={`px-3 py-1 text-xs font-bold uppercase ${STATUS_STYLE[bet.status] ?? 'bg-[#d7d9dd]'}`}>{bet.status.replace('_', ' ')}</span>
+              <span className={`px-3 py-1 text-xs font-bold uppercase ${STATUS_STYLE[bet.status] ?? 'bg-[#cbd5e1]'}`}>{bet.status.replace('_', ' ')}</span>
             </div>
 
             {bet.status === 'won' && (
               <button onClick={() => setCelebrate(true)} className="flex w-full flex-col items-center bg-[#181b21] py-5 text-white">
                 <Trophy size={140} />
                 <span className="mt-1 text-sm text-white/70">You won</span>
-                <span className="text-2xl font-black text-[#ffcf00]">{formatMoney(payout, bet.currency)}</span>
+                <span className="text-2xl font-black text-[#facc15]">{formatMoney(payout, bet.currency)}</span>
               </button>
             )}
 
@@ -169,8 +169,8 @@ export function TicketDetail({ code }: { code: string }) {
                   <li key={leg.id} className="flex items-start justify-between gap-3 px-4 py-3 text-sm sm:px-5">
                     <div className="min-w-0 break-words">
                       <p className="font-semibold">{leg.home_team} vs {leg.away_team}</p>
-                      <p className="text-xs text-[#6b7077]">{leg.league} · {leg.market} · <strong>{leg.outcome}</strong> @ {Number(leg.odds).toFixed(2)}</p>
-                      <p className="text-xs text-[#8b8f94]">{score}</p>
+                      <p className="text-xs text-[#64748b]">{leg.league} · {leg.market} · <strong>{leg.outcome}</strong> @ {Number(leg.odds).toFixed(2)}</p>
+                      <p className="text-xs text-[#94a3b8]">{score}</p>
                     </div>
                     <span className={`text-xs font-bold uppercase ${RESULT_STYLE[leg.result] ?? ''}`}>{leg.result}</span>
                   </li>
@@ -180,7 +180,7 @@ export function TicketDetail({ code }: { code: string }) {
 
             {bet.status === 'pending' && (
               <div className="border-t p-5">
-                <button disabled={busy || !data.cashout.available} onClick={cashout} className="h-11 w-full bg-[#0b9b3a] text-sm font-semibold text-white disabled:bg-[#d7d9dd] disabled:text-[#6b7077]">
+                <button disabled={busy || !data.cashout.available} onClick={cashout} className="h-11 w-full bg-[#0d9488] text-sm font-semibold text-white disabled:bg-[#cbd5e1] disabled:text-[#64748b]">
                   {data.cashout.available ? `Cash out ${formatMoney(data.cashout.amount, bet.currency)}` : 'Cashout not available'}
                 </button>
               </div>
@@ -196,7 +196,7 @@ export function TicketDetail({ code }: { code: string }) {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs text-[#6b7077]">{label}</dt>
+      <dt className="text-xs text-[#64748b]">{label}</dt>
       <dd className="mt-1 font-bold">{value}</dd>
     </div>
   )

@@ -14,10 +14,10 @@
 
 :root {
   color-scheme: light;
-  --background: #f1f5f3;
-  --foreground: #0f1f1a;
-  --border: #dde7e2;
-  --ring: #10a349;
+  --background: #f3f6f9;
+  --foreground: #0f172a;
+  --border: #e2e8f0;
+  --ring: #0d9488;
 }
 
 * { box-sizing: border-box; }
@@ -40,7 +40,7 @@ button { cursor: pointer; }
     radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.05) 0 60px, transparent 61px),
     radial-gradient(circle at 88% 30%, rgba(255, 255, 255, 0.04) 0 90px, transparent 91px),
     radial-gradient(circle at 20% 85%, rgba(255, 255, 255, 0.04) 0 70px, transparent 71px),
-    radial-gradient(ellipse at center, #1f3b26 0%, #13241a 70%, #0c1811 100%);
+    radial-gradient(ellipse at center, #16325a 0%, #0b1b33 70%, #07111f 100%);
 }
 
 @keyframes cup-in {

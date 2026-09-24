@@ -121,25 +121,25 @@ export function QuickRegister({ onNeedAuth, onNotice }: { onNeedAuth: () => void
   const [phone, setPhone] = useState('')
   if (player) {
     return (
-      <aside className="hidden rounded-2xl border border-[#dde7e2] bg-white p-4 text-[#0f1f1a] md:block">
+      <aside className="hidden rounded-2xl border border-[#e2e8f0] bg-white p-4 text-[#0f172a] md:block">
         <h2 className="text-sm font-bold">{player.name}</h2>
         <p className="my-3 text-xs font-semibold text-[#0b9b3a]">{formatMoney(player.balance, player.currency)} available</p>
-        <p className="text-xs text-[#6b7077]">Deposit, then add a selection from the board.</p>
+        <p className="text-xs text-[#64748b]">Deposit, then add a selection from the board.</p>
       </aside>
     )
   }
   return (
-    <aside className="hidden rounded-2xl border border-[#dde7e2] bg-white p-4 text-[#0f1f1a] md:block">
+    <aside className="hidden rounded-2xl border border-[#e2e8f0] bg-white p-4 text-[#0f172a] md:block">
       <h2 className="text-sm font-bold">Instant Registration</h2>
       <p className="my-3 text-xs font-semibold text-[#0b9b3a]">Make a Deposit and Start Betting!</p>
-      <input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+233 Mobile Number" className="mb-3 h-10 w-full rounded-lg border border-[#dde7e2] bg-[#edf3f0] px-3 text-xs outline-none focus:border-[#0b6e4f]" />
+      <input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+233 Mobile Number" className="mb-3 h-10 w-full rounded-lg border border-[#e2e8f0] bg-[#f1f5f9] px-3 text-xs outline-none focus:border-[#0d9488]" />
       <button
         onClick={() => {
           if (phone.trim()) sessionStorage.setItem('sporty-phone', phone.trim())
           onNotice('Create your account to start betting.')
           onNeedAuth()
         }}
-        className="h-10 w-full rounded-lg bg-[#ff7a1a] text-sm font-bold text-[#0f1f1a]"
+        className="h-10 w-full rounded-lg bg-[#facc15] text-sm font-bold text-[#0f172a]"
       >
         Join Now
       </button>
@@ -292,57 +292,57 @@ export function BetslipPanel({
   }
 
   return (
-    <aside id="betslip" className="scroll-mt-20 overflow-hidden rounded-2xl border border-[#dde7e2] bg-white">
-      <div className="flex items-center gap-2 border-b border-[#dde7e2] px-4 py-3.5 text-[15px] font-extrabold uppercase tracking-wide">
-        Bet Slip {legs.length > 0 && <span className="rounded-full bg-[#0b6e4f] px-2 text-[11px] text-white">{legs.length}</span>}
+    <aside id="betslip" className="scroll-mt-20 overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white">
+      <div className="flex items-center gap-2 border-b border-[#e2e8f0] px-4 py-3.5 text-[15px] font-extrabold uppercase tracking-wide">
+        Bet Slip {legs.length > 0 && <span className="rounded-full bg-[#0d9488] px-2 text-[11px] text-white">{legs.length}</span>}
       </div>
       {legs.length ? (
         <div className="space-y-3 p-3 text-xs">
-          <div className="grid grid-cols-3 gap-1 rounded-lg bg-[#edf3f0] p-1">
+          <div className="grid grid-cols-3 gap-1 rounded-lg bg-[#f1f5f9] p-1">
             {(['single', 'multiple', 'system'] as const).map((item) => (
-              <button key={item} onClick={() => setMode(item)} className={`rounded-md py-1.5 font-semibold capitalize ${mode === item ? 'bg-white text-[#0b6e4f] shadow-sm' : 'text-[#5f6f69]'}`}>{item}</button>
+              <button key={item} onClick={() => setMode(item)} className={`rounded-md py-1.5 font-semibold capitalize ${mode === item ? 'bg-white text-[#0f766e] shadow-sm' : 'text-[#64748b]'}`}>{item}</button>
             ))}
           </div>
           {mode === 'system' && (
-            <label className="block text-[11px] text-[#6b7077]">
+            <label className="block text-[11px] text-[#64748b]">
               Combination size
-              <input type="number" min={2} max={legs.length || 2} value={systemSize} onChange={(event) => setSystemSize(Number(event.target.value))} className="mt-1 h-9 w-full rounded-lg border border-[#dde7e2] px-2" />
+              <input type="number" min={2} max={legs.length || 2} value={systemSize} onChange={(event) => setSystemSize(Number(event.target.value))} className="mt-1 h-9 w-full rounded-lg border border-[#e2e8f0] px-2" />
             </label>
           )}
           {legs.map((leg) => (
-            <div key={leg.matchId} className="flex items-start justify-between gap-2 rounded-lg bg-[#f6faf8] p-2.5">
+            <div key={leg.matchId} className="flex items-start justify-between gap-2 rounded-lg bg-[#f8fafc] p-2.5">
               <div className="min-w-0">
                 <p className="break-words font-semibold">{leg.homeTeam} vs {leg.awayTeam}</p>
-                <p className="text-[#5f6f69]">{leg.marketLabel} · {leg.outcomeLabel} <b className="text-[#0f1f1a]">@ {leg.odds.toFixed(2)}</b></p>
+                <p className="text-[#64748b]">{leg.marketLabel} · {leg.outcomeLabel} <b className="text-[#0f172a]">@ {leg.odds.toFixed(2)}</b></p>
               </div>
-              <button onClick={() => remove(leg.matchId)} className="shrink-0 text-[#86958f] hover:text-[#e40014]" aria-label="Remove selection">✕</button>
+              <button onClick={() => remove(leg.matchId)} className="shrink-0 text-[#94a3b8] hover:text-[#e40014]" aria-label="Remove selection">✕</button>
             </div>
           ))}
-          <label className="block text-[11px] text-[#6b7077]">
+          <label className="block text-[11px] text-[#64748b]">
             Stake {mode === 'single' || mode === 'system' ? 'per line' : ''}
-            <input type="number" min={0} value={stake} onChange={(event) => setStake(Number(event.target.value))} className="mt-1 h-10 w-full rounded-lg border border-[#dde7e2] px-3 text-sm outline-none focus:border-[#0b6e4f]" />
+            <input type="number" min={0} value={stake} onChange={(event) => setStake(Number(event.target.value))} className="mt-1 h-10 w-full rounded-lg border border-[#e2e8f0] px-3 text-sm outline-none focus:border-[#0d9488]" />
           </label>
           <p className="flex justify-between"><span>{mode === 'multiple' ? 'Total odds' : 'Lines'}</span><strong>{mode === 'multiple' ? odds.toFixed(2) : lines}</strong></p>
           <p className="flex justify-between"><span>Total stake</span><strong>{formatMoney(stake * lines, player?.currency ?? 'GHS')}</strong></p>
           {bonus > 0 && <p className="flex justify-between text-[#0b9b3a]"><span>Accumulator bonus</span><strong>{formatMoney(bonus, player?.currency ?? 'GHS')}</strong></p>}
           <p className="flex justify-between"><span>Potential win</span><strong>{formatMoney(returns, player?.currency ?? 'GHS')}</strong></p>
           {error && <p className="text-[#e40014]">{error}</p>}
-          <button disabled={busy} onClick={place} className="w-full rounded-lg bg-[#ff7a1a] py-3 text-sm font-bold text-[#0f1f1a] disabled:opacity-60">{busy ? 'Please wait…' : 'Place Bet'}</button>
-          <button disabled={busy} onClick={book} className="w-full rounded-lg border border-[#dde7e2] py-2.5 font-semibold text-[#0b6e4f]">Book code</button>
+          <button disabled={busy} onClick={place} className="w-full rounded-lg bg-[#facc15] py-3 text-sm font-bold text-[#0f172a] disabled:opacity-60">{busy ? 'Please wait…' : 'Place Bet'}</button>
+          <button disabled={busy} onClick={book} className="w-full rounded-lg border border-[#e2e8f0] py-2.5 font-semibold text-[#0f766e]">Book code</button>
         </div>
       ) : (
-        <div className="px-6 py-10 text-center text-sm text-[#5f6f69]">
-          <Trophy size={34} className="mx-auto mb-3 text-[#c4d3cc]" />
+        <div className="px-6 py-10 text-center text-sm text-[#64748b]">
+          <Trophy size={34} className="mx-auto mb-3 text-[#cbd5e1]" />
           No selections yet
           <p className="mt-1 text-xs">Click on odds to add selections</p>
           {error && <p className="mt-3 text-xs text-[#e40014]">{error}</p>}
         </div>
       )}
-      <div className="border-t border-[#dde7e2] p-3">
-        <p className="mb-2 text-[11px] font-semibold text-[#5f6f69]">Load booking code</p>
+      <div className="border-t border-[#e2e8f0] p-3">
+        <p className="mb-2 text-[11px] font-semibold text-[#64748b]">Load booking code</p>
         <div className="flex gap-2">
-          <input value={code} onChange={(event) => setCode(event.target.value)} placeholder="Code" className="h-10 min-w-0 flex-1 rounded-lg border border-[#dde7e2] px-3 text-sm outline-none focus:border-[#0b6e4f]" />
-          <button onClick={loadCode} className="rounded-lg bg-[#0b6e4f] px-4 text-xs font-semibold text-white">Load</button>
+          <input value={code} onChange={(event) => setCode(event.target.value)} placeholder="Code" className="h-10 min-w-0 flex-1 rounded-lg border border-[#e2e8f0] px-3 text-sm outline-none focus:border-[#0d9488]" />
+          <button onClick={loadCode} className="rounded-lg bg-[#0d9488] px-4 text-xs font-semibold text-white">Load</button>
         </div>
       </div>
       {booked && <BookedCode code={booked.code} expiresAt={booked.expiresAt} onClose={() => setBooked(null)} />}
@@ -403,15 +403,15 @@ export function MatchDetail({ id }: { id: string }) {
 
   return (
     <section className="mx-auto grid max-w-[1180px] gap-4 px-3 py-4 sm:px-4 grid-cols-1 md:grid-cols-[minmax(0,1fr)_275px]">
-      <div className="min-w-0 overflow-hidden rounded-2xl border border-[#dde7e2] bg-white">
-        <div className="bg-[#0b6e4f] bg-[linear-gradient(rgba(11,110,79,0.82),rgba(15,31,26,0.92)),url('/banners/hero-football.jpg')] bg-cover bg-center px-4 py-5 text-white">
+      <div className="min-w-0 overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white">
+        <div className="bg-[#0b1b33] bg-[linear-gradient(rgba(11,27,51,0.8),rgba(11,27,51,0.94)),url('/banners/hero-football.jpg')] bg-cover bg-center px-4 py-5 text-white">
           <Link href="/" className="mb-3 inline-flex items-center text-xs text-white/70"><ChevronLeft size={14} /> Back to matches</Link>
           {match ? (
             <>
               <p className="text-center text-xs text-white/60">{match.league}</p>
               <div className="mt-2 grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center sm:gap-4">
                 <div className="flex min-w-0 flex-col items-center gap-2"><Crest src={match.homeCrest} name={match.homeTeam} size={48} /><p className="break-words text-sm font-bold sm:text-lg">{match.homeTeam}</p></div>
-                <p className="text-xl font-extrabold text-[#ff7a1a] sm:text-2xl">{score}</p>
+                <p className="text-xl font-extrabold text-[#facc15] sm:text-2xl">{score}</p>
                 <div className="flex min-w-0 flex-col items-center gap-2"><Crest src={match.awayCrest} name={match.awayTeam} size={48} /><p className="break-words text-sm font-bold sm:text-lg">{match.awayTeam}</p></div>
               </div>
               <p className="mt-2 text-center text-xs text-white/60">{kickoffLabel(match)}</p>
@@ -422,9 +422,9 @@ export function MatchDetail({ id }: { id: string }) {
         </div>
         {match && (
           <>
-            <div className="overflow-hidden border-b border-[#dde7e2]"><div className="scrollbar-none -mb-5 flex gap-2 overflow-x-auto px-3 py-3 pb-8">
+            <div className="overflow-hidden border-b border-[#e2e8f0]"><div className="scrollbar-none -mb-5 flex gap-2 overflow-x-auto px-3 py-3 pb-8">
               {['all', ...groups].map((item) => (
-                <button key={item} onClick={() => setGroup(item)} className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium ${group === item ? 'bg-[#0b6e4f] text-white' : 'border border-[#dde7e2] text-[#0f1f1a]'}`}>
+                <button key={item} onClick={() => setGroup(item)} className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium ${group === item ? 'bg-[#0d9488] text-white' : 'border border-[#e2e8f0] text-[#0f172a]'}`}>
                   {item === 'all' ? 'All' : GROUP_LABELS[item] ?? item}
                 </button>
               ))}
@@ -433,15 +433,15 @@ export function MatchDetail({ id }: { id: string }) {
               {match.isLocked && <p className="rounded-lg bg-[#fff0f1] px-3 py-2 text-xs text-[#e40014]">{match.postponed ? 'This fixture is postponed.' : 'Betting is locked on this match.'}</p>}
               {shown.map((market) => (
                 <div key={market.key}>
-                  <p className="mb-1.5 text-[13px] font-semibold text-[#0f1f1a]">
+                  <p className="mb-1.5 text-[13px] font-semibold text-[#0f172a]">
                     {market.label}
-                    {market.badge && <span className="ml-2 rounded bg-[#ff7a1a] px-1.5 py-0.5 text-[10px] font-bold text-[#0f1f1a]">{market.badge}</span>}
+                    {market.badge && <span className="ml-2 rounded bg-[#facc15] px-1.5 py-0.5 text-[10px] font-bold text-[#0f172a]">{market.badge}</span>}
                   </p>
                   <div className={`grid gap-2 ${market.dense ? 'grid-cols-3 sm:grid-cols-5' : market.prices.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                     {market.prices.map((price) => {
                       if (match.isLocked || match.postponed) {
                         return (
-                          <span key={price.outcome} className="flex h-10 min-w-0 items-center justify-between gap-1 rounded-lg bg-[#edf3f0] px-2.5 text-[#aebdb6]" aria-label={`${price.label} locked`}>
+                          <span key={price.outcome} className="flex h-10 min-w-0 items-center justify-between gap-1 rounded-lg bg-[#f1f5f9] px-2.5 text-[#94a3b8]" aria-label={`${price.label} locked`}>
                             <span className="truncate text-[11px]">{price.label}</span>
                             <Lock size={13} className="shrink-0" />
                           </span>
@@ -455,9 +455,9 @@ export function MatchDetail({ id }: { id: string }) {
                             const leg = legFor(match, market, price, notify)
                             if (leg) toggle(leg)
                           }}
-                          className={`flex h-10 min-w-0 items-center justify-between gap-1 rounded-lg px-2.5 ${selected ? 'bg-[#0b6e4f] text-white' : 'bg-[#edf3f0] text-[#0f1f1a] hover:bg-[#e0ebe6]'}`}
+                          className={`flex h-10 min-w-0 items-center justify-between gap-1 rounded-lg px-2.5 ${selected ? 'bg-[#0d9488] text-white' : 'bg-[#f1f5f9] text-[#0f172a] hover:bg-[#e2e8f0]'}`}
                         >
-                          <span className={`truncate text-[11px] ${selected ? 'text-white/70' : 'text-[#86958f]'}`}>{price.label}</span>
+                          <span className={`truncate text-[11px] ${selected ? 'text-white/70' : 'text-[#94a3b8]'}`}>{price.label}</span>
                           <span className="shrink-0 text-[14px] font-semibold tabular-nums">{price.odds.toFixed(2)}</span>
                         </button>
                       )
