@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/supabase";
+import { startOfToday } from "@/lib/day";
 import { configNumber, refreshConfig } from "@/lib/config";
 import { currentPartner } from "@/lib/partner";
 import { paymentReference } from "@/lib/codes";
@@ -65,7 +66,8 @@ export async function POST(req: Request) {
   if (!player) return NextResponse.json({ error: "Betting account not found" }, { status: 404 });
 
   // --- Rolling 24-hour cap ------------------------------------------------
-  const since = new Date(Date.now() - 86_400_000).toISOString();
+  // The limit resets at midnight, not on a rolling 24 hours.
+  const since = startOfToday().toISOString();
   const { data: recent } = await supabase
     .from("payments")
     .select("amount")

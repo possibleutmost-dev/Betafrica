@@ -787,14 +787,20 @@ function PartnerConsole({ onSignedOut }: { onSignedOut: () => void }) {
   const [amount, setAmount] = useState('')
   const [message, setMessage] = useState<{ text: string; tone: 'ok' | 'error' }>({ text: '', tone: 'ok' })
   const [opening, setOpening] = useState(false)
+  const [period, setPeriod] = useState<Period>('today')
 
   const load = () => fetch('/api/partner/dashboard').then((res) => res.json()).then(setData).catch(() => {})
   useEffect(() => { load() }, [])
 
   const partner = (data?.partner ?? {}) as { name?: string; referral_code?: string; approved?: boolean }
   const wallet = data?.wallet as { balance?: number; currency?: string } | null
-  const players = (data?.players ?? []) as { id: string; name: string; phone: string; total_deposited: number; currency: string }[]
-  const commissions = (data?.commissions ?? []) as { id: string; amount: number; currency: string; deposit_amount: number }[]
+  const allPlayers = (data?.players ?? []) as { id: string; name: string; phone: string; total_deposited: number; currency: string; created_at: string }[]
+  const allCommissions = (data?.commissions ?? []) as { id: string; amount: number; currency: string; deposit_amount: number; created_at: string }[]
+  // Only the chosen day is shown; older rows stay in the database and under "All".
+  const players = allPlayers.filter((row) => inPeriod(row.created_at, period))
+  const commissions = allCommissions.filter((row) => inPeriod(row.created_at, period))
+  const earned = sumByCurrency(commissions)
+  const periodLabel = PERIODS.find((item) => item.key === period)!.label
 
   const credit = async () => {
     const { ok, json } = await send('/api/partner/credit', 'POST', { amount: Number(amount) })
@@ -816,9 +822,15 @@ function PartnerConsole({ onSignedOut }: { onSignedOut: () => void }) {
         <button onClick={async () => { await fetch('/api/partner/logout', { method: 'POST' }); onSignedOut() }} className="w-full px-3 py-2 text-left text-xs text-white/50">Sign out</button>
       </aside>
       <div className="min-w-0 space-y-4">
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="flex gap-1 rounded-xl bg-white p-1 shadow-sm">
+          {PERIODS.map((item) => (
+            <button key={item.key} onClick={() => setPeriod(item.key)} className={`flex-1 rounded-lg py-2 text-sm font-semibold ${period === item.key ? 'bg-[#171a20] text-white' : 'text-[#6b7077]'}`}>{item.label}</button>
+          ))}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label="Referral code" value={partner.referral_code ?? '—'} />
-          <Stat label="Players" value={String(players.length)} />
+          <Stat label={`New players · ${periodLabel}`} value={String(players.length)} />
+          <Stat label={`Commission · ${periodLabel}`} value={earned || formatMoney(0, wallet?.currency ?? 'GHS')} />
           <Stat label="Betting wallet" value={wallet ? formatMoney(Number(wallet.balance), wallet.currency ?? 'GHS') : 'Not opened'} />
         </div>
         <Card>
@@ -833,13 +845,13 @@ function PartnerConsole({ onSignedOut }: { onSignedOut: () => void }) {
         </Card>
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
-            <h2 className="font-bold">Referred players</h2>
-            {players.length === 0 && <p className="mt-2 text-[#6b7077]">Share your code {partner.referral_code} to bring players in.</p>}
+            <h2 className="font-bold">Referred players · {periodLabel}</h2>
+            {players.length === 0 && <p className="mt-2 text-[#6b7077]">{period === 'all' ? `Share your code ${partner.referral_code ?? ''} to bring players in.` : `No new players ${periodLabel.toLowerCase()}.`}</p>}
             {players.map((player) => <p key={player.id} className="border-b py-2">{player.name} · {player.phone} · {formatMoney(player.total_deposited, player.currency)}</p>)}
           </Card>
           <Card>
-            <h2 className="font-bold">Commission</h2>
-            {commissions.length === 0 && <p className="mt-2 text-[#6b7077]">No commission yet.</p>}
+            <h2 className="font-bold">Commission · {periodLabel}</h2>
+            {commissions.length === 0 && <p className="mt-2 text-[#6b7077]">{period === 'all' ? 'No commission yet.' : `No commission ${periodLabel.toLowerCase()}.`}</p>}
             {commissions.map((row) => <p key={row.id} className="border-b py-2">{formatMoney(row.amount, row.currency)} on {formatMoney(row.deposit_amount, row.currency)}</p>)}
           </Card>
         </div>
@@ -847,6 +859,31 @@ function PartnerConsole({ onSignedOut }: { onSignedOut: () => void }) {
       {opening && <OpenAccountDialog onClose={() => setOpening(false)} onDone={(text, ok) => { setMessage({ text, tone: ok ? 'ok' : 'error' }); load() }} />}
     </div>
   )
+}
+
+type Period = 'today' | 'yesterday' | 'all'
+
+const PERIODS: { key: Period; label: string }[] = [
+  { key: 'today', label: 'Today' },
+  { key: 'yesterday', label: 'Yesterday' },
+  { key: 'all', label: 'All' },
+]
+
+const DAY_MS = 86_400_000
+
+/** Days run midnight to midnight UTC, which is local time in Ghana. */
+function inPeriod(iso: string, period: Period) {
+  if (period === 'all') return true
+  const now = new Date()
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+  const at = new Date(iso).getTime()
+  return period === 'today' ? at >= today : at >= today - DAY_MS && at < today
+}
+
+function sumByCurrency(rows: { amount: number; currency: string }[]) {
+  const totals = new Map<string, number>()
+  for (const row of rows) totals.set(row.currency, (totals.get(row.currency) ?? 0) + Number(row.amount))
+  return [...totals.entries()].map(([currency, amount]) => formatMoney(amount, currency)).join(' · ')
 }
 
 function OpenAccountDialog({ onClose, onDone }: { onClose: () => void; onDone: (text: string, ok: boolean) => void }) {

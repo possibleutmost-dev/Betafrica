@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/supabase";
+import { startOfToday } from "@/lib/day";
 import { configNumber, refreshConfig } from "@/lib/config";
 import { currentPartner, publicPartner } from "@/lib/partner";
 
@@ -39,10 +40,10 @@ export async function GET() {
     wallet = data ?? null;
   }
 
-  // What they have self-credited in the last 24 hours, for the limit meter.
+  // What they have self-credited since midnight, for the limit meter.
   let creditedToday = 0;
   if (partner.user_id) {
-    const since = new Date(Date.now() - 86_400_000).toISOString();
+    const since = startOfToday().toISOString();
     const { data: recent } = await supabase
       .from("payments")
       .select("amount")
