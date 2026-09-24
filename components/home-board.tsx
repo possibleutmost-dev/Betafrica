@@ -125,8 +125,8 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
     <>
       <section className="mx-auto max-w-[1180px] px-3 pt-3 sm:px-4 sm:pt-4">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-[220px_minmax(0,1fr)_220px]">
-          <aside className="hidden self-start rounded-2xl border border-[#e6e8f2] bg-white p-4 md:block">
-            <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-[#14162e]">Popular</h2>
+          <aside className="hidden self-start rounded-2xl border border-[#dde7e2] bg-white p-4 md:block">
+            <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-[#0f1f1a]">Popular</h2>
             {popular.map((item) => (
               <PopularLink key={item.label} active={item.active} onClick={item.select}>{item.label}</PopularLink>
             ))}
@@ -138,7 +138,7 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
         <div className="mt-3 overflow-hidden md:hidden">
           <div className="scrollbar-none -mb-5 flex gap-2 overflow-x-auto pb-5">
             {popular.map((item) => (
-              <button key={item.label} onClick={item.select} className={`shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-medium ${item.active ? 'border-[#1b2a86] bg-[#1b2a86] text-white' : 'border-[#e6e8f2] bg-white text-[#14162e]'}`}>{item.label}</button>
+              <button key={item.label} onClick={item.select} className={`shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-medium ${item.active ? 'border-[#0b6e4f] bg-[#0b6e4f] text-white' : 'border-[#dde7e2] bg-white text-[#0f1f1a]'}`}>{item.label}</button>
             ))}
           </div>
         </div>
@@ -161,7 +161,7 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
             <div>
               <VirtualWorldBanner />
               <BoardHeader title={filterTitle} onRefresh={reload}>
-                {filter.kind !== 'all' && <button onClick={() => setFilter({ kind: 'all' })} className="text-xs font-semibold text-[#1b2a86]">Clear filter</button>}
+                {filter.kind !== 'all' && <button onClick={() => setFilter({ kind: 'all' })} className="text-xs font-semibold text-[#0b6e4f]">Clear filter</button>}
               </BoardHeader>
               <SportTabs value={tab} onChange={setTab} />
               <div className="space-y-2.5">
@@ -180,11 +180,11 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
           <Link href="/virtuals" className="relative block h-40 overflow-hidden rounded-2xl bg-[#0c0c0c]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/banners/instant-virtuals.jpg" alt="" className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_55%,rgba(255,199,0,0.3),rgba(0,0,0,0.55)_70%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_55%,rgba(255,122,26,0.3),rgba(0,0,0,0.55)_70%)]" />
             <span className="absolute inset-0 flex flex-col items-center justify-center text-center">
               <span className="text-4xl">⚡</span>
               <span className="text-2xl font-extrabold leading-none text-white">Instant Virtuals</span>
-              <span className="mt-2 rounded-full bg-[#ffc700] px-4 py-1 text-xs font-bold text-[#14162e]">Play now</span>
+              <span className="mt-2 rounded-full bg-[#ff7a1a] px-4 py-1 text-xs font-bold text-[#0f1f1a]">Play now</span>
             </span>
           </Link>
         </aside>
@@ -194,12 +194,12 @@ export function MatchBoard({ view, onNeedAuth, onNotice }: { view: string; onNee
 }
 
 function Empty({ children, tone = 'muted' }: { children: ReactNode; tone?: 'muted' | 'error' }) {
-  return <p className={`rounded-2xl border border-[#e6e8f2] bg-white px-4 py-8 text-center text-sm ${tone === 'error' ? 'text-[#e40014]' : 'text-[#6b7087]'}`}>{children}</p>
+  return <p className={`rounded-2xl border border-[#dde7e2] bg-white px-4 py-8 text-center text-sm ${tone === 'error' ? 'text-[#e40014]' : 'text-[#5f6f69]'}`}>{children}</p>
 }
 
 function ViewMore({ remaining, onClick }: { remaining: number; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="flex w-full items-center justify-center gap-1 rounded-2xl border border-[#e6e8f2] bg-white py-3 text-sm font-semibold text-[#1b2a86] hover:bg-[#f7f8fc]">
+    <button onClick={onClick} className="flex w-full items-center justify-center gap-1 rounded-2xl border border-[#dde7e2] bg-white py-3 text-sm font-semibold text-[#0b6e4f] hover:bg-[#f6faf8]">
       View more ({remaining}) <ChevronDown size={16} />
     </button>
   )
@@ -216,8 +216,8 @@ function QuickLinks() {
   return (
     <div className="mt-3 grid grid-cols-4 gap-2 md:hidden">
       {QUICK_LINKS.map((item) => (
-        <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1.5 rounded-2xl border border-[#e6e8f2] bg-white py-3 text-xs font-semibold text-[#14162e] shadow-[0_1px_2px_rgba(20,22,46,0.04)]">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f2f3f8] text-lg">{item.icon}</span>
+        <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1.5 rounded-2xl border border-[#dde7e2] bg-white py-3 text-xs font-semibold text-[#0f1f1a] shadow-[0_1px_2px_rgba(15,31,26,0.04)]">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#edf3f0] text-lg">{item.icon}</span>
           {item.label}
         </Link>
       ))}
@@ -227,9 +227,9 @@ function QuickLinks() {
 
 function PopularLink({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <button onClick={onClick} className={`flex w-full items-center justify-between border-t border-[#e6e8f2] py-2.5 text-left text-sm ${active ? 'font-semibold text-[#1b2a86]' : 'text-[#14162e]'}`}>
+    <button onClick={onClick} className={`flex w-full items-center justify-between border-t border-[#dde7e2] py-2.5 text-left text-sm ${active ? 'font-semibold text-[#0b6e4f]' : 'text-[#0f1f1a]'}`}>
       <span className="truncate pr-2">{children}</span>
-      <ChevronRight size={16} className="shrink-0 text-[#9aa0b8]" />
+      <ChevronRight size={16} className="shrink-0 text-[#93a39c]" />
     </button>
   )
 }
@@ -254,15 +254,15 @@ function HeroBanner({ onNotice }: { onNotice: (message: string) => void }) {
       <img key={slide.image} src={slide.image} alt="" className="absolute inset-0 h-full w-full object-cover object-right" />
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
       <div className="relative">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-[#ffc700]">WinnBet</p>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-[#ff7a1a]">WinnBet</p>
         <div className="text-[28px] font-extrabold leading-tight sm:text-4xl">{slide.title}</div>
         <p className="mb-4 text-[13px] text-white/80">{slide.sub}</p>
         {slide.href
-          ? <Link href={slide.href} className="inline-block rounded-lg bg-[#ffc700] px-4 py-2 text-sm font-bold text-[#14162e]">Play now</Link>
-          : <button onClick={() => onNotice('Pick a price on the board to start a slip.')} className="rounded-lg bg-[#ffc700] px-4 py-2 text-sm font-bold text-[#14162e]">Bet now</button>}
+          ? <Link href={slide.href} className="inline-block rounded-lg bg-[#ff7a1a] px-4 py-2 text-sm font-bold text-[#0f1f1a]">Play now</Link>
+          : <button onClick={() => onNotice('Pick a price on the board to start a slip.')} className="rounded-lg bg-[#ff7a1a] px-4 py-2 text-sm font-bold text-[#0f1f1a]">Bet now</button>}
       </div>
       <div className="absolute bottom-4 right-4 flex gap-1.5">
-        {SLIDES.map((item, i) => <button key={item.title} onClick={() => setIndex(i)} aria-label={`Show ${item.title}`} className={`h-1.5 rounded-full ${i === index ? 'w-5 bg-[#ffc700]' : 'w-1.5 bg-white/60'}`} />)}
+        {SLIDES.map((item, i) => <button key={item.title} onClick={() => setIndex(i)} aria-label={`Show ${item.title}`} className={`h-1.5 rounded-full ${i === index ? 'w-5 bg-[#ff7a1a]' : 'w-1.5 bg-white/60'}`} />)}
       </div>
     </div>
   )
@@ -271,11 +271,11 @@ function HeroBanner({ onNotice }: { onNotice: (message: string) => void }) {
 function BoardHeader({ title, onRefresh, live = false, children }: { title: string; onRefresh: () => void; live?: boolean; children?: ReactNode }) {
   return (
     <div className="mb-2 mt-1 flex items-center justify-between gap-3">
-      <h1 className="flex min-w-0 items-center gap-2 text-[15px] font-extrabold uppercase tracking-wide text-[#14162e]">
+      <h1 className="flex min-w-0 items-center gap-2 text-[15px] font-extrabold uppercase tracking-wide text-[#0f1f1a]">
         {live && <span className="relative flex h-2.5 w-2.5 shrink-0"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00c244] opacity-60" /><span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#00c244]" /></span>}
         <span className="truncate">{title}</span>
       </h1>
-      <div className="flex shrink-0 items-center gap-4 text-xs font-medium text-[#6b7087]">
+      <div className="flex shrink-0 items-center gap-4 text-xs font-medium text-[#5f6f69]">
         {children}
         <button onClick={() => window.print()} className="hidden items-center gap-1.5 sm:flex"><Printer size={14} /> Print</button>
         <button onClick={onRefresh} className="flex items-center gap-1.5"><RotateCw size={14} /> Refresh</button>
@@ -288,7 +288,7 @@ function SportTabs({ value, onChange }: { value: SportTab; onChange: (tab: Sport
   const [more, setMore] = useState(false)
   const moreActive = (MORE_SPORTS as readonly string[]).includes(value)
   const tabClass = (active: boolean) =>
-    `shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium ${active ? 'bg-[#1b2a86] text-white' : 'border border-[#e6e8f2] bg-white text-[#14162e]'}`
+    `shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium ${active ? 'bg-[#0b6e4f] text-white' : 'border border-[#dde7e2] bg-white text-[#0f1f1a]'}`
   return (
     <div className="relative mb-3 flex items-center">
       <div className="min-w-0 flex-1 overflow-hidden">
@@ -297,11 +297,11 @@ function SportTabs({ value, onChange }: { value: SportTab; onChange: (tab: Sport
           <button onClick={() => setMore((open) => !open)} className={`${tabClass(moreActive)} flex items-center gap-1`}>{moreActive ? value : 'More'} <ChevronDown size={14} /></button>
         </div>
       </div>
-      <span className="ml-2 hidden shrink-0 items-center gap-1.5 text-xs text-[#6b7087] md:flex"><SlidersHorizontal size={14} /> Filter</span>
+      <span className="ml-2 hidden shrink-0 items-center gap-1.5 text-xs text-[#5f6f69] md:flex"><SlidersHorizontal size={14} /> Filter</span>
       {more && (
-        <div className="absolute right-0 top-full z-20 mt-1 w-44 overflow-hidden rounded-xl border border-[#e6e8f2] bg-white py-1 shadow-lg">
+        <div className="absolute right-0 top-full z-20 mt-1 w-44 overflow-hidden rounded-xl border border-[#dde7e2] bg-white py-1 shadow-lg">
           {MORE_SPORTS.map((item) => (
-            <button key={item} onClick={() => { onChange(item); setMore(false) }} className="block w-full px-4 py-2 text-left text-sm hover:bg-[#f2f3f8]">{item}</button>
+            <button key={item} onClick={() => { onChange(item); setMore(false) }} className="block w-full px-4 py-2 text-left text-sm hover:bg-[#edf3f0]">{item}</button>
           ))}
         </div>
       )}
@@ -330,17 +330,17 @@ function MatchCard({ match, has, pick }: { match: BoardMatch; has: HasFn; pick: 
   const half = halfLabel(match)
 
   return (
-    <div className="rounded-2xl border border-[#e6e8f2] bg-white p-3.5 shadow-[0_1px_2px_rgba(20,22,46,0.04)]">
-      <div className="flex items-center justify-between gap-3 text-xs text-[#6b7087]">
+    <div className="rounded-2xl border border-[#dde7e2] bg-white p-3.5 shadow-[0_1px_2px_rgba(15,31,26,0.04)]">
+      <div className="flex items-center justify-between gap-3 text-xs text-[#5f6f69]">
         <p className="min-w-0 truncate">
           {match.isLive
             ? <span className="font-semibold text-[#00a63a]">● {match.minuteLabel || 'LIVE'}{half ? ` ${half}` : ''}</span>
             : <span>{kickoffLabel(match)}</span>}
           <span> · {match.league}</span>
         </p>
-        <Link href={`/match/${match.id}`} className="flex shrink-0 items-center font-semibold text-[#1b2a86]">+{extra} <ChevronRight size={14} /></Link>
+        <Link href={`/match/${match.id}`} className="flex shrink-0 items-center font-semibold text-[#0b6e4f]">+{extra} <ChevronRight size={14} /></Link>
       </div>
-      <Link href={`/match/${match.id}`} className="mt-2.5 block space-y-1.5 text-[14px] text-[#14162e]">
+      <Link href={`/match/${match.id}`} className="mt-2.5 block space-y-1.5 text-[14px] text-[#0f1f1a]">
         <TeamLine crest={match.homeCrest} name={match.homeTeam} score={match.isLive ? match.scoreHome ?? 0 : null} />
         <TeamLine crest={match.awayCrest} name={match.awayTeam} score={match.isLive ? match.scoreAway ?? 0 : null} />
       </Link>
@@ -369,7 +369,7 @@ function OddsPills({ match, market, count, has, pick }: { match: BoardMatch; mar
       {Array.from({ length: count }, (_, i) => {
         const price = prices[i]
         if (!price || !market || match.isLocked || match.postponed) {
-          return <span key={i} className="flex h-10 items-center justify-center rounded-lg bg-[#f2f3f8] text-[#b3b8cc]"><Lock size={13} /></span>
+          return <span key={i} className="flex h-10 items-center justify-center rounded-lg bg-[#edf3f0] text-[#aebdb6]"><Lock size={13} /></span>
         }
         const selected = has(match.id, market.key, price.outcome)
         return (
@@ -377,9 +377,9 @@ function OddsPills({ match, market, count, has, pick }: { match: BoardMatch; mar
             key={price.outcome}
             onClick={() => pick(match, market, price)}
             aria-label={`${price.label} at ${price.odds.toFixed(2)}`}
-            className={`flex h-10 items-center justify-between rounded-lg px-3 transition-colors ${selected ? 'bg-[#1b2a86] text-white' : 'bg-[#f2f3f8] text-[#14162e] hover:bg-[#e6e9f5]'}`}
+            className={`flex h-10 items-center justify-between rounded-lg px-3 transition-colors ${selected ? 'bg-[#0b6e4f] text-white' : 'bg-[#edf3f0] text-[#0f1f1a] hover:bg-[#e0ebe6]'}`}
           >
-            <span className={`text-[11px] ${selected ? 'text-white/70' : 'text-[#8d93ab]'}`}>{price.outcome}</span>
+            <span className={`text-[11px] ${selected ? 'text-white/70' : 'text-[#86958f]'}`}>{price.outcome}</span>
             <span className="text-[15px] font-semibold tabular-nums">{price.odds.toFixed(2)}</span>
           </button>
         )
@@ -390,12 +390,12 @@ function OddsPills({ match, market, count, has, pick }: { match: BoardMatch; mar
 
 function VirtualWorldBanner() {
   return (
-    <Link href="/virtuals" className="relative mb-4 flex h-20 items-center overflow-hidden rounded-2xl bg-[#1b2a86] sm:h-24">
+    <Link href="/virtuals" className="relative mb-4 flex h-20 items-center overflow-hidden rounded-2xl bg-[#0b6e4f] sm:h-24">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/banners/virtual-world.jpg" alt="" className="absolute inset-y-0 right-0 h-full w-[62%] object-cover object-[center_35%]" />
-      <div className="absolute inset-y-0 left-[38%] w-24 bg-gradient-to-r from-[#1b2a86] to-transparent" />
+      <div className="absolute inset-y-0 left-[38%] w-24 bg-gradient-to-r from-[#0b6e4f] to-transparent" />
       <span className="relative pl-5 leading-tight">
-        <span className="block text-[11px] font-bold uppercase tracking-wider text-[#ffc700]">24/7 action</span>
+        <span className="block text-[11px] font-bold uppercase tracking-wider text-[#ff7a1a]">24/7 action</span>
         <span className="block text-xl font-extrabold text-white sm:text-2xl">Virtual World</span>
         <span className="block text-xs text-white/80">Bet on every second</span>
       </span>

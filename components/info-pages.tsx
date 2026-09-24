@@ -37,17 +37,17 @@ function InfoPage({ title, intro, children }: { title: string; intro?: string; c
   return (
     <section className="mx-auto max-w-[820px] px-3 py-4 sm:px-4 sm:py-8">
       <Link href="/account" className="mb-3 inline-flex items-center text-sm text-[#6b7077]"><ChevronLeft size={16} /> Back</Link>
-      <article className="rounded-2xl border border-[#e6e8f2] bg-white p-5 sm:p-8">
+      <article className="rounded-2xl border border-[#dde7e2] bg-white p-5 sm:p-8">
         <h1 className="text-2xl font-black sm:text-3xl">{title}</h1>
         <p className="mt-1 text-xs text-[#8b8f94]">Last updated {UPDATED}</p>
         {intro && <p className="mt-4 leading-7 text-[#3d4148]">{intro}</p>}
         <div className="mt-6 space-y-6">{children}</div>
       </article>
       <nav className="mt-4 flex flex-wrap gap-x-4 gap-y-2 px-1 text-sm text-[#6b7077]">
-        <Link href="/terms" className="hover:text-[#1b2a86]">Terms &amp; Conditions</Link>
-        <Link href="/privacy" className="hover:text-[#1b2a86]">Privacy Policy</Link>
-        <Link href="/responsible-gambling" className="hover:text-[#1b2a86]">Responsible Gambling</Link>
-        <Link href="/help" className="hover:text-[#1b2a86]">Help &amp; FAQ</Link>
+        <Link href="/terms" className="hover:text-[#0b6e4f]">Terms &amp; Conditions</Link>
+        <Link href="/privacy" className="hover:text-[#0b6e4f]">Privacy Policy</Link>
+        <Link href="/responsible-gambling" className="hover:text-[#0b6e4f]">Responsible Gambling</Link>
+        <Link href="/help" className="hover:text-[#0b6e4f]">Help &amp; FAQ</Link>
       </nav>
     </section>
   )
@@ -273,8 +273,8 @@ export function FaqPage() {
             </a>
           )}
           {info.support_email && (
-            <a href={`mailto:${info.support_email}`} className="flex items-center gap-3 border p-4 hover:border-[#1b2a86]">
-              <Mail className="text-[#1b2a86]" />
+            <a href={`mailto:${info.support_email}`} className="flex items-center gap-3 border p-4 hover:border-[#0b6e4f]">
+              <Mail className="text-[#0b6e4f]" />
               <span><b className="block">Email</b><span className="break-all text-sm text-[#6b7077]">{info.support_email}</span></span>
             </a>
           )}
@@ -292,18 +292,18 @@ export function SiteFooter({ className = '' }: { className?: string }) {
   const year = new Date().getFullYear()
   return (
     <footer className={`bg-[#eef0f4] px-3 pb-28 pt-6 md:pb-8 ${className}`}>
-      <div className="mx-auto max-w-[1180px] rounded-2xl border border-[#e6e8f2] bg-white px-5 py-8 text-center">
+      <div className="mx-auto max-w-[1180px] rounded-2xl border border-[#dde7e2] bg-white px-5 py-8 text-center">
         <div className="flex items-center justify-center gap-3">
           <span className="inline-flex items-center gap-1 rounded-full border border-[#0b9b3a]/40 bg-[#e9f7ef] px-3 py-1 text-sm font-bold text-[#0b7a2e]"><ShieldCheck size={16} /> 18+</span>
           <span className="text-sm text-[#6b7077]">Responsible Gaming</span>
         </div>
-        <p className="mt-5 text-3xl font-extrabold tracking-tight text-[#1b2a86]">Winn<span className="text-[#ffc700]">Bet</span></p>
+        <p className="mt-5 text-3xl font-extrabold tracking-tight text-[#0b6e4f]">Winn<span className="text-[#ff7a1a]">Bet</span></p>
         <p className="mt-1 text-xs font-semibold uppercase tracking-[0.25em] text-[#8b8f94]">Sports Betting</p>
         <nav className="mx-auto mt-6 flex max-w-md flex-wrap justify-center gap-x-6 gap-y-3 text-[15px] text-[#5c6068]">
-          <Link href="/terms" className="hover:text-[#1b2a86]">Terms &amp; Conditions</Link>
-          <Link href="/privacy" className="hover:text-[#1b2a86]">Privacy Policy</Link>
-          <Link href="/help" className="hover:text-[#1b2a86]">Help &amp; FAQ</Link>
-          <Link href="/responsible-gambling" className="hover:text-[#1b2a86]">Responsible Gambling</Link>
+          <Link href="/terms" className="hover:text-[#0b6e4f]">Terms &amp; Conditions</Link>
+          <Link href="/privacy" className="hover:text-[#0b6e4f]">Privacy Policy</Link>
+          <Link href="/help" className="hover:text-[#0b6e4f]">Help &amp; FAQ</Link>
+          <Link href="/responsible-gambling" className="hover:text-[#0b6e4f]">Responsible Gambling</Link>
         </nav>
         <div className="mt-6 flex flex-wrap justify-center gap-2 text-xs font-bold">
           <span className="rounded border bg-[#ffcc00] px-2.5 py-1.5 text-[#1f1f1f]">MTN MoMo</span>

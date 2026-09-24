@@ -43,7 +43,7 @@ function Modal({ onClose, children }: { onClose: () => void; children: ReactNode
 
 function ModalHeader({ title, onClose }: { title: string; onClose: () => void }) {
   return (
-    <div className="flex items-center justify-between bg-[#1b2a86] px-4 py-3 text-white">
+    <div className="flex items-center justify-between bg-[#0b6e4f] px-4 py-3 text-white">
       <span className="text-lg font-black italic tracking-[-1px]">WinnBet</span>
       <span className="text-sm font-semibold">{title}</span>
       <button onClick={onClose} aria-label="Close"><X size={18} /></button>
