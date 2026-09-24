@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, Trophy } from 'lucide-react'
+import { ChevronLeft, Lock, Trophy } from 'lucide-react'
 import { useShell } from '@/components/site-shell'
 import { BookedCode, PlacedReceipt, type PlacedTicket } from '@/components/tickets'
 import { bonusAmount, combinationCount, combinations } from '@/lib/bonus'
@@ -433,6 +433,14 @@ export function MatchDetail({ id }: { id: string }) {
                   </p>
                   <div className={`grid gap-2 ${market.dense ? 'grid-cols-3 sm:grid-cols-5' : market.prices.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                     {market.prices.map((price) => {
+                      if (match.isLocked || match.postponed) {
+                        return (
+                          <span key={price.outcome} className="flex h-10 min-w-0 items-center justify-between gap-1 rounded-lg bg-[#edf3f0] px-2.5 text-[#aebdb6]" aria-label={`${price.label} locked`}>
+                            <span className="truncate text-[11px]">{price.label}</span>
+                            <Lock size={13} className="shrink-0" />
+                          </span>
+                        )
+                      }
                       const selected = has(match.id, market.key, price.outcome)
                       return (
                         <button
