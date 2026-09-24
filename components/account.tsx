@@ -168,7 +168,7 @@ export function AccountPage() {
   type MenuItem = { label: string; href?: string; onClick?: () => void; icon: ReactNode }
   const invite = () => {
     const url = window.location.origin
-    if (navigator.share) navigator.share({ title: 'WinnBet', url }).catch(() => {})
+    if (navigator.share) navigator.share({ title: 'BetAfrica', url }).catch(() => {})
     else navigator.clipboard?.writeText(url).catch(() => {})
   }
   const groups: { title: string; items: MenuItem[] }[] = [
@@ -250,7 +250,7 @@ export function AccountPage() {
             </ul>
           </div>
         ))}
-        <p className="py-6 text-center text-xs text-[#94a3b8]">WinnBet Ghana</p>
+        <p className="py-6 text-center text-xs text-[#94a3b8]">BetAfrica Ghana</p>
       </div>
     </div>
   )

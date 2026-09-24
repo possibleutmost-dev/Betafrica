@@ -1,4 +1,4 @@
--- 3btafric: all migrations concatenated. Idempotent, safe to re-run.
+-- BetAfrica: all migrations concatenated. Idempotent, safe to re-run.
 -- Generated from supabase/migrations/ — do not edit by hand.
 
 -- ============ 0001_users.sql ============
@@ -341,6 +341,12 @@ begin
 end $$;
 
 -- ============ 0015_game_rounds.sql ============
+-- Casino rounds.
+--
+-- Every round is decided on the server from a random seed generated before the
+-- stake is taken. The seed's SHA-256 hash is stored (and shown to the player)
+-- up front, and the seed itself is revealed once the round is over, so a
+-- result can be checked against the hash afterwards.
 create table if not exists game_rounds (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references users(id) on delete cascade,
@@ -366,4 +372,23 @@ create index if not exists game_rounds_running_idx on game_rounds (user_id, game
 
 grant all privileges on game_rounds to service_role;
 alter table game_rounds enable row level security;
+
+-- ============ 0016_rename_betafrica.sql ============
+-- The site is BetAfrica now. Same two places the name reaches the database as
+-- in 0012 and 0013: the house league custom matches are filed under, and the
+-- account name shown on the manual deposit screen.
+--
+-- The updates match on every prior name, so a deployment at any earlier step
+-- lands on the same rows.
+
+alter table custom_matches alter column league set default 'BetAfrica Special';
+
+update custom_matches
+   set league = 'BetAfrica Special'
+ where league in ('3btafric Special', 'Stakeza Special', 'Betlixx Special', 'WinnBet Special');
+
+update app_settings
+   set value = 'BetAfrica Ghana', updated_at = now()
+ where key = 'deposit_account_name'
+   and value in ('3btafric Ghana', 'Stakeza Ghana', 'Betlixx Ghana', 'WinnBet Ghana');
 

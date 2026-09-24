@@ -44,7 +44,7 @@ function Modal({ onClose, children }: { onClose: () => void; children: ReactNode
 function ModalHeader({ title, onClose }: { title: string; onClose: () => void }) {
   return (
     <div className="flex items-center justify-between bg-[#0b1b33] px-4 py-3 text-white">
-      <span className="text-lg font-black italic tracking-[-1px]">WinnBet</span>
+      <span className="text-lg font-black italic tracking-[-1px]">BetAfrica</span>
       <span className="text-sm font-semibold">{title}</span>
       <button onClick={onClose} aria-label="Close"><X size={18} /></button>
     </div>
@@ -85,7 +85,7 @@ export function BookedCode({ code, expiresAt, onClose }: { code: string; expires
     }
     setTimeout(() => setAttempt((n) => n + 1), 1500)
   }
-  const message = `Load my WinnBet code ${code} — ${link}`
+  const message = `Load my BetAfrica code ${code} — ${link}`
 
   const toggleShare = async (next: boolean) => {
     setShared(next)
@@ -100,7 +100,7 @@ export function BookedCode({ code, expiresAt, onClose }: { code: string; expires
   const shareInApp = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: `WinnBet code ${code}`, text: message, url: link })
+        await navigator.share({ title: `BetAfrica code ${code}`, text: message, url: link })
         return
       } catch {
         return
@@ -156,7 +156,7 @@ export function BookedCode({ code, expiresAt, onClose }: { code: string; expires
           <ShareAction label="WhatsApp" href={`https://wa.me/?text=${encodeURIComponent(message)}`} icon={<WhatsAppLogo />} />
           <ShareAction label="Share" onClick={shareInApp} icon={<Share2 size={18} />} />
           <ShareAction label={copied === 'link' ? 'Copied' : 'Copy link'} onClick={() => copy(link, 'link')} icon={copied === 'link' ? <Check size={18} /> : <Link2 size={18} />} />
-          <ShareAction label="Save" href={imageUrl} download={`winnbet-${code}.png`} icon={<Download size={18} />} />
+          <ShareAction label="Save" href={imageUrl} download={`betafrica-${code}.png`} icon={<Download size={18} />} />
         </div>
 
         <button onClick={onClose} className="mt-5 w-full bg-[#0d9488] py-3 text-sm font-semibold text-white">Back to betslip</button>
@@ -327,11 +327,11 @@ export function WinCelebration({ code, amount, currency, onClose }: { code: stri
   }, [onClose])
 
   const share = async () => {
-    const text = `I just won ${formatMoney(amount, currency)} on WinnBet. Ticket ${code}.`
+    const text = `I just won ${formatMoney(amount, currency)} on BetAfrica. Ticket ${code}.`
     const url = window.location.origin
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'WinnBet win', text, url })
+        await navigator.share({ title: 'BetAfrica win', text, url })
         return
       } catch {
         return
