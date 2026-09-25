@@ -141,6 +141,183 @@ export function correctScoreMarket(home: number, draw: number, away: number): Ma
   return { key: "cs", label: "Correct Score", group: "specials", dense: true, prices };
 }
 
+/** Share of a side's goals expected before half time. */
+const FIRST_HALF_SHARE = 0.45;
+const GRID = 7;
+
+type Side = "Home" | "Draw" | "Away";
+const SIDES: Side[] = ["Home", "Draw", "Away"];
+const SHORT: Record<Side, string> = { Home: "1", Draw: "X", Away: "2" };
+const sideOf = (h: number, a: number): Side => (h > a ? "Home" : h < a ? "Away" : "Draw");
+
+function overUnderPrices(dist: number[], lines: number[]): Price[] {
+  const out: Price[] = [];
+  for (const l of lines) {
+    const over = dist.reduce((acc, p, t) => (t > l ? acc + p : acc), 0);
+    out.push({ outcome: `Over ${l}`, label: `Over ${l}`, odds: price(over) });
+    out.push({ outcome: `Under ${l}`, label: `Under ${l}`, odds: price(1 - over) });
+  }
+  return out;
+}
+
+function sidePrices(p: Record<Side, number>): Price[] {
+  return SIDES.map((s) => ({ outcome: s, label: s, odds: price(p[s]) }));
+}
+
+/**
+ * Half-time, HT/FT, team and combination markets, all read off the same fitted
+ * model as the correct score. Keys and outcome spellings follow the upstream
+ * book (`af7` "Home/Draw", `af6` "Over 0.5"), so settlement judges them with
+ * the rules it already has.
+ */
+export function extraMarkets(home: number, draw: number, away: number): Market[] {
+  const rates = ratesFromOdds(home, draw, away);
+  const h1 = { home: rates.home * FIRST_HALF_SHARE, away: rates.away * FIRST_HALF_SHARE };
+  const h2 = { home: rates.home - h1.home, away: rates.away - h1.away };
+
+  const pois = (lambda: number) => Array.from({ length: GRID + 1 }, (_, k) => poisson(k, lambda));
+  const [a1, b1, a2, b2] = [pois(h1.home), pois(h1.away), pois(h2.home), pois(h2.away)];
+  const [ft, fa] = [pois(rates.home), pois(rates.away)];
+
+  const htft: Record<string, number> = {};
+  const half1 = { Home: 0, Draw: 0, Away: 0 };
+  const half2 = { Home: 0, Draw: 0, Away: 0 };
+  const halfGoals = { first: 0, second: 0, equal: 0 };
+  const bothHalves = { Home: 0, Away: 0 };
+  const eitherHalf = { Home: 0, Away: 0 };
+  const htTotals: number[] = Array(GRID * 2 + 1).fill(0);
+  const htScore: Record<string, number> = {};
+
+  for (let i1 = 0; i1 <= GRID; i1++) {
+    for (let j1 = 0; j1 <= GRID; j1++) {
+      const pHalf = a1[i1] * b1[j1];
+      const first = sideOf(i1, j1);
+      half1[first] += pHalf;
+      htTotals[i1 + j1] += pHalf;
+      const cell = i1 <= 2 && j1 <= 2 ? `${i1}:${j1}` : "Any Other";
+      htScore[cell] = (htScore[cell] ?? 0) + pHalf;
+
+      for (let i2 = 0; i2 <= GRID; i2++) {
+        for (let j2 = 0; j2 <= GRID; j2++) {
+          const p = pHalf * a2[i2] * b2[j2];
+          const second = sideOf(i2, j2);
+          const key = `${first}/${sideOf(i1 + i2, j1 + j2)}`;
+          htft[key] = (htft[key] ?? 0) + p;
+          half2[second] += p;
+
+          const g1 = i1 + j1;
+          const g2 = i2 + j2;
+          if (g1 > g2) halfGoals.first += p;
+          else if (g2 > g1) halfGoals.second += p;
+          else halfGoals.equal += p;
+
+          for (const s of ["Home", "Away"] as const) {
+            if (first === s && second === s) bothHalves[s] += p;
+            if (first === s || second === s) eitherHalf[s] += p;
+          }
+        }
+      }
+    }
+  }
+
+  // Full-time joint grid for the team and combination markets.
+  const homeTotals = ft;
+  const awayTotals = fa;
+  const totals: number[] = Array(GRID * 2 + 1).fill(0);
+  const resultBtts: Record<string, number> = {};
+  let homeClean = 0;
+  let awayClean = 0;
+  for (let i = 0; i <= GRID; i++) {
+    for (let j = 0; j <= GRID; j++) {
+      const p = ft[i] * fa[j];
+      totals[i + j] += p;
+      const key = `${sideOf(i, j)}/${i > 0 && j > 0 ? "Yes" : "No"}`;
+      resultBtts[key] = (resultBtts[key] ?? 0) + p;
+      if (j === 0) homeClean += p;
+      if (i === 0) awayClean += p;
+    }
+  }
+
+  const yesNo = (p: number): Price[] => [
+    { outcome: "Yes", label: "Yes", odds: price(p) },
+    { outcome: "No", label: "No", odds: price(1 - p) },
+  ];
+
+  return [
+    {
+      key: "af5",
+      label: "More Over / Under",
+      group: "goals",
+      prices: overUnderPrices(totals, [0.5, 3.5, 4.5, 5.5]),
+    },
+    {
+      key: "af24",
+      label: "1X2 & GG / NG",
+      group: "goals",
+      dense: true,
+      prices: SIDES.flatMap((s) =>
+        (["Yes", "No"] as const).map((b) => ({
+          outcome: `${s}/${b}`,
+          label: `${SHORT[s]} & ${b === "Yes" ? "GG" : "NG"}`,
+          odds: price(resultBtts[`${s}/${b}`] ?? 0),
+        })),
+      ),
+    },
+    {
+      key: "af7",
+      label: "HT / FT",
+      group: "half",
+      dense: true,
+      prices: SIDES.flatMap((a) =>
+        SIDES.map((b) => ({ outcome: `${a}/${b}`, label: `${SHORT[a]}/${SHORT[b]}`, odds: price(htft[`${a}/${b}`] ?? 0) })),
+      ),
+    },
+    { key: "af13", label: "1st Half 1X2", group: "half", prices: sidePrices(half1) },
+    { key: "af3", label: "2nd Half 1X2", group: "half", prices: sidePrices(half2) },
+    {
+      key: "af6",
+      label: "1st Half Over / Under",
+      group: "half",
+      prices: overUnderPrices(htTotals, [0.5, 1.5, 2.5]),
+    },
+    {
+      key: "af31",
+      label: "1st Half Correct Score",
+      group: "half",
+      dense: true,
+      prices: Object.entries(htScore)
+        .sort((x, y) => (x[0] === "Any Other" ? 1 : y[0] === "Any Other" ? -1 : y[1] - x[1]))
+        .map(([outcome, p]) => ({ outcome, label: outcome === "Any Other" ? "Any other" : outcome, odds: price(p) })),
+    },
+    {
+      key: "af11",
+      label: "Highest Scoring Half",
+      group: "half",
+      prices: [
+        { outcome: "1st Half", label: "1st half", odds: price(halfGoals.first) },
+        { outcome: "2nd Half", label: "2nd half", odds: price(halfGoals.second) },
+        { outcome: "Draw", label: "Equal", odds: price(halfGoals.equal) },
+      ],
+    },
+    {
+      key: "af32",
+      label: "Win Both Halves",
+      group: "half",
+      prices: (["Home", "Away"] as const).map((s) => ({ outcome: s, label: s, odds: price(bothHalves[s]) })),
+    },
+    {
+      key: "af39",
+      label: "Win Either Half",
+      group: "half",
+      prices: (["Home", "Away"] as const).map((s) => ({ outcome: s, label: s, odds: price(eitherHalf[s]) })),
+    },
+    { key: "af16", label: "Home Team Over / Under", group: "teams", prices: overUnderPrices(homeTotals, [0.5, 1.5, 2.5]) },
+    { key: "af17", label: "Away Team Over / Under", group: "teams", prices: overUnderPrices(awayTotals, [0.5, 1.5, 2.5]) },
+    { key: "af27", label: "Clean Sheet - Home", group: "teams", prices: yesNo(homeClean) },
+    { key: "af28", label: "Clean Sheet - Away", group: "teams", prices: yesNo(awayClean) },
+  ];
+}
+
 /** Odd/even and exact-goals markets, from the same fitted model. */
 export function goalCountMarkets(home: number, draw: number, away: number): Market[] {
   const rates = ratesFromOdds(home, draw, away);

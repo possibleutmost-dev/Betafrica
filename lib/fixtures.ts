@@ -11,7 +11,7 @@ import {
 import { buildMarkets } from "./markets";
 import { matchClock, scoreFromTimeline } from "./clock";
 import { deriveMarkets, driftOdds, applyBoost, type Market } from "./odds";
-import { correctScoreMarket, goalCountMarkets } from "./scoreline";
+import { correctScoreMarket, extraMarkets, goalCountMarkets } from "./scoreline";
 
 /**
  * The public fixture feed.
@@ -272,19 +272,40 @@ export async function getMatchDetail(id: string): Promise<FeedMatch | null> {
 
   // Operator-created matches are priced by the operator; there is no upstream
   // book for them, so the derived set is the whole truth.
-  if (match.source === "custom") return match;
+  if (match.source === "custom") return withDerived(match, match.markets);
 
   const bookmakers = await fetchFixtureOdds(id);
   const full = buildMarkets(bookmakers);
 
   // Upstream prices nothing for plenty of smaller fixtures. Fall back to the
   // derived markets rather than showing an empty board.
-  if (full.length < 2) return match;
+  if (full.length < 2) return withDerived(match, match.markets);
 
   // Keep the derived 1X2 if upstream did not price one, so the board and the
   // details page never disagree about the headline market.
   const hasMatchWinner = full.some((m) => m.key === "af1");
   const markets = hasMatchWinner ? full : [...match.markets.filter((m) => m.key === "1x2"), ...full];
 
-  return { ...match, markets };
+  return withDerived(match, markets);
+}
+
+/** Derived markets and the upstream key that already covers each one. */
+const UPSTREAM_TWIN: Record<string, string> = { cs: "af10", oe: "af21", eg: "af38" };
+
+/**
+ * Fill in correct score, HT/FT and the rest from the match's own 1X2, for any
+ * market the book did not already price. A real upstream price always wins.
+ */
+function withDerived(match: FeedMatch, markets: Market[]): FeedMatch {
+  // The board 1X2 is always present, even where the book priced its own.
+  const x = match.markets.find((m) => m.key === "1x2")?.prices;
+  const odds = (o: string) => Number(x?.find((p) => p.outcome === o)?.odds);
+  const [h, d, a] = [odds("1"), odds("X"), odds("2")];
+  if (![h, d, a].every((n) => Number.isFinite(n) && n > 1)) return { ...match, markets };
+
+  const have = new Set(markets.map((m) => m.key));
+  const extra = [...goalCountMarkets(h, d, a), correctScoreMarket(h, d, a), ...extraMarkets(h, d, a)].filter(
+    (m) => !have.has(m.key) && !have.has(UPSTREAM_TWIN[m.key] ?? ""),
+  );
+  return { ...match, markets: [...markets, ...extra] };
 }

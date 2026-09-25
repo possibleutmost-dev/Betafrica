@@ -198,6 +198,15 @@ const KEY_LABELS: Record<string, string> = {
   af3: "2nd Half 1X2",
   af7: "HT / FT",
   af45: "Corners Over / Under",
+  af31: "1st Half Correct Score",
+  af11: "Highest Scoring Half",
+  af32: "Win Both Halves",
+  af39: "Win Either Half",
+  af16: "Home Team Over / Under",
+  af17: "Away Team Over / Under",
+  af27: "Clean Sheet - Home",
+  af28: "Clean Sheet - Away",
+  af24: "1X2 & GG / NG",
 };
 
 export function marketName(key: string): string {

@@ -200,6 +200,8 @@ const JUDGES: Record<string, Judge> = {
   af108: (o, r) => (haveHalfTime(r) ? overUnder(r.away - r.htAway, o) : null),
   af31: (o, r) => {
     if (!haveHalfTime(r)) return null;
+    // The derived half-time grid stops at 2:2; "Any other" covers the rest.
+    if (o.trim().toLowerCase() === "any other") return r.htHome > 2 || r.htAway > 2;
     const s = scoreline(o);
     return s === null ? null : s.h === r.htHome && s.a === r.htAway;
   },
