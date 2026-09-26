@@ -68,7 +68,10 @@ export async function POST(req: Request) {
       .select("id")
       .eq("referral_code", referralCode.trim().toUpperCase())
       .maybeSingle();
-    if (partner) referredBy = partner.id;
+    // A mistyped code would silently cost the sub-admin their commission, so
+    // the player is told rather than registered unattributed.
+    if (!partner) return NextResponse.json({ error: "That referral code is not valid. Check it, or leave it empty." }, { status: 400 });
+    referredBy = partner.id;
   }
 
   const passwordHash = await bcrypt.hash(password, 10);

@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import type { Player } from '@/lib/store'
 
+/** Where a referral code from a shared link waits until the player registers. */
+export const REFERRAL_KEY = 'betafrica-ref'
+
 const countries = [
   { code: 'GH', name: 'Ghana', dial: '+233', example: '24 123 4567' },
   { code: 'NG', name: 'Nigeria', dial: '+234', example: '803 123 4567' },
@@ -17,6 +20,7 @@ export function AuthForm({ mode, onClose, switchMode, onSignedIn }: { mode: 'log
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [countryCode, setCountryCode] = useState('GH')
+  const [referralCode, setReferralCode] = useState('')
   const country = countries.find((item) => item.code === countryCode) ?? countries[0]
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -24,6 +28,10 @@ export function AuthForm({ mode, onClose, switchMode, onSignedIn }: { mode: 'log
   useEffect(() => {
     const saved = sessionStorage.getItem('sporty-phone')
     if (saved) setIdentifier(saved)
+    try {
+      const ref = localStorage.getItem(REFERRAL_KEY)
+      if (ref) setReferralCode(ref)
+    } catch {}
   }, [])
 
   const submit = async () => {
@@ -37,12 +45,15 @@ export function AuthForm({ mode, onClose, switchMode, onSignedIn }: { mode: 'log
       const res = await fetch(mode === 'login' ? '/api/auth/login' : '/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mode === 'login' ? { identifier, password } : { name, phone: identifier, email, password, countryCode }),
+        body: JSON.stringify(mode === 'login' ? { identifier, password } : { name, phone: identifier, email, password, countryCode, referralCode: referralCode.trim() || undefined }),
       })
       const json = await res.json()
       if (!res.ok) {
         setError(json.error ?? 'Could not continue')
         return
+      }
+      if (mode === 'register') {
+        try { localStorage.removeItem(REFERRAL_KEY) } catch {}
       }
       onSignedIn({ ...json.user, balance: Number(json.user.balance) })
     } catch {
@@ -87,8 +98,15 @@ export function AuthForm({ mode, onClose, switchMode, onSignedIn }: { mode: 'log
         </>
       )}
       <label className="mb-1 block text-xs font-semibold">Password</label>
-      <input value={password} onChange={(event) => setPassword(event.target.value)} className="mb-4 h-11 w-full rounded-xl border border-[#e2e8f0] px-3 text-sm outline-none focus:border-[#0d9488]" placeholder="Password" type="password" />
-      {error && <p className="mb-3 text-xs text-[#0f766e]">{error}</p>}
+      <input value={password} onChange={(event) => setPassword(event.target.value)} className="mb-3 h-11 w-full rounded-xl border border-[#e2e8f0] px-3 text-sm outline-none focus:border-[#0d9488]" placeholder="Password" type="password" />
+      {mode === 'register' && (
+        <>
+          <label className="mb-1 block text-xs font-semibold">Referral code <span className="font-normal text-[#94a3b8]">(optional)</span></label>
+          <input value={referralCode} onChange={(event) => setReferralCode(event.target.value.toUpperCase().replace(/\s/g, ''))} autoCapitalize="characters" className="mb-4 h-11 w-full rounded-xl border border-[#e2e8f0] px-3 text-sm uppercase outline-none focus:border-[#0d9488]" placeholder="e.g. 3F9A1C2B" />
+        </>
+      )}
+      {mode === 'login' && <div className="mb-1" />}
+      {error && <p className="mb-3 text-xs text-[#dc2626]">{error}</p>}
       <button disabled={busy} onClick={submit} className="w-full rounded-xl bg-[#facc15] py-3 font-bold text-[#0f172a] disabled:opacity-60">{busy ? 'Please wait…' : mode === 'login' ? 'Login' : 'Register'}</button>
       <button onClick={switchMode} className="mt-4 w-full text-center text-xs text-[#0f766e]">{mode === 'login' ? 'Need an account? Register' : 'Already registered? Login'}</button>
       <p className="mt-4 text-center text-xs text-[#94a3b8]">18+ Gamble responsibly. Never bet more than you can afford.</p>

@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { ChevronDown, Gamepad2, Headphones, House, Menu, ReceiptText, UserRound, X } from 'lucide-react'
-import { AuthForm } from '@/components/auth-form'
+import { AuthForm, REFERRAL_KEY } from '@/components/auth-form'
 import { SiteFooter } from '@/components/info-pages'
 import { WinCelebration, hasCelebrated, markCelebrated } from '@/components/tickets'
 import { formatMoney } from '@/lib/countries'
@@ -70,6 +70,20 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const slipCount = mounted ? slipLegs.length : 0
 
   useEffect(() => setMounted(true), [])
+
+  // A sub-admin's referral link (?ref=CODE): keep the code for the register
+  // form, open that form for a visitor who is not signed in, and tidy the URL.
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const ref = url.searchParams.get('ref')?.trim().toUpperCase()
+    if (!ref) return
+    try {
+      localStorage.setItem(REFERRAL_KEY, ref)
+    } catch {}
+    if (!useSession.getState().player) setAuth('register')
+    url.searchParams.delete('ref')
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash)
+  }, [])
 
   // The session lives in localStorage, so it is only read after hydration.
   const player = mounted ? storedPlayer : null
