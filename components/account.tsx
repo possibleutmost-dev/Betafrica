@@ -451,18 +451,18 @@ function PromptWait({ reference, amount, phone, currency, onDone }: { reference:
 
   return (
     <div className="px-4 py-8 text-center sm:px-6">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e8f5ee]">
-        <Smartphone size={30} className="text-[#0b6e4f]" />
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e6f6f4]">
+        <Smartphone size={30} className="text-[#0f766e]" />
       </div>
       <h2 className="mt-4 text-xl font-bold">Approve on your phone</h2>
-      <p className="mt-2 text-[15px] text-[#34463f]">
+      <p className="mt-2 text-[15px] text-[#334155]">
         A payment prompt for <b>{formatMoney(amount, currency)}</b> has been sent to <b>+{countryPrefix(phone)} {maskPhoneTail(phone)}</b>. Enter your mobile money PIN to approve it.
       </p>
-      <div className="mx-auto mt-6 flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2 text-sm text-[#5f6f69] shadow-sm">
-        <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#ff7a1a]" /> Waiting for approval · {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}
+      <div className="mx-auto mt-6 flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2 text-sm text-[#64748b] shadow-sm">
+        <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#facc15]" /> Waiting for approval · {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}
       </div>
-      <p className="mt-6 text-[13px] text-[#5f6f69]">No prompt? MTN users can dial *170#, then choose 6 and 3 to approve pending payments.</p>
-      <button onClick={() => onDone('timeout')} className="mt-6 text-sm font-semibold text-[#0b6e4f]">Back to deposit</button>
+      <p className="mt-6 text-[13px] text-[#64748b]">No prompt? MTN users can dial *170#, then choose 6 and 3 to approve pending payments.</p>
+      <button onClick={() => onDone('timeout')} className="mt-6 text-sm font-semibold text-[#0f766e]">Back to deposit</button>
     </div>
   )
 }
