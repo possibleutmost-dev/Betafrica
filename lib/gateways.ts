@@ -418,6 +418,10 @@ const edibytes: GatewayAdapter = {
 
       const id = pick(json, "data.id", "id", "data.access_code", "access_code");
       const payRef = String(pick(json, "data.reference", "reference") ?? reference);
+      const checkoutUrl = pick(json, "data.checkout_url", "checkout_url");
+      // Their own payment page for the same payment, used when the direct
+      // prompt cannot be sent so the player still has a way to pay.
+      const hosted = typeof checkoutUrl === "string" && /^https:\/\//.test(checkoutUrl) ? checkoutUrl : null;
 
       // Send the approval prompt straight to the player's phone, the same call
       // their hosted page makes on "Pay now", so the player never leaves us.
@@ -430,7 +434,12 @@ const edibytes: GatewayAdapter = {
       if (!charge.ok) {
         const reason = String(pick(chargeJson, "error.message", "message", "detail") ?? "");
         console.error("[edibytes] charge refused", charge.status, reason);
-        if (charge.status >= 500) return { ok: false, error: "The payment service is busy. Please try again in a minute." };
+        if (charge.status >= 500) {
+          // Their side failed to reach the network (seen live: payment created,
+          // prompt never sent). Their hosted page retries the same payment.
+          if (hosted) return { ok: true, redirectUrl: hosted, metadata: id ? { edibytesId: id } : undefined };
+          return { ok: false, error: "The payment service is busy. Please try again in a minute." };
+        }
         return { ok: false, error: reason || "Could not send the payment prompt. Check the number and try again." };
       }
       return { ok: true, awaitingPrompt: true, metadata: id ? { edibytesId: id } : undefined };
@@ -522,7 +531,11 @@ export function depositGateway(countryCode: string, fallback: Gateway): Gateway 
   // Nothing chosen: keep the country's default while it has keys, otherwise
   // use a gateway that does, rather than refusing every deposit.
   if (hasKeys(fallback)) return fallback;
-  const ready = (["edibytes", "paystack", "korapay", "flutterwave_momo", "moolre"] as Gateway[]).find(hasKeys);
+  // Edibytes only prompts Ghana mobile-money numbers, so it is never a fallback elsewhere.
+  const candidates: Gateway[] = countryCode.toUpperCase() === "GH"
+    ? ["edibytes", "paystack", "korapay", "flutterwave_momo", "moolre"]
+    : ["paystack", "korapay", "flutterwave_momo", "moolre"];
+  const ready = candidates.find(hasKeys);
   return ready ?? fallback;
 }
 

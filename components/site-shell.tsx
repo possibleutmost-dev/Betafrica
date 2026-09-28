@@ -75,6 +75,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
   // form, open that form for a visitor who is not signed in, and tidy the URL.
   useEffect(() => {
     const url = new URL(window.location.href)
+    // /account?ref=… is a payment gateway returning a deposit reference, not a
+    // referral; the deposit screen reads that one itself.
+    if (url.pathname.startsWith('/account')) return
     const ref = url.searchParams.get('ref')?.trim().toUpperCase()
     if (!ref) return
     try {
