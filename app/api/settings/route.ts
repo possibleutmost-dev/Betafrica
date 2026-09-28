@@ -9,6 +9,7 @@ const PUBLIC_KEYS = [
   "deposit_account_number",
   "deposit_account_network",
   "support_whatsapp",
+  "support_telegram",
   "support_email",
   "license_text",
 ];

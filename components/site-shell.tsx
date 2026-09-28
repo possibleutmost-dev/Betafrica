@@ -4,9 +4,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { ChevronDown, Gamepad2, Headphones, House, Menu, ReceiptText, UserRound, X } from 'lucide-react'
+import { ChevronDown, Gamepad2, Headphones, House, Send, Menu, ReceiptText, UserRound, X } from 'lucide-react'
 import { AuthForm, REFERRAL_KEY } from '@/components/auth-form'
-import { SiteFooter } from '@/components/info-pages'
+import { SiteFooter, telegramContact, useSiteInfo } from '@/components/info-pages'
 import { WinCelebration, hasCelebrated, markCelebrated } from '@/components/tickets'
 import { formatMoney } from '@/lib/countries'
 import { useSession, useSlip, type Player } from '@/lib/store'
@@ -215,7 +215,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
           </button>
         )}
         {slipOpen && <BetslipSheet onClose={() => setSlipOpen(false)} />}
-        <Link href="/help#contact" className="fixed bottom-6 right-6 z-30 hidden h-12 w-12 items-center justify-center rounded-full border border-[#e2e8f0] bg-white text-[#0f766e] shadow-lg md:flex" aria-label="Contact support"><Headphones size={22} /></Link>
+        <SupportButton />
         {auth && (
           <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/55 p-4 sm:items-center">
             <AuthForm
@@ -255,5 +255,19 @@ function TabLink({ href, active, icon, label, badge = 0 }: { href: string; activ
       {label}
       {badge > 0 && <span className="absolute left-1/2 top-1.5 ml-1.5 min-w-[18px] rounded-full bg-[#e40014] px-1 text-center text-[10px] font-bold leading-[18px] text-white">{badge}</span>}
     </Link>
+  )
+}
+
+/** Floating support button: opens the Telegram support chat, or the help page if none is set. */
+function SupportButton() {
+  const info = useSiteInfo()
+  const telegram = telegramContact(info.support_telegram)
+  if (!telegram) {
+    return <Link href="/help#contact" className="fixed bottom-6 right-6 z-30 hidden h-12 w-12 items-center justify-center rounded-full border border-[#e2e8f0] bg-white text-[#0f766e] shadow-lg md:flex" aria-label="Contact support"><Headphones size={22} /></Link>
+  }
+  return (
+    <a href={telegram.href} target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 z-30 hidden h-12 items-center gap-2 rounded-full bg-[#229ed9] pl-4 pr-5 text-sm font-semibold text-white shadow-lg hover:bg-[#1c8cc2] md:flex" aria-label="Chat with support on Telegram">
+      <Send size={18} /> Support
+    </a>
   )
 }

@@ -2,12 +2,12 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import Link from 'next/link'
-import { ChevronDown, ChevronLeft, Mail, MessageCircle, ShieldCheck } from 'lucide-react'
+import { ChevronDown, ChevronLeft, Mail, MessageCircle, Send, ShieldCheck } from 'lucide-react'
 import { BrandMark } from '@/components/brand-mark'
 
 const UPDATED = '23 September 2026'
 
-type SiteInfo = { support_whatsapp?: string; support_email?: string; license_text?: string }
+type SiteInfo = { support_telegram?: string; support_whatsapp?: string; support_email?: string; license_text?: string }
 
 let cached: SiteInfo | null = null
 
@@ -25,6 +25,20 @@ export function useSiteInfo() {
       .catch(() => {})
   }, [])
   return info
+}
+
+/** Used until the operator sets their own in the admin console. */
+export const DEFAULT_TELEGRAM = 'https://t.me/BetAfricaSupport'
+
+/** Accepts a t.me link, @username or bare username; returns the t.me link and the @handle. */
+export function telegramContact(value?: string) {
+  const raw = (value?.trim() || DEFAULT_TELEGRAM)
+    .replace(/^https?:\/\//, '')
+    .replace(/^(www\.)?(t|telegram)\.me\//, '')
+    .replace(/^@/, '')
+    .split(/[/?#]/)[0]
+  if (!/^[A-Za-z0-9_]{4,}$/.test(raw)) return null
+  return { href: `https://t.me/${raw}`, handle: `@${raw}` }
 }
 
 export function whatsappLink(number?: string) {
@@ -251,6 +265,7 @@ export function FaqPage() {
   const info = useSiteInfo()
   const [open, setOpen] = useState<number | null>(0)
   const whatsapp = whatsappLink(info.support_whatsapp)
+  const telegram = telegramContact(info.support_telegram)
 
   return (
     <InfoPage title="Help & FAQ" intro="Quick answers to common questions. Can't find what you need? Contact us below.">
@@ -267,6 +282,13 @@ export function FaqPage() {
       </div>
       <Part title="Contact Customer Service">
         <div id="contact" className="grid gap-3 sm:grid-cols-2">
+          {telegram && (
+            <a href={telegram.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-xl border border-[#e2e8f0] bg-white p-4 hover:border-[#229ed9] sm:col-span-2">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#229ed9] text-white"><Send size={18} /></span>
+              <span className="min-w-0 flex-1"><b className="block">Telegram support</b><span className="text-sm text-[#64748b]">{telegram.handle} · fastest reply</span></span>
+              <span className="rounded-full bg-[#facc15] px-3 py-1 text-xs font-bold text-[#0f172a]">Chat now</span>
+            </a>
+          )}
           {whatsapp && (
             <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 border p-4 hover:border-[#0b9b3a]">
               <MessageCircle className="text-[#0b9b3a]" />
@@ -279,7 +301,7 @@ export function FaqPage() {
               <span><b className="block">Email</b><span className="break-all text-sm text-[#64748b]">{info.support_email}</span></span>
             </a>
           )}
-          {!whatsapp && !info.support_email && <p className="text-sm text-[#64748b]">Contact details will appear here soon.</p>}
+          {!telegram && !whatsapp && !info.support_email && <p className="text-sm text-[#64748b]">Contact details will appear here soon.</p>}
         </div>
       </Part>
     </InfoPage>
@@ -290,6 +312,7 @@ export function FaqPage() {
 
 export function SiteFooter({ className = '' }: { className?: string }) {
   const info = useSiteInfo()
+  const telegram = telegramContact(info.support_telegram)
   const year = new Date().getFullYear()
   return (
     <footer className={`bg-[#eef0f4] px-3 pb-28 pt-6 md:pb-8 ${className}`}>
@@ -304,6 +327,7 @@ export function SiteFooter({ className = '' }: { className?: string }) {
           <Link href="/terms" className="hover:text-[#0f766e]">Terms &amp; Conditions</Link>
           <Link href="/privacy" className="hover:text-[#0f766e]">Privacy Policy</Link>
           <Link href="/help" className="hover:text-[#0f766e]">Help &amp; FAQ</Link>
+          {telegram && <a href={telegram.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-[#229ed9]"><Send size={14} /> Telegram support</a>}
           <Link href="/responsible-gambling" className="hover:text-[#0f766e]">Responsible Gambling</Link>
         </nav>
         <div className="mt-6 flex flex-wrap justify-center gap-2 text-xs font-bold">
