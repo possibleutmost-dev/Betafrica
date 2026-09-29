@@ -21,14 +21,15 @@ export async function GET() {
     .limit(100);
 
   const deposits = (data ?? []).filter((p) => {
-    const meta = (p.metadata ?? {}) as { type?: string };
-    return meta.type === "deposit";
+    const meta = (p.metadata ?? {}) as { type?: string; submitted_at?: string };
+    // A deposit started but never paid has no receipt; it stays out of the queue.
+    return meta.type === "deposit" && Boolean(meta.submitted_at);
   });
 
   // Screenshots live in a private bucket, so hand out short-lived signed URLs.
   const withUrls = await Promise.all(
     deposits.map(async (d) => {
-      const meta = (d.metadata ?? {}) as { screenshot?: string | null; sender_number?: string };
+      const meta = (d.metadata ?? {}) as { screenshot?: string | null; sender_number?: string; sender_name?: string };
       let screenshotUrl: string | null = null;
       if (meta.screenshot) {
         const { data: signed } = await supabase.storage
@@ -36,7 +37,7 @@ export async function GET() {
           .createSignedUrl(meta.screenshot, 600);
         screenshotUrl = signed?.signedUrl ?? null;
       }
-      return { ...d, screenshotUrl, senderNumber: meta.sender_number ?? null };
+      return { ...d, screenshotUrl, senderNumber: meta.sender_number ?? null, senderName: meta.sender_name ?? null };
     }),
   );
 

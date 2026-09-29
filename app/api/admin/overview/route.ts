@@ -21,7 +21,8 @@ export async function GET() {
         .from("payments")
         .select("id", { count: "exact", head: true })
         .eq("status", "pending")
-        .eq("provider", "manual"),
+        .eq("provider", "manual")
+        .not("metadata->>submitted_at", "is", null),
     ]);
 
   const deposits: Record<string, number> = {};

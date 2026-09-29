@@ -38,6 +38,19 @@ export const CONFIG_GROUPS: ConfigGroup[] = [
           { value: "moolre", label: "Moolre mobile money" },
         ],
       },
+      {
+        key: "DEPOSIT_GATEWAY_NG",
+        label: "Nigeria deposits go through",
+        secret: false,
+        hint: "Bank transfer shows the account set under Settings; you confirm each one from the receipt.",
+        options: [
+          { value: "", label: "Default (bank transfer, confirmed by you)" },
+          { value: "manual", label: "Bank transfer, confirmed by you" },
+          { value: "flutterwave_card", label: "Flutterwave card checkout" },
+          { value: "paystack", label: "Paystack checkout" },
+          { value: "korapay", label: "Korapay checkout" },
+        ],
+      },
     ],
   },
   {

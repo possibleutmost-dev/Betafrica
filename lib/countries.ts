@@ -67,8 +67,10 @@ const BASE: Record<string, CountryConfig> = {
     currencySymbol: "₦",
     dialCode: "234",
     phoneDigits: 10,
-    // Cards are taken on our own checkout page rather than a hosted one.
-    gateway: "flutterwave_card",
+    // Bank transfer to the operator account, confirmed by hand from the
+    // player's receipt. Cards (flutterwave_card) can be switched on in the
+    // console once those keys are live.
+    gateway: "manual",
     payoutRail: "bank",
     kyc: [
       { kind: "bvn", label: "BVN", pattern: /^\d{11}$/, hint: "11 digits" },

@@ -394,7 +394,7 @@ function DepositsPanel() {
   return (
     <Card>
       <h2 className="font-bold">Pending manual deposits</h2>
-      <p className="mt-1 text-xs text-[#64748b]">Players can no longer submit manual transfers. Anything left here was sent before that change.</p>
+      <p className="mt-1 text-xs text-[#64748b]">Bank transfers players have sent with a receipt. Check the money arrived in the account, then confirm to credit them.</p>
       {rows.length === 0 && <p className="mt-3 text-[#64748b]">Nothing waiting.</p>}
       {rows.map((row) => {
         const user = row.users as { name?: string; phone?: string } | undefined
@@ -402,7 +402,8 @@ function DepositsPanel() {
         return (
           <div key={reference} className="rounded-lg mt-3 border border-[#e2e8f0] p-3">
             <p className="font-semibold">{user?.name} · {user?.phone}</p>
-            <p>{formatMoney(Number(row.amount), String(row.currency))} · {String(row.senderNumber ?? '')}</p>
+            <p>{formatMoney(Number(row.amount), String(row.currency))}{row.senderName ? ` · paid by ${String(row.senderName)}` : row.senderNumber ? ` · ${String(row.senderNumber)}` : ''}</p>
+            <p className="text-xs text-[#64748b]">Reference {reference}</p>
             {row.screenshotUrl ? <a className="text-xs text-[#0f766e]" href={String(row.screenshotUrl)} target="_blank" rel="noreferrer">Open screenshot</a> : null}
             <div className="mt-2 flex gap-2">
               <button onClick={() => act(reference, 'confirm')} className="rounded-lg bg-[#0d9488] px-3 py-1.5 text-xs text-white">Confirm</button>
@@ -1043,18 +1044,18 @@ function SettingsPanel() {
   useEffect(() => {
     fetch('/api/admin/settings').then((res) => res.json()).then((json) => setSettings(json.settings ?? {})).catch(() => {})
   }, [])
-  const keys = ['support_telegram', 'support_whatsapp', 'support_email', 'license_text']
+  const keys = ['support_telegram', 'support_whatsapp', 'support_email', 'license_text', 'ng_bank_name', 'ng_account_number', 'ng_account_name']
   const save = async () => {
     const { ok } = await send('/api/admin/settings', 'PUT', { settings: Object.fromEntries(keys.map((key) => [key, settings[key] ?? ''])) })
     setMessage(ok ? 'Saved.' : 'Could not save settings')
   }
   return (
     <Card>
-      <h2 className="font-bold">Support and footer</h2>
+      <h2 className="font-bold">Support, footer and bank transfer</h2>
       <p className="mt-1 text-xs text-[#64748b]">Shown on the Help page and in the site footer. Leave the licence line empty until you have a licence number.</p>
       {keys.map((key) => (
         <label key={key} className="mt-3 block text-xs font-semibold">
-          {{ support_telegram: 'Support Telegram (link or @username)', support_whatsapp: 'Support WhatsApp number', support_email: 'Support email', license_text: 'Licence line (e.g. Licensed by the Gaming Commission of Ghana · your licence number)' }[key] ?? key}
+          {{ ng_bank_name: 'Nigeria deposits · bank name', ng_account_number: 'Nigeria deposits · account number', ng_account_name: 'Nigeria deposits · account name', support_telegram: 'Support Telegram (link or @username)', support_whatsapp: 'Support WhatsApp number', support_email: 'Support email', license_text: 'Licence line (e.g. Licensed by the Gaming Commission of Ghana · your licence number)' }[key] ?? key}
           <input value={settings[key] ?? ''} onChange={(event) => setSettings({ ...settings, [key]: event.target.value })} className="rounded-lg mt-1 h-10 w-full border border-[#e2e8f0] px-3 text-sm font-normal" />
         </label>
       ))}

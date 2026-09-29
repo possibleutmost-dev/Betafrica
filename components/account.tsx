@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  ArrowDownToLine, ArrowUpFromLine, ChevronLeft, ChevronRight, CircleHelp, Eye, EyeOff, FileText, Gamepad2,
-  Headphones, History, Lock, LogOut, Megaphone, ReceiptText, Share2, ShieldCheck, Smartphone, Ticket,
+  ArrowDownToLine, ArrowUpFromLine, Check, ChevronLeft, ChevronRight, CircleHelp, Copy, Eye, EyeOff, FileText, Gamepad2,
+  Headphones, History, Landmark, Lock, LogOut, Megaphone, ReceiptText, Share2, ShieldCheck, Smartphone, Ticket, Upload,
 } from 'lucide-react'
 import { NeedSignIn } from '@/components/player-panels'
 import { useShell } from '@/components/site-shell'
@@ -302,6 +302,7 @@ export function DepositPage() {
   const setBalance = useSession((state) => state.setBalance)
   const [amount, setAmount] = useState('200')
   const [waiting, setWaiting] = useState<{ reference: string; amount: number; phone: string } | null>(null)
+  const [transfer, setTransfer] = useState<{ reference: string; amount: number } | null>(null)
   const [otherPhone, setOtherPhone] = useState('')
   const [switching, setSwitching] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -317,6 +318,7 @@ export function DepositPage() {
   const phone = switching && otherPhone.replace(/\D/g, '').length >= 9 ? otherPhone : player.phone
   const network = networkFor(phone, country?.code ?? player.country_code, country?.networks ?? [])
   const cardRail = country?.gateway === 'flutterwave_card'
+  const bankRail = country?.gateway === 'manual'
   const value = Number(amount)
   const ready = Number.isFinite(value) && value >= min && (!max || value <= max) && !busy
   const chips = CHIPS[currency] ?? DEFAULT_CHIPS
@@ -339,6 +341,10 @@ export function DepositPage() {
         window.location.href = json.redirectUrl
         return
       }
+      if (json.provider === 'manual' && json.reference) {
+        setTransfer({ reference: json.reference, amount: value })
+        return
+      }
       if (json.awaitingPrompt && json.reference) {
         setWaiting({ reference: json.reference, amount: value, phone })
         return
@@ -349,6 +355,22 @@ export function DepositPage() {
     } finally {
       setBusy(false)
     }
+  }
+
+  if (transfer) {
+    return (
+      <DarkPage title="Deposit" help="/help">
+        <BankTransfer
+          {...transfer}
+          userId={player.id}
+          currency={currency}
+          onDone={(submitted) => {
+            setTransfer(null)
+            if (submitted) notify('Deposit submitted. Your balance updates as soon as we confirm the transfer.')
+          }}
+        />
+      </DarkPage>
+    )
   }
 
   if (waiting) {
@@ -378,14 +400,16 @@ export function DepositPage() {
     `Minimum deposit is ${formatMoney(min, currency)}.`,
     ...(max ? [`Maximum per transaction is ${formatMoney(max, currency)}.`] : []),
     'Deposit is free, no transaction fees.',
-    ...(cardRail ? ['You will enter your card on the next screen.'] : ['A payment prompt is sent to the number above. Approve it to finish.']),
+    ...(bankRail
+      ? ['You will see our bank account on the next screen. Transfer the exact amount, then upload your receipt.', 'Your balance is credited once we confirm the transfer.']
+      : cardRail ? ['You will enter your card on the next screen.'] : ['A payment prompt is sent to the number above. Approve it to finish.']),
   ]
 
   return (
     <DarkPage title="Deposit" help="/help">
-      <Tabs items={[cardRail ? { key: 'card', label: 'Card' } : { key: 'momo', label: 'Mobile Money' }]} value={cardRail ? 'card' : 'momo'} onChange={() => {}} />
+      <Tabs items={[bankRail ? { key: 'bank', label: 'Bank Transfer' } : cardRail ? { key: 'card', label: 'Card' } : { key: 'momo', label: 'Mobile Money' }]} value={bankRail ? 'bank' : cardRail ? 'card' : 'momo'} onChange={() => {}} />
       <div className="space-y-4 px-4 py-5 sm:px-6">
-        {!cardRail && (
+        {!cardRail && !bankRail && (
           <>
             <PhoneRow phone={phone} />
             <NetworkRow network={network} switching={switching} onSwitch={() => setSwitching((open) => !open)} />
@@ -419,6 +443,128 @@ export function DepositPage() {
         )}
       </div>
     </DarkPage>
+  )
+}
+
+/**
+ * Bank transfer: shows the operator account from Settings, then takes the
+ * sender name and receipt. The operator confirms it in the console.
+ */
+function BankTransfer({ reference, amount, userId, currency, onDone }: { reference: string; amount: number; userId: string; currency: string; onDone: (submitted: boolean) => void }) {
+  const [bank, setBank] = useState<{ name?: string; number?: string; holder?: string } | null>(null)
+  const [copied, setCopied] = useState('')
+  const [senderName, setSenderName] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [sent, setSent] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((json) => setBank({ name: json.settings?.ng_bank_name, number: json.settings?.ng_account_number, holder: json.settings?.ng_account_name }))
+      .catch(() => setBank({}))
+  }, [])
+
+  const copy = async (label: string, value: string) => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(label)
+      setTimeout(() => setCopied(''), 1500)
+    } catch {}
+  }
+
+  const submit = async () => {
+    setError('')
+    if (senderName.trim().length < 3) return setError('Enter the name on the account you paid from')
+    if (!file) return setError('Add a screenshot of your transfer receipt')
+    setBusy(true)
+    try {
+      const form = new FormData()
+      form.set('userId', userId)
+      form.set('reference', reference)
+      form.set('senderName', senderName.trim())
+      form.set('file', file)
+      const res = await fetch('/api/deposits/manual', { method: 'POST', body: form })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) return setError(json.error ?? 'Could not submit your deposit')
+      setSent(true)
+    } catch {
+      setError('Could not reach the server')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (sent) {
+    return (
+      <div className="px-4 py-8 text-center sm:px-6">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e6f6f4]"><Check size={30} className="text-[#0f766e]" /></div>
+        <h2 className="mt-4 text-xl font-bold">Deposit submitted</h2>
+        <p className="mt-2 text-[15px] text-[#334155]">We are checking your transfer of <b>{formatMoney(amount, currency)}</b>. Your balance updates as soon as it is confirmed, usually within a few minutes.</p>
+        <p className="mt-3 text-[13px] text-[#64748b]">Reference {reference}</p>
+        <button onClick={() => onDone(true)} className="mt-6 h-12 w-full rounded-xl bg-[#facc15] font-bold text-[#0f172a]">Done</button>
+      </div>
+    )
+  }
+
+  const ready = bank && bank.number
+  const rows: [string, string | undefined][] = [
+    ['Bank', bank?.name],
+    ['Account number', bank?.number],
+    ['Account name', bank?.holder],
+    ['Amount', formatMoney(amount, currency)],
+    ['Reference / narration', reference],
+  ]
+
+  return (
+    <div className="space-y-4 px-4 py-5 sm:px-6">
+      <div className="flex items-center gap-3">
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#e6f6f4] text-[#0f766e]"><Landmark size={22} /></span>
+        <div>
+          <h2 className="text-lg font-bold">Transfer to this account</h2>
+          <p className="text-[13px] text-[#64748b]">Send exactly {formatMoney(amount, currency)} and add the reference as the narration.</p>
+        </div>
+      </div>
+      {bank === null && <p className="text-sm text-[#64748b]">Loading account details…</p>}
+      {bank && !ready && <p className="rounded-xl bg-[#fff0f1] px-3 py-2 text-sm text-[#dc2626]">Bank transfer is not available right now. Please contact support.</p>}
+      {ready && (
+        <div className="divide-y divide-[#e2e8f0] rounded-xl border border-[#e2e8f0] bg-white">
+          {rows.map(([label, value]) => (
+            <div key={label} className="flex items-center justify-between gap-3 px-4 py-3">
+              <div className="min-w-0">
+                <p className="text-xs text-[#64748b]">{label}</p>
+                <p className="truncate font-semibold text-[#0f172a]">{value || '—'}</p>
+              </div>
+              {value && label !== 'Bank' && (
+                <button onClick={() => copy(label, label === 'Amount' ? String(amount) : value)} className="flex shrink-0 items-center gap-1 rounded-lg border border-[#e2e8f0] px-2.5 py-1.5 text-xs font-semibold text-[#0f766e]">
+                  {copied === label ? <Check size={14} /> : <Copy size={14} />} {copied === label ? 'Copied' : 'Copy'}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      {ready && (
+        <>
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold">Name on the account you paid from</span>
+            <input value={senderName} onChange={(event) => setSenderName(event.target.value)} className="h-12 w-full rounded-xl border border-[#e2e8f0] bg-white px-4 text-[15px] outline-none focus:border-[#0d9488]" placeholder="e.g. Chinedu Okafor" />
+          </label>
+          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-[#94a3b8] bg-white px-4 py-4">
+            <Upload size={20} className="shrink-0 text-[#0f766e]" />
+            <span className="min-w-0 flex-1 text-sm">
+              <b className="block">{file ? 'Receipt added' : 'Upload transfer receipt'}</b>
+              <span className="block truncate text-[#64748b]">{file ? file.name : 'Screenshot or PDF, up to 5MB'}</span>
+            </span>
+            <input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" className="hidden" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
+          </label>
+          {error && <p className="rounded-xl bg-[#fff0f1] px-3 py-2 text-sm text-[#dc2626]">{error}</p>}
+          <button disabled={busy} onClick={submit} className="h-12 w-full rounded-xl bg-[#facc15] text-base font-bold text-[#0f172a] disabled:opacity-60">{busy ? 'Submitting…' : 'I have paid'}</button>
+        </>
+      )}
+      <button onClick={() => onDone(false)} className="w-full text-center text-sm font-semibold text-[#0f766e]">Back to deposit</button>
+    </div>
   )
 }
 
