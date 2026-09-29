@@ -319,6 +319,7 @@ export function DepositPage() {
   const network = networkFor(phone, country?.code ?? player.country_code, country?.networks ?? [])
   const cardRail = country?.gateway === 'flutterwave_card'
   const bankRail = country?.gateway === 'manual'
+  const momoTransfer = (country?.code ?? player.country_code) === 'GH'
   const value = Number(amount)
   const ready = Number.isFinite(value) && value >= min && (!max || value <= max) && !busy
   const chips = CHIPS[currency] ?? DEFAULT_CHIPS
@@ -361,6 +362,7 @@ export function DepositPage() {
     return (
       <DarkPage title="Deposit" help="/help">
         <BankTransfer
+          momo={momoTransfer}
           {...transfer}
           userId={player.id}
           currency={currency}
@@ -401,13 +403,13 @@ export function DepositPage() {
     ...(max ? [`Maximum per transaction is ${formatMoney(max, currency)}.`] : []),
     'Deposit is free, no transaction fees.',
     ...(bankRail
-      ? ['You will see our bank account on the next screen. Transfer the exact amount, then upload your receipt.', 'Your balance is credited once we confirm the transfer.']
+      ? [momoTransfer ? 'You will see our mobile money number on the next screen. Send the exact amount, then upload your receipt.' : 'You will see our bank account on the next screen. Transfer the exact amount, then upload your receipt.', 'Your balance is credited once we confirm the transfer.']
       : cardRail ? ['You will enter your card on the next screen.'] : ['A payment prompt is sent to the number above. Approve it to finish.']),
   ]
 
   return (
     <DarkPage title="Deposit" help="/help">
-      <Tabs items={[bankRail ? { key: 'bank', label: 'Bank Transfer' } : cardRail ? { key: 'card', label: 'Card' } : { key: 'momo', label: 'Mobile Money' }]} value={bankRail ? 'bank' : cardRail ? 'card' : 'momo'} onChange={() => {}} />
+      <Tabs items={[bankRail ? { key: 'bank', label: momoTransfer ? 'Mobile Money Transfer' : 'Bank Transfer' } : cardRail ? { key: 'card', label: 'Card' } : { key: 'momo', label: 'Mobile Money' }]} value={bankRail ? 'bank' : cardRail ? 'card' : 'momo'} onChange={() => {}} />
       <div className="space-y-4 px-4 py-5 sm:px-6">
         {!cardRail && !bankRail && (
           <>
@@ -438,7 +440,7 @@ export function DepositPage() {
           {busy ? 'Please wait…' : 'Top Up Now'}
         </button>
         <Notes lines={notes} />
-        {country?.code === 'GH' && network.badge === 'MTN' && (
+        {country?.code === 'GH' && !bankRail && network.badge === 'MTN' && (
           <p className="text-[13px] leading-snug text-[#64748b]">Note: For MTN users, if a payment prompt isn&apos;t received, dial *170#, then select 6 and 3 to approve the transaction.</p>
         )}
       </div>
@@ -450,7 +452,7 @@ export function DepositPage() {
  * Bank transfer: shows the operator account from Settings, then takes the
  * sender name and receipt. The operator confirms it in the console.
  */
-function BankTransfer({ reference, amount, userId, currency, onDone }: { reference: string; amount: number; userId: string; currency: string; onDone: (submitted: boolean) => void }) {
+function BankTransfer({ reference, amount, userId, currency, momo = false, onDone }: { reference: string; amount: number; userId: string; currency: string; momo?: boolean; onDone: (submitted: boolean) => void }) {
   const [bank, setBank] = useState<{ name?: string; number?: string; holder?: string } | null>(null)
   const [copied, setCopied] = useState('')
   const [senderName, setSenderName] = useState('')
@@ -462,9 +464,14 @@ function BankTransfer({ reference, amount, userId, currency, onDone }: { referen
   useEffect(() => {
     fetch('/api/settings')
       .then((res) => res.json())
-      .then((json) => setBank({ name: json.settings?.ng_bank_name, number: json.settings?.ng_account_number, holder: json.settings?.ng_account_name }))
+      .then((json) => {
+        const s = json.settings ?? {}
+        setBank(momo
+          ? { name: s.deposit_account_network, number: s.deposit_account_number, holder: s.deposit_account_name }
+          : { name: s.ng_bank_name, number: s.ng_account_number, holder: s.ng_account_name })
+      })
       .catch(() => setBank({}))
-  }, [])
+  }, [momo])
 
   const copy = async (label: string, value: string) => {
     try {
@@ -510,11 +517,11 @@ function BankTransfer({ reference, amount, userId, currency, onDone }: { referen
 
   const ready = bank && bank.number
   const rows: [string, string | undefined][] = [
-    ['Bank', bank?.name],
-    ['Account number', bank?.number],
+    [momo ? 'Network' : 'Bank', bank?.name],
+    [momo ? 'Mobile money number' : 'Account number', bank?.number],
     ['Account name', bank?.holder],
     ['Amount', formatMoney(amount, currency)],
-    ['Reference / narration', reference],
+    [momo ? 'Reference' : 'Reference / narration', reference],
   ]
 
   return (
@@ -522,12 +529,12 @@ function BankTransfer({ reference, amount, userId, currency, onDone }: { referen
       <div className="flex items-center gap-3">
         <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#e6f6f4] text-[#0f766e]"><Landmark size={22} /></span>
         <div>
-          <h2 className="text-lg font-bold">Transfer to this account</h2>
-          <p className="text-[13px] text-[#64748b]">Send exactly {formatMoney(amount, currency)} and add the reference as the narration.</p>
+          <h2 className="text-lg font-bold">{momo ? 'Send to this number' : 'Transfer to this account'}</h2>
+          <p className="text-[13px] text-[#64748b]">Send exactly {formatMoney(amount, currency)}{momo ? ' and use the reference if your app asks for one.' : ' and add the reference as the narration.'}</p>
         </div>
       </div>
       {bank === null && <p className="text-sm text-[#64748b]">Loading account details…</p>}
-      {bank && !ready && <p className="rounded-xl bg-[#fff0f1] px-3 py-2 text-sm text-[#dc2626]">Bank transfer is not available right now. Please contact support.</p>}
+      {bank && !ready && <p className="rounded-xl bg-[#fff0f1] px-3 py-2 text-sm text-[#dc2626]">This deposit method is not available right now. Please contact support.</p>}
       {ready && (
         <div className="divide-y divide-[#e2e8f0] rounded-xl border border-[#e2e8f0] bg-white">
           {rows.map(([label, value]) => (
@@ -536,7 +543,7 @@ function BankTransfer({ reference, amount, userId, currency, onDone }: { referen
                 <p className="text-xs text-[#64748b]">{label}</p>
                 <p className="truncate font-semibold text-[#0f172a]">{value || '—'}</p>
               </div>
-              {value && label !== 'Bank' && (
+              {value && label !== 'Bank' && label !== 'Network' && (
                 <button onClick={() => copy(label, label === 'Amount' ? String(amount) : value)} className="flex shrink-0 items-center gap-1 rounded-lg border border-[#e2e8f0] px-2.5 py-1.5 text-xs font-semibold text-[#0f766e]">
                   {copied === label ? <Check size={14} /> : <Copy size={14} />} {copied === label ? 'Copied' : 'Copy'}
                 </button>
@@ -548,8 +555,8 @@ function BankTransfer({ reference, amount, userId, currency, onDone }: { referen
       {ready && (
         <>
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold">Name on the account you paid from</span>
-            <input value={senderName} onChange={(event) => setSenderName(event.target.value)} className="h-12 w-full rounded-xl border border-[#e2e8f0] bg-white px-4 text-[15px] outline-none focus:border-[#0d9488]" placeholder="e.g. Chinedu Okafor" />
+            <span className="mb-1 block text-xs font-semibold">{momo ? 'Name on the mobile money account you paid from' : 'Name on the account you paid from'}</span>
+            <input value={senderName} onChange={(event) => setSenderName(event.target.value)} className="h-12 w-full rounded-xl border border-[#e2e8f0] bg-white px-4 text-[15px] outline-none focus:border-[#0d9488]" placeholder={momo ? 'e.g. Kwame Mensah' : 'e.g. Chinedu Okafor'} />
           </label>
           <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-[#94a3b8] bg-white px-4 py-4">
             <Upload size={20} className="shrink-0 text-[#0f766e]" />

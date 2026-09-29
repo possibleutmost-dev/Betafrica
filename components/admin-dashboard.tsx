@@ -1044,7 +1044,7 @@ function SettingsPanel() {
   useEffect(() => {
     fetch('/api/admin/settings').then((res) => res.json()).then((json) => setSettings(json.settings ?? {})).catch(() => {})
   }, [])
-  const keys = ['support_telegram', 'support_whatsapp', 'support_email', 'license_text', 'ng_bank_name', 'ng_account_number', 'ng_account_name']
+  const keys = ['support_telegram', 'support_whatsapp', 'support_email', 'license_text', 'deposit_account_network', 'deposit_account_number', 'deposit_account_name', 'ng_bank_name', 'ng_account_number', 'ng_account_name']
   const save = async () => {
     const { ok } = await send('/api/admin/settings', 'PUT', { settings: Object.fromEntries(keys.map((key) => [key, settings[key] ?? ''])) })
     setMessage(ok ? 'Saved.' : 'Could not save settings')
@@ -1055,7 +1055,7 @@ function SettingsPanel() {
       <p className="mt-1 text-xs text-[#64748b]">Shown on the Help page and in the site footer. Leave the licence line empty until you have a licence number.</p>
       {keys.map((key) => (
         <label key={key} className="mt-3 block text-xs font-semibold">
-          {{ ng_bank_name: 'Nigeria deposits · bank name', ng_account_number: 'Nigeria deposits · account number', ng_account_name: 'Nigeria deposits · account name', support_telegram: 'Support Telegram (link or @username)', support_whatsapp: 'Support WhatsApp number', support_email: 'Support email', license_text: 'Licence line (e.g. Licensed by the Gaming Commission of Ghana · your licence number)' }[key] ?? key}
+          {{ deposit_account_network: 'Ghana deposits · network', deposit_account_number: 'Ghana deposits · mobile money number', deposit_account_name: 'Ghana deposits · account name', ng_bank_name: 'Nigeria deposits · bank name', ng_account_number: 'Nigeria deposits · account number', ng_account_name: 'Nigeria deposits · account name', support_telegram: 'Support Telegram (link or @username)', support_whatsapp: 'Support WhatsApp number', support_email: 'Support email', license_text: 'Licence line (e.g. Licensed by the Gaming Commission of Ghana · your licence number)' }[key] ?? key}
           <input value={settings[key] ?? ''} onChange={(event) => setSettings({ ...settings, [key]: event.target.value })} className="rounded-lg mt-1 h-10 w-full border border-[#e2e8f0] px-3 text-sm font-normal" />
         </label>
       ))}

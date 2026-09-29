@@ -36,6 +36,7 @@ export const CONFIG_GROUPS: ConfigGroup[] = [
           { value: "paystack", label: "Paystack checkout" },
           { value: "korapay", label: "Korapay checkout" },
           { value: "moolre", label: "Moolre mobile money" },
+          { value: "manual", label: "Mobile money transfer, confirmed by you" },
         ],
       },
       {
