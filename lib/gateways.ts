@@ -381,6 +381,48 @@ function pick(json: Record<string, unknown> | null, ...paths: string[]): unknown
   return undefined;
 }
 
+/**
+ * Networks such as Telecel confirm a debit with an SMS code rather than a PIN
+ * prompt. Their checkout posts that code here; so do we, from the waiting screen.
+ */
+export async function edibytesVerifyOtp(reference: string, code: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${edibytesBase()}/api/payments/${encodeURIComponent(reference)}/verify-otp/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    const json = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+    if (res.ok) return { ok: true };
+    const reason = String(pick(json, "error.message", "message", "detail") ?? "");
+    console.error("[edibytes] otp refused", res.status, reason);
+    if (res.status >= 500) return { ok: false, error: "The payment service is busy. Please try again in a minute." };
+    return { ok: false, error: reason || "That code was not accepted. Check it and try again." };
+  } catch (err) {
+    console.error("[edibytes] otp", err);
+    return { ok: false, error: "Could not reach the payment service" };
+  }
+}
+
+/** Sends the prompt, or the SMS code, again. Their checkout does the same on "Resend code". */
+export async function edibytesResend(reference: string, phone: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${edibytesBase()}/api/payments/${encodeURIComponent(reference)}/charge/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: localGhanaNumber(phone) }),
+    });
+    const json = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+    if (res.ok) return { ok: true };
+    const reason = String(pick(json, "error.message", "message", "detail") ?? "");
+    console.error("[edibytes] resend refused", res.status, reason);
+    return { ok: false, error: res.status >= 500 ? "The payment service is busy. Please try again in a minute." : reason || "Could not resend the code." };
+  } catch (err) {
+    console.error("[edibytes] resend", err);
+    return { ok: false, error: "Could not reach the payment service" };
+  }
+}
+
 const edibytes: GatewayAdapter = {
   id: "edibytes",
   label: "Edibytes",
@@ -442,7 +484,11 @@ const edibytes: GatewayAdapter = {
         }
         return { ok: false, error: reason || "Could not send the payment prompt. Check the number and try again." };
       }
-      return { ok: true, awaitingPrompt: true, metadata: id ? { edibytesId: id } : undefined };
+      // Their reply says whether a code was texted instead of a PIN prompt; the
+      // waiting screen then opens with the code box already showing.
+      const needsOtp = /otp|verification code|sms code/i.test(JSON.stringify(chargeJson ?? {}));
+      if (needsOtp) console.info("[edibytes] charge wants otp", payRef);
+      return { ok: true, awaitingPrompt: true, awaitingOtp: needsOtp, metadata: id ? { edibytesId: id } : undefined };
     } catch (err) {
       console.error("[edibytes] start", err);
       return { ok: false, error: "Could not start checkout" };

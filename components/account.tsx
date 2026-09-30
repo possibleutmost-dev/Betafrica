@@ -301,7 +301,7 @@ export function DepositPage() {
   const { me, reload } = useMe()
   const setBalance = useSession((state) => state.setBalance)
   const [amount, setAmount] = useState('200')
-  const [waiting, setWaiting] = useState<{ reference: string; amount: number; phone: string } | null>(null)
+  const [waiting, setWaiting] = useState<{ reference: string; amount: number; phone: string; provider?: string; otp?: boolean } | null>(null)
   const [transfer, setTransfer] = useState<{ reference: string; amount: number } | null>(null)
   const [otherPhone, setOtherPhone] = useState('')
   const [switching, setSwitching] = useState(false)
@@ -347,7 +347,7 @@ export function DepositPage() {
         return
       }
       if (json.awaitingPrompt && json.reference) {
-        setWaiting({ reference: json.reference, amount: value, phone })
+        setWaiting({ reference: json.reference, amount: value, phone, provider: json.provider, otp: Boolean(json.awaitingOtp) })
         return
       }
       notify(`Deposit started. Reference ${json.reference}.`)
@@ -380,6 +380,7 @@ export function DepositPage() {
       <DarkPage title="Deposit" help="/help">
         <PromptWait
           {...waiting}
+          userId={player.id}
           currency={currency}
           onDone={(result, balance) => {
             setWaiting(null)
@@ -576,10 +577,37 @@ function BankTransfer({ reference, amount, userId, currency, momo = false, onDon
 }
 
 /** Waits on a mobile-money approval, checking every few seconds for up to three minutes. */
-function PromptWait({ reference, amount, phone, currency, onDone }: { reference: string; amount: number; phone: string; currency: string; onDone: (result: 'confirmed' | 'failed' | 'timeout', balance?: number) => void }) {
+function PromptWait({ reference, amount, phone, currency, userId, provider, otp = false, onDone }: { reference: string; amount: number; phone: string; currency: string; userId: string; provider?: string; otp?: boolean; onDone: (result: 'confirmed' | 'failed' | 'timeout', balance?: number) => void }) {
   const [seconds, setSeconds] = useState(0)
   const done = useRef(onDone)
   done.current = onDone
+  // Telecel and AirtelTigo text a code instead of showing a PIN prompt.
+  const codeByDefault = provider === 'edibytes' && (otp || ghanaNetwork(phone) !== 'MTN')
+  const [codeOpen, setCodeOpen] = useState(codeByDefault)
+  const [code, setCode] = useState('')
+  const [codeBusy, setCodeBusy] = useState(false)
+  const [codeNote, setCodeNote] = useState<{ text: string; tone: 'ok' | 'error' } | null>(null)
+
+  const sendCode = async (action: 'verify' | 'resend') => {
+    setCodeNote(null)
+    setCodeBusy(true)
+    try {
+      const res = await fetch('/api/deposits/otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, reference, action, code, phone }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) return setCodeNote({ text: json.error ?? 'Could not continue', tone: 'error' })
+      setCodeNote(action === 'resend'
+        ? { text: 'A new code is on its way.', tone: 'ok' }
+        : { text: 'Code accepted. Confirming your payment…', tone: 'ok' })
+    } catch {
+      setCodeNote({ text: 'Could not reach the server', tone: 'error' })
+    } finally {
+      setCodeBusy(false)
+    }
+  }
 
   useEffect(() => {
     let alive = true
@@ -591,7 +619,8 @@ function PromptWait({ reference, amount, phone, currency, onDone }: { reference:
       if (!alive) return
       if (json?.status === 'confirmed') return done.current('confirmed', json.balance)
       if (json?.status === 'failed') return done.current('failed')
-      if (Date.now() - started > 180_000) return done.current('timeout')
+      // Five minutes: typing in an SMS code takes longer than tapping a PIN.
+      if (Date.now() - started > 300_000) return done.current('timeout')
       setTimeout(check, 4000)
     }
     const first = setTimeout(check, 4000)
@@ -607,14 +636,36 @@ function PromptWait({ reference, amount, phone, currency, onDone }: { reference:
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e6f6f4]">
         <Smartphone size={30} className="text-[#0f766e]" />
       </div>
-      <h2 className="mt-4 text-xl font-bold">Approve on your phone</h2>
+      <h2 className="mt-4 text-xl font-bold">{codeByDefault ? 'Enter the code we texted you' : 'Approve on your phone'}</h2>
       <p className="mt-2 text-[15px] text-[#334155]">
-        A payment prompt for <b>{formatMoney(amount, currency)}</b> has been sent to <b>+{countryPrefix(phone)} {maskPhoneTail(phone)}</b>. Enter your mobile money PIN to approve it.
+        {codeByDefault
+          ? <>A verification code for <b>{formatMoney(amount, currency)}</b> has been sent by SMS to <b>+{countryPrefix(phone)} {maskPhoneTail(phone)}</b>. Enter it below to pay. If a PIN prompt appears instead, approve it on your phone.</>
+          : <>A payment prompt for <b>{formatMoney(amount, currency)}</b> has been sent to <b>+{countryPrefix(phone)} {maskPhoneTail(phone)}</b>. Enter your mobile money PIN to approve it.</>}
       </p>
+      {provider === 'edibytes' && (codeOpen ? (
+        <div className="mx-auto mt-5 max-w-xs text-left">
+          <label className="mb-1 block text-xs font-semibold">Verification code (SMS)</label>
+          <input
+            value={code}
+            onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 8))}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            placeholder="e.g. 1234"
+            className="h-12 w-full rounded-xl border border-[#e2e8f0] bg-white px-4 text-center text-lg tracking-[0.3em] outline-none focus:border-[#0d9488]"
+          />
+          {codeNote && <p className={`mt-2 rounded-lg px-3 py-2 text-sm ${codeNote.tone === 'ok' ? 'bg-[#e6f6f4] text-[#0f766e]' : 'bg-[#fff0f1] text-[#dc2626]'}`}>{codeNote.text}</p>}
+          <button disabled={codeBusy || code.length < 4} onClick={() => sendCode('verify')} className="mt-3 h-12 w-full rounded-xl bg-[#facc15] font-bold text-[#0f172a] disabled:bg-[#e2e8f0] disabled:text-[#94a3b8]">
+            {codeBusy ? 'Please wait…' : 'Verify & pay'}
+          </button>
+          <button disabled={codeBusy} onClick={() => sendCode('resend')} className="mt-2 w-full text-center text-sm font-semibold text-[#0f766e] disabled:opacity-50">Resend code</button>
+        </div>
+      ) : (
+        <button onClick={() => setCodeOpen(true)} className="mt-4 text-sm font-semibold text-[#0f766e] underline">Got a code by SMS? Enter it here</button>
+      ))}
       <div className="mx-auto mt-6 flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2 text-sm text-[#64748b] shadow-sm">
-        <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#facc15]" /> Waiting for approval · {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}
+        <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#facc15]" /> Waiting for payment · {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}
       </div>
-      <p className="mt-6 text-[13px] text-[#64748b]">No prompt? MTN users can dial *170#, then choose 6 and 3 to approve pending payments.</p>
+      {ghanaNetwork(phone) === 'MTN' && <p className="mt-6 text-[13px] text-[#64748b]">No prompt? MTN users can dial *170#, then choose 6 and 3 to approve pending payments.</p>}
       <button onClick={() => onDone('timeout')} className="mt-6 text-sm font-semibold text-[#0f766e]">Back to deposit</button>
     </div>
   )
