@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/supabase";
 import { getCountry } from "@/lib/countries";
 import { checkWithdrawalGate, qualifiesForApproval } from "@/lib/withdrawals";
-import { linkedSubAdmin } from "@/lib/partner";
 import { paymentReference } from "@/lib/codes";
 import { sendSms, withdrawalRequestedSms } from "@/lib/sms";
 
@@ -37,14 +36,8 @@ export async function POST(req: Request) {
 
   if (!user) return NextResponse.json({ error: "Sign in first" }, { status: 401 });
 
-  // Withdrawals, and the notification that follows one, are for the linked
-  // sub-admin betting account. A normal player id is refused before any
-  // payout row is written, so the client never receives an amount to display.
-  const subAdmin = await linkedSubAdmin(user);
-
-  if (!subAdmin) {
-    return NextResponse.json({ error: "Only a sub-admin account can withdraw." }, { status: 403 });
-  }
+  // Every account, player or sub-admin, withdraws on the same terms: the
+  // qualifying deposits verify it, and verification opens the withdrawal.
 
   // Verification comes first. Until the qualifying deposits are in, the
   // request stops here so the player sees that screen instead of a payout form
@@ -61,7 +54,9 @@ export async function POST(req: Request) {
   }
 
   // Finishing verification is what opens the withdrawal. Operator approval is
-  // not a second lock on a sub-admin account.
+  // not a second lock: the amount leaves the balance now and waits in the
+  // ledger for the operator to pay, so a request can never be paid out while
+  // the balance stays put.
   const gate = checkWithdrawalGate(
     { ...user, withdrawal_approved: true },
     amount,

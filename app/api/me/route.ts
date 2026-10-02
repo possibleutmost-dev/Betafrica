@@ -63,11 +63,11 @@ export async function GET(req: Request) {
       networks: country.networks,
     },
     withdrawal: {
-      // A sub-admin meets the deposit verification, then the form opens.
+      // Any account that meets the deposit verification can withdraw.
       // Amount is not known on this read, so a passed verification counts as
       // unlocked even though a zero-amount probe can never clear the gate.
-      unlocked: Boolean(partner) && qualifiesForApproval(user),
-      failed: partner && !qualifiesForApproval(user) ? "deposits" : gate.failed,
+      unlocked: qualifiesForApproval(user),
+      failed: qualifiesForApproval(user) ? null : "deposits",
       progress: gate.progress,
     },
     partner: partner ?? null,
